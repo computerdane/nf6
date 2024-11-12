@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option go_package = "github.com/computerdane/nf6";
+
+package nf6;
+
+service Nf6 {
+  rpc GetAuthChallenge (GetAuthChallengeRequest) returns (GetAuthChallengeReply) {}
+  rpc Authenticate (AuthenticateRequest) returns (AuthenticateReply) {}
+  
+  rpc GetMachine (GetMachineRequest) returns (GetMachineReply) {}
+  rpc GetRepo (GetRepoRequest) returns (GetRepoReply) {}
+
+  rpc RebuildSystem (RebuildSystemRequest) returns (RebuildSystemReply) {}
+}
+
+message GetAuthChallengeRequest {
+  string publicKey = 1;
+}
+
+message GetAuthChallengeReply {
+  string challenge = 1;
+}
+
+message AuthenticateRequest {
+  string solvedChallenge = 1;
+}
+
+message AuthenticateReply {
+  string token = 1;
+}
+
+message GetMachineRequest {
+  string hostName = 1;
+}
+
+message GetMachineReply {
+  string address = 1;
+  string jumpAddress = 2;
+}
+
+message GetRepoRequest {
+  string repoName = 1;
+}
+
+message GetRepoReply {
+  string repoUrl = 1;
+}
+
+message RebuildSystemRequest {
+  string hostName = 1;
+  optional string repoName = 2;
+}
+
+message RebuildSystemReply {
+  string buildId = 1;
+}
