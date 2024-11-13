@@ -19,6 +19,96 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	Nf6Insecure_Register_FullMethodName = "/nf6.Nf6Insecure/Register"
+)
+
+// Nf6InsecureClient is the client API for Nf6Insecure service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type Nf6InsecureClient interface {
+	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error)
+}
+
+type nf6InsecureClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewNf6InsecureClient(cc grpc.ClientConnInterface) Nf6InsecureClient {
+	return &nf6InsecureClient{cc}
+}
+
+func (c *nf6InsecureClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error) {
+	out := new(RegisterReply)
+	err := c.cc.Invoke(ctx, Nf6Insecure_Register_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Nf6InsecureServer is the server API for Nf6Insecure service.
+// All implementations must embed UnimplementedNf6InsecureServer
+// for forward compatibility
+type Nf6InsecureServer interface {
+	Register(context.Context, *RegisterRequest) (*RegisterReply, error)
+	mustEmbedUnimplementedNf6InsecureServer()
+}
+
+// UnimplementedNf6InsecureServer must be embedded to have forward compatible implementations.
+type UnimplementedNf6InsecureServer struct {
+}
+
+func (UnimplementedNf6InsecureServer) Register(context.Context, *RegisterRequest) (*RegisterReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedNf6InsecureServer) mustEmbedUnimplementedNf6InsecureServer() {}
+
+// UnsafeNf6InsecureServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to Nf6InsecureServer will
+// result in compilation errors.
+type UnsafeNf6InsecureServer interface {
+	mustEmbedUnimplementedNf6InsecureServer()
+}
+
+func RegisterNf6InsecureServer(s grpc.ServiceRegistrar, srv Nf6InsecureServer) {
+	s.RegisterService(&Nf6Insecure_ServiceDesc, srv)
+}
+
+func _Nf6Insecure_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6InsecureServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Insecure_Register_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6InsecureServer).Register(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Nf6Insecure_ServiceDesc is the grpc.ServiceDesc for Nf6Insecure service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "nf6.Nf6Insecure",
+	HandlerType: (*Nf6InsecureServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _Nf6Insecure_Register_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "nf6.proto",
+}
+
+const (
 	Nf6_GetMachine_FullMethodName    = "/nf6.Nf6/GetMachine"
 	Nf6_GetRepo_FullMethodName       = "/nf6.Nf6/GetRepo"
 	Nf6_RebuildSystem_FullMethodName = "/nf6.Nf6/RebuildSystem"

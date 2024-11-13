@@ -20,6 +20,116 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type RegisterRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Email        string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	SshPublicKey string `protobuf:"bytes,2,opt,name=sshPublicKey,proto3" json:"sshPublicKey,omitempty"`
+	SslCsr       string `protobuf:"bytes,3,opt,name=sslCsr,proto3" json:"sslCsr,omitempty"`
+}
+
+func (x *RegisterRequest) Reset() {
+	*x = RegisterRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nf6_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RegisterRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterRequest) ProtoMessage() {}
+
+func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_nf6_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
+func (*RegisterRequest) Descriptor() ([]byte, []int) {
+	return file_nf6_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *RegisterRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *RegisterRequest) GetSshPublicKey() string {
+	if x != nil {
+		return x.SshPublicKey
+	}
+	return ""
+}
+
+func (x *RegisterRequest) GetSslCsr() string {
+	if x != nil {
+		return x.SslCsr
+	}
+	return ""
+}
+
+type RegisterReply struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SslCert string `protobuf:"bytes,1,opt,name=sslCert,proto3" json:"sslCert,omitempty"`
+}
+
+func (x *RegisterReply) Reset() {
+	*x = RegisterReply{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_nf6_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RegisterReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterReply) ProtoMessage() {}
+
+func (x *RegisterReply) ProtoReflect() protoreflect.Message {
+	mi := &file_nf6_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterReply.ProtoReflect.Descriptor instead.
+func (*RegisterReply) Descriptor() ([]byte, []int) {
+	return file_nf6_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RegisterReply) GetSslCert() string {
+	if x != nil {
+		return x.SslCert
+	}
+	return ""
+}
+
 type GetMachineRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -31,7 +141,7 @@ type GetMachineRequest struct {
 func (x *GetMachineRequest) Reset() {
 	*x = GetMachineRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_nf6_proto_msgTypes[0]
+		mi := &file_nf6_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -44,7 +154,7 @@ func (x *GetMachineRequest) String() string {
 func (*GetMachineRequest) ProtoMessage() {}
 
 func (x *GetMachineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_nf6_proto_msgTypes[0]
+	mi := &file_nf6_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +167,7 @@ func (x *GetMachineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMachineRequest.ProtoReflect.Descriptor instead.
 func (*GetMachineRequest) Descriptor() ([]byte, []int) {
-	return file_nf6_proto_rawDescGZIP(), []int{0}
+	return file_nf6_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetMachineRequest) GetHostName() string {
@@ -79,7 +189,7 @@ type GetMachineReply struct {
 func (x *GetMachineReply) Reset() {
 	*x = GetMachineReply{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_nf6_proto_msgTypes[1]
+		mi := &file_nf6_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -92,7 +202,7 @@ func (x *GetMachineReply) String() string {
 func (*GetMachineReply) ProtoMessage() {}
 
 func (x *GetMachineReply) ProtoReflect() protoreflect.Message {
-	mi := &file_nf6_proto_msgTypes[1]
+	mi := &file_nf6_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -105,7 +215,7 @@ func (x *GetMachineReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMachineReply.ProtoReflect.Descriptor instead.
 func (*GetMachineReply) Descriptor() ([]byte, []int) {
-	return file_nf6_proto_rawDescGZIP(), []int{1}
+	return file_nf6_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetMachineReply) GetAddress() string {
@@ -133,7 +243,7 @@ type GetRepoRequest struct {
 func (x *GetRepoRequest) Reset() {
 	*x = GetRepoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_nf6_proto_msgTypes[2]
+		mi := &file_nf6_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -146,7 +256,7 @@ func (x *GetRepoRequest) String() string {
 func (*GetRepoRequest) ProtoMessage() {}
 
 func (x *GetRepoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_nf6_proto_msgTypes[2]
+	mi := &file_nf6_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -159,7 +269,7 @@ func (x *GetRepoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRepoRequest.ProtoReflect.Descriptor instead.
 func (*GetRepoRequest) Descriptor() ([]byte, []int) {
-	return file_nf6_proto_rawDescGZIP(), []int{2}
+	return file_nf6_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetRepoRequest) GetRepoName() string {
@@ -180,7 +290,7 @@ type GetRepoReply struct {
 func (x *GetRepoReply) Reset() {
 	*x = GetRepoReply{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_nf6_proto_msgTypes[3]
+		mi := &file_nf6_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -193,7 +303,7 @@ func (x *GetRepoReply) String() string {
 func (*GetRepoReply) ProtoMessage() {}
 
 func (x *GetRepoReply) ProtoReflect() protoreflect.Message {
-	mi := &file_nf6_proto_msgTypes[3]
+	mi := &file_nf6_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -206,7 +316,7 @@ func (x *GetRepoReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRepoReply.ProtoReflect.Descriptor instead.
 func (*GetRepoReply) Descriptor() ([]byte, []int) {
-	return file_nf6_proto_rawDescGZIP(), []int{3}
+	return file_nf6_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetRepoReply) GetRepoUrl() string {
@@ -228,7 +338,7 @@ type RebuildSystemRequest struct {
 func (x *RebuildSystemRequest) Reset() {
 	*x = RebuildSystemRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_nf6_proto_msgTypes[4]
+		mi := &file_nf6_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -241,7 +351,7 @@ func (x *RebuildSystemRequest) String() string {
 func (*RebuildSystemRequest) ProtoMessage() {}
 
 func (x *RebuildSystemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_nf6_proto_msgTypes[4]
+	mi := &file_nf6_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +364,7 @@ func (x *RebuildSystemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebuildSystemRequest.ProtoReflect.Descriptor instead.
 func (*RebuildSystemRequest) Descriptor() ([]byte, []int) {
-	return file_nf6_proto_rawDescGZIP(), []int{4}
+	return file_nf6_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RebuildSystemRequest) GetHostName() string {
@@ -282,7 +392,7 @@ type RebuildSystemReply struct {
 func (x *RebuildSystemReply) Reset() {
 	*x = RebuildSystemReply{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_nf6_proto_msgTypes[5]
+		mi := &file_nf6_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -295,7 +405,7 @@ func (x *RebuildSystemReply) String() string {
 func (*RebuildSystemReply) ProtoMessage() {}
 
 func (x *RebuildSystemReply) ProtoReflect() protoreflect.Message {
-	mi := &file_nf6_proto_msgTypes[5]
+	mi := &file_nf6_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -308,7 +418,7 @@ func (x *RebuildSystemReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebuildSystemReply.ProtoReflect.Descriptor instead.
 func (*RebuildSystemReply) Descriptor() ([]byte, []int) {
-	return file_nf6_proto_rawDescGZIP(), []int{5}
+	return file_nf6_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RebuildSystemReply) GetBuildId() string {
@@ -322,6 +432,15 @@ var File_nf6_proto protoreflect.FileDescriptor
 
 var file_nf6_proto_rawDesc = []byte{
 	0x0a, 0x09, 0x6e, 0x66, 0x36, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x03, 0x6e, 0x66, 0x36,
+	0x22, 0x63, 0x0a, 0x0f, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x12, 0x22, 0x0a, 0x0c, 0x73, 0x73, 0x68,
+	0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x4b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x0c, 0x73, 0x73, 0x68, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x4b, 0x65, 0x79, 0x12, 0x16, 0x0a,
+	0x06, 0x73, 0x73, 0x6c, 0x43, 0x73, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73,
+	0x73, 0x6c, 0x43, 0x73, 0x72, 0x22, 0x29, 0x0a, 0x0d, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65,
+	0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x73, 0x6c, 0x43, 0x65, 0x72,
+	0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x73, 0x6c, 0x43, 0x65, 0x72, 0x74,
 	0x22, 0x2f, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x52, 0x65,
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x68, 0x6f, 0x73, 0x74, 0x4e, 0x61, 0x6d,
 	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x68, 0x6f, 0x73, 0x74, 0x4e, 0x61, 0x6d,
@@ -344,22 +463,26 @@ var file_nf6_proto_rawDesc = []byte{
 	0x09, 0x5f, 0x72, 0x65, 0x70, 0x6f, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x2e, 0x0a, 0x12, 0x52, 0x65,
 	0x62, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x70, 0x6c, 0x79,
 	0x12, 0x18, 0x0a, 0x07, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x07, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x49, 0x64, 0x32, 0xbf, 0x01, 0x0a, 0x03, 0x4e,
-	0x66, 0x36, 0x12, 0x3c, 0x0a, 0x0a, 0x47, 0x65, 0x74, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65,
-	0x12, 0x16, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e,
-	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x14, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x47,
-	0x65, 0x74, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00,
-	0x12, 0x33, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x12, 0x13, 0x2e, 0x6e, 0x66,
-	0x36, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x11, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x52, 0x65,
-	0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x45, 0x0a, 0x0d, 0x52, 0x65, 0x62, 0x75, 0x69, 0x6c, 0x64,
-	0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x12, 0x19, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x52, 0x65, 0x62,
-	0x75, 0x69, 0x6c, 0x64, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x17, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x52, 0x65, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x53,
-	0x79, 0x73, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x42, 0x1d, 0x5a, 0x1b,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x6d, 0x70, 0x75,
-	0x74, 0x65, 0x72, 0x64, 0x61, 0x6e, 0x65, 0x2f, 0x6e, 0x66, 0x36, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x09, 0x52, 0x07, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x49, 0x64, 0x32, 0x45, 0x0a, 0x0b, 0x4e, 0x66,
+	0x36, 0x49, 0x6e, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x12, 0x36, 0x0a, 0x08, 0x52, 0x65, 0x67,
+	0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x14, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x52, 0x65, 0x67, 0x69,
+	0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x12, 0x2e, 0x6e, 0x66,
+	0x36, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22,
+	0x00, 0x32, 0xbf, 0x01, 0x0a, 0x03, 0x4e, 0x66, 0x36, 0x12, 0x3c, 0x0a, 0x0a, 0x47, 0x65, 0x74,
+	0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x12, 0x16, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x47, 0x65,
+	0x74, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x14, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x65,
+	0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x52, 0x65,
+	0x70, 0x6f, 0x12, 0x13, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x70, 0x6f,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x47, 0x65,
+	0x74, 0x52, 0x65, 0x70, 0x6f, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x45, 0x0a, 0x0d,
+	0x52, 0x65, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x12, 0x19, 0x2e,
+	0x6e, 0x66, 0x36, 0x2e, 0x52, 0x65, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x79, 0x73, 0x74, 0x65,
+	0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x17, 0x2e, 0x6e, 0x66, 0x36, 0x2e, 0x52,
+	0x65, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x52, 0x65, 0x70, 0x6c,
+	0x79, 0x22, 0x00, 0x42, 0x1d, 0x5a, 0x1b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x63, 0x6f, 0x6d, 0x70, 0x75, 0x74, 0x65, 0x72, 0x64, 0x61, 0x6e, 0x65, 0x2f, 0x6e,
+	0x66, 0x36, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -374,24 +497,28 @@ func file_nf6_proto_rawDescGZIP() []byte {
 	return file_nf6_proto_rawDescData
 }
 
-var file_nf6_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_nf6_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_nf6_proto_goTypes = []interface{}{
-	(*GetMachineRequest)(nil),    // 0: nf6.GetMachineRequest
-	(*GetMachineReply)(nil),      // 1: nf6.GetMachineReply
-	(*GetRepoRequest)(nil),       // 2: nf6.GetRepoRequest
-	(*GetRepoReply)(nil),         // 3: nf6.GetRepoReply
-	(*RebuildSystemRequest)(nil), // 4: nf6.RebuildSystemRequest
-	(*RebuildSystemReply)(nil),   // 5: nf6.RebuildSystemReply
+	(*RegisterRequest)(nil),      // 0: nf6.RegisterRequest
+	(*RegisterReply)(nil),        // 1: nf6.RegisterReply
+	(*GetMachineRequest)(nil),    // 2: nf6.GetMachineRequest
+	(*GetMachineReply)(nil),      // 3: nf6.GetMachineReply
+	(*GetRepoRequest)(nil),       // 4: nf6.GetRepoRequest
+	(*GetRepoReply)(nil),         // 5: nf6.GetRepoReply
+	(*RebuildSystemRequest)(nil), // 6: nf6.RebuildSystemRequest
+	(*RebuildSystemReply)(nil),   // 7: nf6.RebuildSystemReply
 }
 var file_nf6_proto_depIdxs = []int32{
-	0, // 0: nf6.Nf6.GetMachine:input_type -> nf6.GetMachineRequest
-	2, // 1: nf6.Nf6.GetRepo:input_type -> nf6.GetRepoRequest
-	4, // 2: nf6.Nf6.RebuildSystem:input_type -> nf6.RebuildSystemRequest
-	1, // 3: nf6.Nf6.GetMachine:output_type -> nf6.GetMachineReply
-	3, // 4: nf6.Nf6.GetRepo:output_type -> nf6.GetRepoReply
-	5, // 5: nf6.Nf6.RebuildSystem:output_type -> nf6.RebuildSystemReply
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	0, // 0: nf6.Nf6Insecure.Register:input_type -> nf6.RegisterRequest
+	2, // 1: nf6.Nf6.GetMachine:input_type -> nf6.GetMachineRequest
+	4, // 2: nf6.Nf6.GetRepo:input_type -> nf6.GetRepoRequest
+	6, // 3: nf6.Nf6.RebuildSystem:input_type -> nf6.RebuildSystemRequest
+	1, // 4: nf6.Nf6Insecure.Register:output_type -> nf6.RegisterReply
+	3, // 5: nf6.Nf6.GetMachine:output_type -> nf6.GetMachineReply
+	5, // 6: nf6.Nf6.GetRepo:output_type -> nf6.GetRepoReply
+	7, // 7: nf6.Nf6.RebuildSystem:output_type -> nf6.RebuildSystemReply
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -404,7 +531,7 @@ func file_nf6_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_nf6_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetMachineRequest); i {
+			switch v := v.(*RegisterRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -416,7 +543,7 @@ func file_nf6_proto_init() {
 			}
 		}
 		file_nf6_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetMachineReply); i {
+			switch v := v.(*RegisterReply); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -428,7 +555,7 @@ func file_nf6_proto_init() {
 			}
 		}
 		file_nf6_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetRepoRequest); i {
+			switch v := v.(*GetMachineRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -440,7 +567,7 @@ func file_nf6_proto_init() {
 			}
 		}
 		file_nf6_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetRepoReply); i {
+			switch v := v.(*GetMachineReply); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -452,7 +579,7 @@ func file_nf6_proto_init() {
 			}
 		}
 		file_nf6_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RebuildSystemRequest); i {
+			switch v := v.(*GetRepoRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -464,6 +591,30 @@ func file_nf6_proto_init() {
 			}
 		}
 		file_nf6_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetRepoReply); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_nf6_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RebuildSystemRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_nf6_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RebuildSystemReply); i {
 			case 0:
 				return &v.state
@@ -476,16 +627,16 @@ func file_nf6_proto_init() {
 			}
 		}
 	}
-	file_nf6_proto_msgTypes[4].OneofWrappers = []interface{}{}
+	file_nf6_proto_msgTypes[6].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_nf6_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_nf6_proto_goTypes,
 		DependencyIndexes: file_nf6_proto_depIdxs,

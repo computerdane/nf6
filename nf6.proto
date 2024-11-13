@@ -4,30 +4,25 @@ option go_package = "github.com/computerdane/nf6";
 
 package nf6;
 
+service Nf6Insecure {
+  rpc Register (RegisterRequest) returns (RegisterReply) {}
+}
+
+message RegisterRequest {
+  string email = 1;
+  string sshPublicKey = 2;
+  string sslCsr = 3;
+}
+
+message RegisterReply {
+  string sslCert = 1;
+}
+
 service Nf6 {
-  rpc GetAuthChallenge (GetAuthChallengeRequest) returns (GetAuthChallengeReply) {}
-  rpc Authenticate (AuthenticateRequest) returns (AuthenticateReply) {}
-  
   rpc GetMachine (GetMachineRequest) returns (GetMachineReply) {}
   rpc GetRepo (GetRepoRequest) returns (GetRepoReply) {}
 
   rpc RebuildSystem (RebuildSystemRequest) returns (RebuildSystemReply) {}
-}
-
-message GetAuthChallengeRequest {
-  string publicKey = 1;
-}
-
-message GetAuthChallengeReply {
-  string challenge = 1;
-}
-
-message AuthenticateRequest {
-  string solvedChallenge = 1;
-}
-
-message AuthenticateReply {
-  string token = 1;
 }
 
 message GetMachineRequest {

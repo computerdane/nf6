@@ -16,6 +16,8 @@
             buf-language-server
             go
             gopls
+            openssl
+            postgresql
             protobuf
             protoc-gen-go
             protoc-gen-go-grpc

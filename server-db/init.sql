@@ -8,10 +8,13 @@ create table global_config (
   constraint singleton check (id = 69)
 );
 
+insert into global_config (domain, wireguard_public_key) values ('nf6.sh', '');
+
 create table account (
   id bigserial primary key,
   email text not null unique,
-  ssh_public_key text not null unique
+  ssh_public_key text not null unique,
+  ssl_public_key text not null unique
 );
 
 create table repo (
