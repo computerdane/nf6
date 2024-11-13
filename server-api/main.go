@@ -44,7 +44,13 @@ func (s *InsecureServer) Ping(_ context.Context, in *pb.PingRequest) (*pb.PingRe
 	return nil, errors.New("did not set ping to true")
 }
 
-func (s *InsecureServer) Register(_ context.Context, in *pb.RegisterRequest) (*pb.RegisterReply, error) {
+func (s *InsecureServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterReply, error) {
+	var emailExists int
+	err := s.db.QueryRow(ctx, "select count(*) from account where email = $1", in.GetEmail()).Scan(&emailExists)
+	if emailExists != 0 {
+		return nil, errors.New("user already exists with that email")
+	}
+
 	certBytes, err := ssl.GenCertFromCsrInMemory(in.GetSslCsr(), "ca.key", "ca.crt")
 	if err != nil {
 		log.Printf("failed to generate ssl cert from csr in memory: %v", err)
@@ -59,7 +65,7 @@ func (s *InsecureServer) Register(_ context.Context, in *pb.RegisterRequest) (*p
 	}
 	pubkey := string(pubkeyBytes)
 
-	_, err = s.db.Exec(context.Background(), "insert into account (email, ssh_public_key, ssl_public_key) values ($1, $2, $3)", in.GetEmail(), in.GetSshPublicKey(), pubkey)
+	_, err = s.db.Exec(ctx, "insert into account (email, ssh_public_key, ssl_public_key) values ($1, $2, $3)", in.GetEmail(), in.GetSshPublicKey(), pubkey)
 	if err != nil {
 		log.Printf("sql query failed: %v", err)
 		return nil, err

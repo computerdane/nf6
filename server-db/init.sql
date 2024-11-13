@@ -12,9 +12,9 @@ insert into global_config (domain, wireguard_public_key) values ('nf6.sh', '');
 
 create table account (
   id bigserial primary key,
-  email text not null unique,
-  ssh_public_key text not null unique,
-  ssl_public_key text not null unique
+  email text not null unique check (email <> ''),
+  ssh_public_key text not null unique check (ssh_public_key <> ''),
+  ssl_public_key text not null unique check (ssl_public_key <> '')
 );
 
 create table repo (
