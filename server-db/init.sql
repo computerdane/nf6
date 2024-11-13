@@ -2,13 +2,13 @@
 
 create table global_config (
   id integer not null primary key default 69,
-  domain text not null,
-  wireguard_public_key text not null,
+  domain text not null check (domain <> ''),
+  wireguard_public_key text not null check (wireguard_public_key <> ''),
   
   constraint singleton check (id = 69)
 );
 
-insert into global_config (domain, wireguard_public_key) values ('nf6.sh', '');
+insert into global_config (domain, wireguard_public_key) values ('nf6.sh', 'sample');
 
 create table account (
   id bigserial primary key,
@@ -20,7 +20,7 @@ create table account (
 create table repo (
   id bigserial primary key,
   account_id bigint references account(id),
-  name text not null,
+  name text not null check (name <> ''),
 
   unique (account_id, name)
 );
@@ -28,8 +28,8 @@ create table repo (
 create table machine (
   id bigserial primary key,
   account_id bigint references account(id),
-  host_name text not null,
-  wireguard_public_key text not null unique,
+  host_name text not null check (host_name <> ''),
+  wireguard_public_key text not null unique check (wireguard_public_key <> ''),
   address_ipv6 inet not null unique,
 
   unique (account_id, host_name)

@@ -2,15 +2,18 @@ package cmd
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
+	"errors"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"time"
 
-	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -22,6 +25,10 @@ var (
 	baseDir string
 	sslDir  string
 	sshDir  string
+
+	privKeyPath string
+	pubKeyPath  string
+	certPath    string
 
 	serverHost         string
 	serverPort         string
@@ -35,8 +42,6 @@ var (
 	client         nf6.Nf6Client
 	clientInsecure nf6.Nf6InsecureClient
 
-	ssl *lib.Openssl
-
 	rootCmd = &cobra.Command{
 		Use:   "nf",
 		Short: "nf simplifies OS provisioning and deployment",
@@ -47,6 +52,13 @@ func mkdirAll(dir string) {
 	err := os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
 		log.Fatalf("failed to create directory %s: %v", dir, err)
+	}
+}
+
+func requireSecureClient(_ *cobra.Command, _ []string) {
+	if client == nil {
+		log.Print("error: you must be registered!")
+		os.Exit(1)
 	}
 }
 
@@ -75,6 +87,10 @@ func init() {
 			log.Fatalf("failed to ping server: %v", err)
 		}
 
+		if _, err := os.Stat(certPath); errors.Is(err, os.ErrNotExist) {
+			return
+		}
+
 		caCertReply, err := clientInsecure.GetCaCert(ctx, &nf6.GetCaCertRequest{})
 		if err != nil {
 			log.Fatalf("failed to get ca cert: %v", err)
@@ -87,17 +103,20 @@ func init() {
 			log.Fatalf("failed to append ca cert: %v", err)
 		}
 
-		cert, err := tls.LoadX509KeyPair(ssl.GetPath("client.crt"), ssl.GetPath("client.key"))
+		cert, err := tls.LoadX509KeyPair(certPath, privKeyPath)
 		if err != nil {
-			log.Printf("failed to load x509 keypair: %v", err)
-			return
+			log.Fatalf("failed to load x509 keypair: %v", err)
 		}
-		creds := credentials.NewTLS(&tls.Config{Certificates: []tls.Certificate{cert}, ClientAuth: tls.RequireAndVerifyClientCert, ClientCAs: caCertPool, RootCAs: caCertPool})
+		creds := credentials.NewTLS(&tls.Config{
+			Certificates: []tls.Certificate{cert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			ClientCAs:    caCertPool,
+			RootCAs:      caCertPool,
+		})
 
 		conn, err = grpc.NewClient(serverHost+":"+serverPort, grpc.WithTransportCredentials(creds), grpc.WithAuthority("a"))
 		if err != nil {
-			log.Printf("failed to dial: %v", err)
-			return
+			log.Fatalf("failed to dial: %v", err)
 		}
 		client = nf6.NewNf6Client(conn)
 	}
@@ -130,9 +149,14 @@ func initDirs() {
 	if sshDir == "" {
 		sshDir = baseDir + "/ssh"
 	}
+
 	mkdirAll(baseDir)
 	mkdirAll(sslDir)
 	mkdirAll(sshDir)
+
+	privKeyPath = sslDir + "/client.key"
+	pubKeyPath = sslDir + "/client.key.pub"
+	certPath = sslDir + "/client.crt"
 }
 
 func initSsh() {
@@ -151,18 +175,37 @@ func initSsh() {
 }
 
 func initSsl() {
-	ssl = &lib.Openssl{Dir: sslDir}
-	err := ssl.GenConfigFiles()
-	if err != nil {
-		log.Fatalf("failed to generate ssl config file: %v", err)
-	}
-	err = ssl.GenKey("client.key")
-	if err != nil {
-		log.Fatalf("failed to generate ssl key: %v", err)
-	}
-	err = ssl.GenCsr("client.key", "client.req")
-	if err != nil {
-		log.Fatalf("failed to generate ssl csr: %v", err)
+	if _, err := os.Stat(privKeyPath); errors.Is(err, os.ErrNotExist) {
+		pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		privKeyPem, err := os.Create(privKeyPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pem.Encode(privKeyPem, &pem.Block{
+			Type:  "PRIVATE KEY",
+			Bytes: privKeyMarshalled,
+		})
+
+		pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pubKeyPem, err := os.Create(pubKeyPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pem.Encode(pubKeyPem, &pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: pubKeyMarshalled,
+		})
 	}
 }
 

@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
-	"log"
 
 	"github.com/computerdane/nf6/nf6"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,27 +28,20 @@ func (s *ServerInsecure) GetCaCert(_ context.Context, in *nf6.GetCaCertRequest) 
 func (s *ServerInsecure) Register(ctx context.Context, in *nf6.RegisterRequest) (*nf6.RegisterReply, error) {
 	var emailExists int
 	err := s.db.QueryRow(ctx, "select count(*) from account where email = $1", in.GetEmail()).Scan(&emailExists)
+	if err != nil {
+		return nil, err
+	}
 	if emailExists != 0 {
-		return nil, errors.New("user already exists with that email")
+		return nil, status.Error(codes.AlreadyExists, "user already exists with that email")
 	}
 
-	certBytes, err := ssl.GenCertFromCsrInMemory(in.GetSslCsr(), "ca.key", "ca.crt")
+	cert, err := ssl.GenCert("ca", in.GetSslPublicKey())
 	if err != nil {
-		log.Printf("failed to generate ssl cert from csr in memory: %v", err)
 		return nil, err
 	}
-	cert := string(certBytes)
 
-	pubkeyBytes, err := ssl.GetPublicKeyInMemory(cert)
+	_, err = s.db.Exec(ctx, "insert into account (email, ssl_public_key, ssh_public_key) values ($1, $2, $3)", in.GetEmail(), in.GetSslPublicKey(), in.GetSshPublicKey())
 	if err != nil {
-		log.Printf("failed to get public key from cert: %v", err)
-		return nil, err
-	}
-	pubkey := string(pubkeyBytes)
-
-	_, err = s.db.Exec(ctx, "insert into account (email, ssh_public_key, ssl_public_key) values ($1, $2, $3)", in.GetEmail(), in.GetSshPublicKey(), pubkey)
-	if err != nil {
-		log.Printf("sql query failed: %v", err)
 		return nil, err
 	}
 

@@ -26,12 +26,12 @@ message GetCaCertReply {
 
 message RegisterRequest {
   string email = 1;
-  string sslPublicKey = 2;
-  string sshPublicKey = 3;
+  bytes sslPublicKey = 2;
+  bytes sshPublicKey = 3;
 }
 
 message RegisterReply {
-  string sslCert = 1;
+  bytes sslCert = 1;
 }
 
 service Nf6 {

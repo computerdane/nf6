@@ -29,8 +29,7 @@ var (
 	sslDir       = flag.String("ssl-dir", *baseDir+"/ssl", "location of ssl data")
 	dbUrl        = flag.String("db-url", "dbname=nf6", "postgres connection string")
 
-	ssl *ssl_util.SslUtil
-
+	ssl    *ssl_util.SslUtil
 	caCert []byte
 	creds  credentials.TransportCredentials
 	dbpool *pgxpool.Pool
@@ -40,8 +39,16 @@ var (
 func main() {
 	flag.Parse()
 
-	ssl.GenCaFiles("ca")
-	ssl.GenCertFiles("ca", "server")
+	ssl = &ssl_util.SslUtil{Dir: *sslDir}
+
+	err := ssl.GenCaFiles("ca")
+	if err != nil {
+		log.Fatalf("failed to generate ca files: %v", err)
+	}
+	err = ssl.GenCertFiles("ca", "server")
+	if err != nil {
+		log.Fatalf("failed to generate server cert files: %v", err)
+	}
 
 	dbpool, err := pgxpool.New(context.Background(), *dbUrl)
 	if err != nil {
@@ -79,7 +86,12 @@ func main() {
 		log.Printf("failed to load x509 keypair: %v", err)
 		return
 	}
-	creds = credentials.NewTLS(&tls.Config{Certificates: []tls.Certificate{cert}, ClientAuth: tls.RequireAndVerifyClientCert, ClientCAs: caCertPool, RootCAs: caCertPool})
+	creds := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    caCertPool,
+		RootCAs:      caCertPool,
+	})
 
 	insecureServer := grpc.NewServer()
 	server := grpc.NewServer(grpc.Creds(creds))
