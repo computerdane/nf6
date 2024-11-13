@@ -2,16 +2,19 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"time"
 
-	openssl "github.com/computerdane/nf6/lib"
+	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -32,7 +35,7 @@ var (
 	client         nf6.Nf6Client
 	clientInsecure nf6.Nf6InsecureClient
 
-	ssl *openssl.Openssl
+	ssl *lib.Openssl
 
 	rootCmd = &cobra.Command{
 		Use:   "nf",
@@ -71,6 +74,32 @@ func init() {
 		if err != nil || !pingReply.GetPong() {
 			log.Fatalf("failed to ping server: %v", err)
 		}
+
+		caCertReply, err := clientInsecure.GetCaCert(ctx, &nf6.GetCaCertRequest{})
+		if err != nil {
+			log.Fatalf("failed to get ca cert: %v", err)
+		}
+		caCert := caCertReply.GetCert()
+
+		caCertPool := x509.NewCertPool()
+		ok := caCertPool.AppendCertsFromPEM(caCert)
+		if !ok {
+			log.Fatalf("failed to append ca cert: %v", err)
+		}
+
+		cert, err := tls.LoadX509KeyPair(ssl.GetPath("client.crt"), ssl.GetPath("client.key"))
+		if err != nil {
+			log.Printf("failed to load x509 keypair: %v", err)
+			return
+		}
+		creds := credentials.NewTLS(&tls.Config{Certificates: []tls.Certificate{cert}, ClientAuth: tls.RequireAndVerifyClientCert, ClientCAs: caCertPool, RootCAs: caCertPool})
+
+		conn, err = grpc.NewClient(serverHost+":"+serverPort, grpc.WithTransportCredentials(creds), grpc.WithAuthority("a"))
+		if err != nil {
+			log.Printf("failed to dial: %v", err)
+			return
+		}
+		client = nf6.NewNf6Client(conn)
 	}
 
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
@@ -78,7 +107,12 @@ func init() {
 	}
 
 	rootCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
-		connInsecure.Close()
+		if connInsecure != nil {
+			connInsecure.Close()
+		}
+		if conn != nil {
+			conn.Close()
+		}
 	}
 }
 
@@ -117,8 +151,8 @@ func initSsh() {
 }
 
 func initSsl() {
-	ssl = &openssl.Openssl{Dir: sslDir}
-	err := ssl.GenConfigFile()
+	ssl = &lib.Openssl{Dir: sslDir}
+	err := ssl.GenConfigFiles()
 	if err != nil {
 		log.Fatalf("failed to generate ssl config file: %v", err)
 	}

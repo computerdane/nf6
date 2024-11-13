@@ -6,6 +6,7 @@ package nf6;
 
 service Nf6Insecure {
   rpc Ping (PingRequest) returns (PingResponse) {}
+  rpc GetCaCert (GetCaCertRequest) returns (GetCaCertReply) {}
   rpc Register (RegisterRequest) returns (RegisterReply) {}
 }
 
@@ -17,10 +18,16 @@ message PingResponse {
   bool pong = 1;
 }
 
+message GetCaCertRequest {}
+
+message GetCaCertReply {
+  bytes cert = 1;
+}
+
 message RegisterRequest {
   string email = 1;
-  string sshPublicKey = 2;
-  string sslCsr = 3;
+  string sslPublicKey = 2;
+  string sshPublicKey = 3;
 }
 
 message RegisterReply {
@@ -28,10 +35,20 @@ message RegisterReply {
 }
 
 service Nf6 {
+  rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}
+  
   rpc GetMachine (GetMachineRequest) returns (GetMachineReply) {}
   rpc GetRepo (GetRepoRequest) returns (GetRepoReply) {}
 
   rpc RebuildSystem (RebuildSystemRequest) returns (RebuildSystemReply) {}
+}
+
+message WhoAmIRequest {}
+
+message WhoAmIReply {
+  string email = 1;
+  string sslPublicKey = 2;
+  string sshPublicKey = 3;
 }
 
 message GetMachineRequest {

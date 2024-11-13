@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Nf6Insecure_Ping_FullMethodName     = "/nf6.Nf6Insecure/Ping"
-	Nf6Insecure_Register_FullMethodName = "/nf6.Nf6Insecure/Register"
+	Nf6Insecure_Ping_FullMethodName      = "/nf6.Nf6Insecure/Ping"
+	Nf6Insecure_GetCaCert_FullMethodName = "/nf6.Nf6Insecure/GetCaCert"
+	Nf6Insecure_Register_FullMethodName  = "/nf6.Nf6Insecure/Register"
 )
 
 // Nf6InsecureClient is the client API for Nf6Insecure service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Nf6InsecureClient interface {
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	GetCaCert(ctx context.Context, in *GetCaCertRequest, opts ...grpc.CallOption) (*GetCaCertReply, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error)
 }
 
@@ -48,6 +50,15 @@ func (c *nf6InsecureClient) Ping(ctx context.Context, in *PingRequest, opts ...g
 	return out, nil
 }
 
+func (c *nf6InsecureClient) GetCaCert(ctx context.Context, in *GetCaCertRequest, opts ...grpc.CallOption) (*GetCaCertReply, error) {
+	out := new(GetCaCertReply)
+	err := c.cc.Invoke(ctx, Nf6Insecure_GetCaCert_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *nf6InsecureClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error) {
 	out := new(RegisterReply)
 	err := c.cc.Invoke(ctx, Nf6Insecure_Register_FullMethodName, in, out, opts...)
@@ -62,6 +73,7 @@ func (c *nf6InsecureClient) Register(ctx context.Context, in *RegisterRequest, o
 // for forward compatibility
 type Nf6InsecureServer interface {
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	GetCaCert(context.Context, *GetCaCertRequest) (*GetCaCertReply, error)
 	Register(context.Context, *RegisterRequest) (*RegisterReply, error)
 	mustEmbedUnimplementedNf6InsecureServer()
 }
@@ -72,6 +84,9 @@ type UnimplementedNf6InsecureServer struct {
 
 func (UnimplementedNf6InsecureServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedNf6InsecureServer) GetCaCert(context.Context, *GetCaCertRequest) (*GetCaCertReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCaCert not implemented")
 }
 func (UnimplementedNf6InsecureServer) Register(context.Context, *RegisterRequest) (*RegisterReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
@@ -107,6 +122,24 @@ func _Nf6Insecure_Ping_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Nf6Insecure_GetCaCert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCaCertRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6InsecureServer).GetCaCert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Insecure_GetCaCert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6InsecureServer).GetCaCert(ctx, req.(*GetCaCertRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Nf6Insecure_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterRequest)
 	if err := dec(in); err != nil {
@@ -137,6 +170,10 @@ var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Nf6Insecure_Ping_Handler,
 		},
 		{
+			MethodName: "GetCaCert",
+			Handler:    _Nf6Insecure_GetCaCert_Handler,
+		},
+		{
 			MethodName: "Register",
 			Handler:    _Nf6Insecure_Register_Handler,
 		},
@@ -146,6 +183,7 @@ var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	Nf6_WhoAmI_FullMethodName        = "/nf6.Nf6/WhoAmI"
 	Nf6_GetMachine_FullMethodName    = "/nf6.Nf6/GetMachine"
 	Nf6_GetRepo_FullMethodName       = "/nf6.Nf6/GetRepo"
 	Nf6_RebuildSystem_FullMethodName = "/nf6.Nf6/RebuildSystem"
@@ -155,6 +193,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Nf6Client interface {
+	WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ...grpc.CallOption) (*WhoAmIReply, error)
 	GetMachine(ctx context.Context, in *GetMachineRequest, opts ...grpc.CallOption) (*GetMachineReply, error)
 	GetRepo(ctx context.Context, in *GetRepoRequest, opts ...grpc.CallOption) (*GetRepoReply, error)
 	RebuildSystem(ctx context.Context, in *RebuildSystemRequest, opts ...grpc.CallOption) (*RebuildSystemReply, error)
@@ -166,6 +205,15 @@ type nf6Client struct {
 
 func NewNf6Client(cc grpc.ClientConnInterface) Nf6Client {
 	return &nf6Client{cc}
+}
+
+func (c *nf6Client) WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ...grpc.CallOption) (*WhoAmIReply, error) {
+	out := new(WhoAmIReply)
+	err := c.cc.Invoke(ctx, Nf6_WhoAmI_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *nf6Client) GetMachine(ctx context.Context, in *GetMachineRequest, opts ...grpc.CallOption) (*GetMachineReply, error) {
@@ -199,6 +247,7 @@ func (c *nf6Client) RebuildSystem(ctx context.Context, in *RebuildSystemRequest,
 // All implementations must embed UnimplementedNf6Server
 // for forward compatibility
 type Nf6Server interface {
+	WhoAmI(context.Context, *WhoAmIRequest) (*WhoAmIReply, error)
 	GetMachine(context.Context, *GetMachineRequest) (*GetMachineReply, error)
 	GetRepo(context.Context, *GetRepoRequest) (*GetRepoReply, error)
 	RebuildSystem(context.Context, *RebuildSystemRequest) (*RebuildSystemReply, error)
@@ -209,6 +258,9 @@ type Nf6Server interface {
 type UnimplementedNf6Server struct {
 }
 
+func (UnimplementedNf6Server) WhoAmI(context.Context, *WhoAmIRequest) (*WhoAmIReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WhoAmI not implemented")
+}
 func (UnimplementedNf6Server) GetMachine(context.Context, *GetMachineRequest) (*GetMachineReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMachine not implemented")
 }
@@ -229,6 +281,24 @@ type UnsafeNf6Server interface {
 
 func RegisterNf6Server(s grpc.ServiceRegistrar, srv Nf6Server) {
 	s.RegisterService(&Nf6_ServiceDesc, srv)
+}
+
+func _Nf6_WhoAmI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WhoAmIRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).WhoAmI(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_WhoAmI_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).WhoAmI(ctx, req.(*WhoAmIRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Nf6_GetMachine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -292,6 +362,10 @@ var Nf6_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "nf6.Nf6",
 	HandlerType: (*Nf6Server)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "WhoAmI",
+			Handler:    _Nf6_WhoAmI_Handler,
+		},
 		{
 			MethodName: "GetMachine",
 			Handler:    _Nf6_GetMachine_Handler,

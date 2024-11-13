@@ -1,4 +1,4 @@
-package openssl
+package lib
 
 import (
 	"errors"
@@ -18,6 +18,10 @@ func (ssl *Openssl) GetPath(name string) string {
 
 func (ssl *Openssl) GetConfigPath() string {
 	return ssl.GetPath("openssl.cnf")
+}
+
+func (ssl *Openssl) GetExtConfigPath() string {
+	return ssl.GetPath("openssl_ext.cnf")
 }
 
 func (ssl *Openssl) InitCmd(cmd *exec.Cmd) {
@@ -61,8 +65,12 @@ func (ssl *Openssl) RunCommandInMemory(cmd *exec.Cmd, in string) ([]byte, error)
 	return cmd.Output()
 }
 
-func (ssl *Openssl) GenConfigFile() error {
+func (ssl *Openssl) GenConfigFiles() error {
 	file, err := os.Create(ssl.GetConfigPath())
+	if err != nil {
+		return err
+	}
+	extFile, err := os.Create(ssl.GetExtConfigPath())
 	if err != nil {
 		return err
 	}
@@ -82,6 +90,9 @@ L = a
 O  = a
 CN = a
 `)
+	extFile.WriteString(`
+subjectAltName = DNS:a
+`)
 	return nil
 }
 
@@ -96,7 +107,7 @@ func (ssl *Openssl) GenKey(outPath string) error {
 func (ssl *Openssl) GenCert(keyPath string, outPath string) error {
 	exists, err := ssl.FileExists(outPath)
 	if !exists {
-		return ssl.RunCommand("openssl", "req", "-new", "-x509", "-key", keyPath, "-out", outPath)
+		return ssl.RunCommand("openssl", "req", "-addext", "subjectAltName = DNS:a", "-new", "-x509", "-key", keyPath, "-out", outPath)
 	}
 	return err
 }
@@ -104,7 +115,7 @@ func (ssl *Openssl) GenCert(keyPath string, outPath string) error {
 func (ssl *Openssl) GenCsr(keyPath string, outPath string) error {
 	exists, err := ssl.FileExists(outPath)
 	if !exists {
-		return ssl.RunCommand("openssl", "req", "-new", "-key", keyPath, "-out", outPath)
+		return ssl.RunCommand("openssl", "req", "-addext", "subjectAltName = DNS:a", "-new", "-key", keyPath, "-out", outPath)
 	}
 	return err
 }
@@ -112,7 +123,7 @@ func (ssl *Openssl) GenCsr(keyPath string, outPath string) error {
 func (ssl *Openssl) GenCertFromCsr(csrPath string, caKeyPath string, caCertPath string, outPath string) error {
 	exists, err := ssl.FileExists(outPath)
 	if !exists {
-		return ssl.RunCommand("openssl", "x509", "-req", "-CA", caCertPath, "-CAkey", caKeyPath, "-in", csrPath, "-out", outPath)
+		return ssl.RunCommand("openssl", "x509", "-extfile", ssl.GetExtConfigPath(), "-req", "-CA", caCertPath, "-CAkey", caKeyPath, "-in", csrPath, "-out", outPath)
 	}
 	return err
 }

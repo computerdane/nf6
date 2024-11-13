@@ -2,14 +2,16 @@ package main
 
 import (
 	"context"
-	"errors"
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"os"
 
-	openssl "github.com/computerdane/nf6/lib"
-	pb "github.com/computerdane/nf6/nf6"
+	"github.com/computerdane/nf6/nf6"
+	"github.com/computerdane/nf6/server-api/ssl_util"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -27,94 +29,19 @@ var (
 	sslDir       = flag.String("ssl-dir", *baseDir+"/ssl", "location of ssl data")
 	dbUrl        = flag.String("db-url", "dbname=nf6", "postgres connection string")
 
-	ssl    *openssl.Openssl
+	ssl *ssl_util.SslUtil
+
+	caCert []byte
+	creds  credentials.TransportCredentials
 	dbpool *pgxpool.Pool
 	config Config
 )
 
-type InsecureServer struct {
-	pb.UnimplementedNf6InsecureServer
-	db *pgxpool.Pool
-}
-
-func (s *InsecureServer) Ping(_ context.Context, in *pb.PingRequest) (*pb.PingResponse, error) {
-	if in.GetPing() {
-		return &pb.PingResponse{Pong: true}, nil
-	}
-	return nil, errors.New("did not set ping to true")
-}
-
-func (s *InsecureServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterReply, error) {
-	var emailExists int
-	err := s.db.QueryRow(ctx, "select count(*) from account where email = $1", in.GetEmail()).Scan(&emailExists)
-	if emailExists != 0 {
-		return nil, errors.New("user already exists with that email")
-	}
-
-	certBytes, err := ssl.GenCertFromCsrInMemory(in.GetSslCsr(), "ca.key", "ca.crt")
-	if err != nil {
-		log.Printf("failed to generate ssl cert from csr in memory: %v", err)
-		return nil, err
-	}
-	cert := string(certBytes)
-
-	pubkeyBytes, err := ssl.GetPublicKeyInMemory(cert)
-	if err != nil {
-		log.Printf("failed to get public key from cert: %v", err)
-		return nil, err
-	}
-	pubkey := string(pubkeyBytes)
-
-	_, err = s.db.Exec(ctx, "insert into account (email, ssh_public_key, ssl_public_key) values ($1, $2, $3)", in.GetEmail(), in.GetSshPublicKey(), pubkey)
-	if err != nil {
-		log.Printf("sql query failed: %v", err)
-		return nil, err
-	}
-
-	return &pb.RegisterReply{SslCert: cert}, nil
-}
-
-type Server struct {
-	pb.UnimplementedNf6Server
-	db *pgxpool.Pool
-}
-
-func (s *Server) GetMachine(_ context.Context, in *pb.GetMachineRequest) (*pb.GetMachineReply, error) {
-	return &pb.GetMachineReply{Address: "fishtank.nf6.sh", JumpAddress: config.domain}, nil
-}
-
-func initSsl() {
-	ssl = &openssl.Openssl{Dir: *sslDir}
-	err := ssl.GenConfigFile()
-	if err != nil {
-		log.Fatalf("failed to generate ssl config file: %v", err)
-	}
-	err = ssl.GenKey("ca.key")
-	if err != nil {
-		log.Fatalf("failed to generate ssl ca key: %v", err)
-	}
-	err = ssl.GenCert("ca.key", "ca.crt")
-	if err != nil {
-		log.Fatalf("failed to generate ssl ca cert: %v", err)
-	}
-	err = ssl.GenKey("server.key")
-	if err != nil {
-		log.Fatalf("failed to generate ssl key: %v", err)
-	}
-	err = ssl.GenCsr("server.key", "server.req")
-	if err != nil {
-		log.Fatalf("failed to generate ssl csr: %v", err)
-	}
-	err = ssl.GenCertFromCsr("server.req", "ca.key", "ca.crt", "server.crt")
-	if err != nil {
-		log.Fatalf("failed to generate ssl cert from csr: %v", err)
-	}
-}
-
 func main() {
 	flag.Parse()
 
-	initSsl()
+	ssl.GenCaFiles("ca")
+	ssl.GenCertFiles("ca", "server")
 
 	dbpool, err := pgxpool.New(context.Background(), *dbUrl)
 	if err != nil {
@@ -136,16 +63,29 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	creds, err := credentials.NewServerTLSFromFile(ssl.GetPath("server.crt"), ssl.GetPath("server.key"))
+	caCert, err = os.ReadFile(*sslDir + "/ca.crt")
 	if err != nil {
-		log.Fatalf("failed to initialize server TLS: %v", err)
+		log.Fatalf("failed to read ca.crt: %v", err)
 	}
+
+	caCertPool := x509.NewCertPool()
+	ok := caCertPool.AppendCertsFromPEM(caCert)
+	if !ok {
+		log.Fatalf("failed to append ca cert: %v", err)
+	}
+
+	cert, err := tls.LoadX509KeyPair(*sslDir+"/server.crt", *sslDir+"/server.key")
+	if err != nil {
+		log.Printf("failed to load x509 keypair: %v", err)
+		return
+	}
+	creds = credentials.NewTLS(&tls.Config{Certificates: []tls.Certificate{cert}, ClientAuth: tls.RequireAndVerifyClientCert, ClientCAs: caCertPool, RootCAs: caCertPool})
 
 	insecureServer := grpc.NewServer()
 	server := grpc.NewServer(grpc.Creds(creds))
 
-	pb.RegisterNf6InsecureServer(insecureServer, &InsecureServer{db: dbpool})
-	pb.RegisterNf6Server(server, &Server{db: dbpool})
+	nf6.RegisterNf6InsecureServer(insecureServer, &ServerInsecure{db: dbpool})
+	nf6.RegisterNf6Server(server, &Server{db: dbpool})
 
 	go func() {
 		log.Printf("server listening at %v", insecureLis.Addr())
