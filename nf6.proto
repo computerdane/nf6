@@ -5,7 +5,12 @@ option go_package = "github.com/computerdane/nf6";
 package nf6;
 
 service Nf6Insecure {
+  rpc GetCaCert () retuns (GetCaCertReply) {}
   rpc Register (RegisterRequest) returns (RegisterReply) {}
+}
+
+message GetCaCertReply {
+  string cert = 1;
 }
 
 message RegisterRequest {

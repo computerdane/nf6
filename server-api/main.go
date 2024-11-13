@@ -21,16 +21,13 @@ type Config struct {
 }
 
 var (
+	port    = flag.Int("port", 6969, "nf6 api server port")
 	baseDir = flag.String("base-dir", "/var/lib/nf6/server-api", "location of api data")
 	sslDir  = flag.String("ssl-dir", *baseDir+"/ssl", "location of ssl data")
+	dbUrl   = flag.String("db-url", "dbname=nf6", "postgres connection string")
 
-	port = flag.Int("port", 6969, "nf6 api server port")
-
-	ssl *openssl.Openssl
-
-	dbUrl  = flag.String("db-url", "dbname=nf6", "postgres connection string")
+	ssl    *openssl.Openssl
 	dbpool *pgxpool.Pool
-
 	config Config
 )
 
@@ -38,23 +35,25 @@ type InsecureServer struct {
 	pb.UnimplementedNf6InsecureServer
 }
 
-// func (s *InsecureServer) Register(_ context.Context, in *pb.RegisterRequest) (*pb.RegisterReply, error) {
-// 	cert, err := openssl.GenCertWithCsr(in.GetSslCsr(), *sslCaCertPath, *sslCaKeyPath)
-// 	if err != nil {
-// 		log.Fatalf("failed to gen cert: %v", err)
-// 		return nil, err
-// 	}
+func (s *InsecureServer) Register(_ context.Context, in *pb.RegisterRequest) (*pb.RegisterReply, error) {
+	certBytes, err := ssl.GenCertFromCsrInMemory(in.GetSslCsr(), "ca.key", "ca.crt")
+	if err != nil {
+		log.Fatalf("failed to generate ssl cert from csr in memory: %v", err)
+		return nil, err
+	}
+	cert := string(certBytes)
 
-// 	pubkey, err := openssl.PublicKey(cert)
-// 	if err != nil {
-// 		log.Fatalf("failed to get public key from cert: %v", err)
-// 		return nil, err
-// 	}
+	pubkeyBytes, err := ssl.GetPublicKeyInMemory(cert)
+	if err != nil {
+		log.Fatalf("failed to get public key from cert: %v", err)
+		return nil, err
+	}
+	pubkey := string(pubkeyBytes)
 
-// 	err = dbpool.QueryRow(context.Background(), "insert into account (email, ssh_public_key, ssl_public_key) values ($1, $2, $3)", in.GetEmail(), in.GetSshPublicKey(), pubkey).Scan()
+	err = dbpool.QueryRow(context.Background(), "insert into account (email, ssh_public_key, ssl_public_key) values ($1, $2, $3)", in.GetEmail(), in.GetSshPublicKey(), pubkey).Scan()
 
-// 	return &pb.RegisterReply{SslCert: cert}, nil
-// }
+	return &pb.RegisterReply{SslCert: cert}, nil
+}
 
 type Server struct {
 	pb.UnimplementedNf6Server
