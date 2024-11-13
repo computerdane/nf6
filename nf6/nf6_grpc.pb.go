@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	Nf6Insecure_Ping_FullMethodName     = "/nf6.Nf6Insecure/Ping"
 	Nf6Insecure_Register_FullMethodName = "/nf6.Nf6Insecure/Register"
 )
 
@@ -26,6 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Nf6InsecureClient interface {
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error)
 }
 
@@ -35,6 +37,15 @@ type nf6InsecureClient struct {
 
 func NewNf6InsecureClient(cc grpc.ClientConnInterface) Nf6InsecureClient {
 	return &nf6InsecureClient{cc}
+}
+
+func (c *nf6InsecureClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	out := new(PingResponse)
+	err := c.cc.Invoke(ctx, Nf6Insecure_Ping_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *nf6InsecureClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error) {
@@ -50,6 +61,7 @@ func (c *nf6InsecureClient) Register(ctx context.Context, in *RegisterRequest, o
 // All implementations must embed UnimplementedNf6InsecureServer
 // for forward compatibility
 type Nf6InsecureServer interface {
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterReply, error)
 	mustEmbedUnimplementedNf6InsecureServer()
 }
@@ -58,6 +70,9 @@ type Nf6InsecureServer interface {
 type UnimplementedNf6InsecureServer struct {
 }
 
+func (UnimplementedNf6InsecureServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
 func (UnimplementedNf6InsecureServer) Register(context.Context, *RegisterRequest) (*RegisterReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
@@ -72,6 +87,24 @@ type UnsafeNf6InsecureServer interface {
 
 func RegisterNf6InsecureServer(s grpc.ServiceRegistrar, srv Nf6InsecureServer) {
 	s.RegisterService(&Nf6Insecure_ServiceDesc, srv)
+}
+
+func _Nf6Insecure_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6InsecureServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Insecure_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6InsecureServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Nf6Insecure_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -99,6 +132,10 @@ var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "nf6.Nf6Insecure",
 	HandlerType: (*Nf6InsecureServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Ping",
+			Handler:    _Nf6Insecure_Ping_Handler,
+		},
 		{
 			MethodName: "Register",
 			Handler:    _Nf6Insecure_Register_Handler,
