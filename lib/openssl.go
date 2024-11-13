@@ -54,7 +54,10 @@ func (ssl *Openssl) RunCommandInMemory(cmd *exec.Cmd, in string) ([]byte, error)
 		return nil, err
 	}
 	defer stdin.Close()
-	io.WriteString(stdin, in)
+	_, err = io.WriteString(stdin, in)
+	if err != nil {
+		return nil, err
+	}
 	return cmd.Output()
 }
 

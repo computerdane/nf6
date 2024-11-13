@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"time"
 
 	openssl "github.com/computerdane/nf6/lib"
@@ -16,6 +18,7 @@ import (
 var (
 	baseDir            = flag.String("base-dir", "", "location of api data")
 	sslDir             = flag.String("ssl-dir", "", "location of ssl data")
+	sshDir             = flag.String("ssh-dir", "", "location of ssh data")
 	insecureServerAddr = flag.String("insecure-server-addr", "localhost:6968", "host:port address of insecure api server")
 	serverAddr         = flag.String("server-addr", "localhost:6969", "host:port address of secure api server")
 
@@ -28,6 +31,22 @@ func mkdirAll(dir string) {
 		log.Fatalf("failed to create directory %s: %v", dir, err)
 	}
 }
+
+func initSsh() error {
+	cmd := exec.Command("ssh-keygen", "-t", "ed25519", "-f", "./id_ed25519", "-N", "''", "-q")
+	cmd.Dir = *sshDir
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	defer stdin.Close()
+	_, err = io.WriteString(stdin, "n\n") // Answer 'n' to prompt to overwrite existing file
+	if err != nil {
+		return err
+	}
+	return cmd.Run()
+}
+
 func initSsl(insecureClient pb.Nf6InsecureClient) {
 	ssl = &openssl.Openssl{Dir: *sslDir}
 	err := ssl.GenConfigFile()
@@ -48,15 +67,23 @@ func initSsl(insecureClient pb.Nf6InsecureClient) {
 		log.Fatalf("could not read ssl csr: %v", err)
 	}
 
+	sshBytes, err := os.ReadFile(*sshDir + "/id_ed25519.pub")
+	if err != nil {
+		log.Fatalf("could not read ssh pubkey: %v", err)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	registerReply, err := insecureClient.Register(ctx, &pb.RegisterRequest{Email: "danerieber@gmail.com", SshPublicKey: "", SslCsr: string(csrBytes)})
+	registerReply, err := insecureClient.Register(ctx, &pb.RegisterRequest{Email: "danerieber@gmail.com", SshPublicKey: string(sshBytes), SslCsr: string(csrBytes)})
 	if err != nil {
 		log.Fatalf("failed to register: %v", err)
 	}
 
 	cert := registerReply.GetSslCert()
-	log.Printf("%s", cert)
+	err = os.WriteFile(ssl.GetPath("client.crt"), []byte(cert), 0600)
+	if err != nil {
+		log.Fatalf("failed to write ssl cert: %v", err)
+	}
 }
 
 func main() {
@@ -72,9 +99,13 @@ func main() {
 	if *sslDir == "" {
 		*sslDir = *baseDir + "/ssl"
 	}
+	if *sshDir == "" {
+		*sshDir = *baseDir + "/ssh"
+	}
 
 	mkdirAll(*baseDir)
 	mkdirAll(*sslDir)
+	mkdirAll(*sshDir)
 
 	insecureConn, err := grpc.NewClient(*insecureServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -92,5 +123,6 @@ func main() {
 		log.Fatalf("failed to ping server: %v", err)
 	}
 
+	initSsh()
 	initSsl(insecureClient)
 }
