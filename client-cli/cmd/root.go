@@ -141,11 +141,6 @@ func init() {
 	viper.BindPFlag("dataDir", rootCmd.PersistentFlags().Lookup("dataDir"))
 	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 
-	apiHost = viper.GetString("apiHost")
-	apiPortInsecure = viper.GetString("apiPortInsecure")
-	apiPortSecure = viper.GetString("apiPortSecure")
-	dataDir = viper.GetString("dataDir")
-	timeout = viper.GetDuration("timeout")
 }
 
 func initConfig() {
@@ -165,6 +160,12 @@ func initConfig() {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			log.Fatal(err)
 		}
+	} else {
+		apiHost = viper.GetString("apiHost")
+		apiPortInsecure = viper.GetString("apiPortInsecure")
+		apiPortSecure = viper.GetString("apiPortSecure")
+		dataDir = viper.GetString("dataDir")
+		timeout = viper.GetDuration("timeout")
 	}
 }
 

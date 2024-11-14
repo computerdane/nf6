@@ -123,11 +123,6 @@ func init() {
 	viper.BindPFlag("dbUrl", rootCmd.PersistentFlags().Lookup("dbUrl"))
 	viper.BindPFlag("portInsecure", rootCmd.PersistentFlags().Lookup("portInsecure"))
 	viper.BindPFlag("portSecure", rootCmd.PersistentFlags().Lookup("portSecure"))
-
-	dataDir = viper.GetString("dataDir")
-	dbUrl = viper.GetString("dbUrl")
-	portInsecure = viper.GetInt("portInsecure")
-	portSecure = viper.GetInt("portSecure")
 }
 
 func initConfig() {
@@ -136,6 +131,11 @@ func initConfig() {
 	}
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("could not read config file: %v", err)
+	} else {
+		dataDir = viper.GetString("dataDir")
+		dbUrl = viper.GetString("dbUrl")
+		portInsecure = viper.GetInt("portInsecure")
+		portSecure = viper.GetInt("portSecure")
 	}
 }
 
