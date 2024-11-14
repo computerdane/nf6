@@ -32,6 +32,8 @@
         packages = {
           client-cli = pkgs.callPackage ./client-cli/default.nix { };
           server-api = pkgs.callPackage ./server-api/default.nix { };
+
+          init-sql = ./server-db/init.sql;
         };
       }
     );
