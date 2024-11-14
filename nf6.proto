@@ -34,7 +34,7 @@ message RegisterReply {
   bytes sslCert = 1;
 }
 
-service Nf6 {
+service Nf6Secure {
   rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}
   
   rpc GetMachine (GetMachineRequest) returns (GetMachineReply) {}

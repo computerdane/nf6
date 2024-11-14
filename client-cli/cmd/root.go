@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -16,51 +17,56 @@ import (
 
 	"github.com/computerdane/nf6/nf6"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
-	baseDir string
-	sslDir  string
-	sshDir  string
+	cfgFile string
 
-	sslPrivKeyPath string
-	sslPubKeyPath  string
-	sslCertPath    string
+	apiHost         string
+	apiPortInsecure string
+	apiPortSecure   string
+	dataDir         string
+	timeout         time.Duration
 
+	sshDir         string
 	sshPrivKeyPath string
 	sshPubKeyPath  string
 
-	serverHost         string
-	serverPort         string
-	serverPortInsecure string
+	sslDir         string
+	sslCertPath    string
+	sslPrivKeyPath string
+	sslPubKeyPath  string
 
-	timeout time.Duration
-
-	conn         *grpc.ClientConn
+	connSecure   *grpc.ClientConn
 	connInsecure *grpc.ClientConn
 
-	client         nf6.Nf6Client
+	clientSecure   nf6.Nf6SecureClient
 	clientInsecure nf6.Nf6InsecureClient
-
-	rootCmd = &cobra.Command{
-		Use:   "nf",
-		Short: "nf simplifies OS provisioning and deployment",
-	}
 )
 
-func mkdirAll(dir string) {
-	err := os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
-		log.Fatalf("failed to create directory %s: %v", dir, err)
-	}
+var rootCmd = &cobra.Command{
+	Use:   "nf",
+	Short: "nf simplifies OS provisioning and deployment",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("Thanks for using %s! For help, use `%s help`", cmd.Use, cmd.Use)
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		if connInsecure != nil {
+			connInsecure.Close()
+		}
+		if connSecure != nil {
+			connSecure.Close()
+		}
+	},
 }
 
 func requireInsecureClient(_ *cobra.Command, _ []string) {
 	var err error
-	connInsecure, err = grpc.NewClient(serverHost+":"+serverPortInsecure, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	connInsecure, err = grpc.NewClient(apiHost+":"+apiPortInsecure, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("failed to dial: %v", err)
 	}
@@ -107,67 +113,90 @@ func requireSecureClient(_ *cobra.Command, _ []string) {
 		RootCAs:      caCertPool,
 	})
 
-	conn, err = grpc.NewClient(serverHost+":"+serverPort, grpc.WithTransportCredentials(creds), grpc.WithAuthority("a"))
+	connSecure, err = grpc.NewClient(apiHost+":"+apiPortSecure, grpc.WithTransportCredentials(creds), grpc.WithAuthority("a"))
 	if err != nil {
 		log.Fatalf("failed to dial: %v", err)
 	}
-	client = nf6.NewNf6Client(conn)
+	clientSecure = nf6.NewNf6SecureClient(connSecure)
 
-	if client == nil {
+	if clientSecure == nil {
 		log.Print("error: you must be registered!")
 		os.Exit(1)
 	}
 }
 
 func init() {
-	cobra.OnInitialize(initPaths, initSsh, initSsl)
-	rootCmd.PersistentFlags().StringVar(&baseDir, "base-dir", "", "location of base dir (default ~/.nf6/client-cli)")
-	rootCmd.PersistentFlags().StringVar(&sslDir, "ssl-dir", "", "location of ssl dir (default ~/.nf6/client-cli/ssl)")
-	rootCmd.PersistentFlags().StringVar(&sshDir, "ssh-dir", "", "location of ssh dir (default ~/.nf6/client-cli/ssh)")
-	rootCmd.PersistentFlags().StringVar(&serverHost, "server-host", "localhost", "server host without port")
-	rootCmd.PersistentFlags().StringVar(&serverPort, "server-port", "6969", "server secure port")
-	rootCmd.PersistentFlags().StringVar(&serverPortInsecure, "server-port-insecure", "6968", "server insecure port")
+	cobra.OnInitialize(initConfig, initPaths, initSsh, initSsl)
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/nf/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&apiHost, "apiHost", "localhost", "api host without port")
+	rootCmd.PersistentFlags().StringVar(&apiPortInsecure, "apiPortInsecure", "6968", "api insecure port")
+	rootCmd.PersistentFlags().StringVar(&apiPortSecure, "apiPortSecure", "6969", "api secure port")
+	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "", "location of data dir (default is $HOME/.local/share/nf)")
 	rootCmd.PersistentFlags().DurationVar(&timeout, "timeout", 10*time.Second, "grpc timeout")
 
-	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		log.Printf("Thanks for using %s! For help, use `%s help`", cmd.Use, cmd.Use)
+	viper.BindPFlag("apiHost", rootCmd.PersistentFlags().Lookup("apiHost"))
+	viper.BindPFlag("apiPortInsecure", rootCmd.PersistentFlags().Lookup("apiPortInsecure"))
+	viper.BindPFlag("apiPortSecure", rootCmd.PersistentFlags().Lookup("apiPortSecure"))
+	viper.BindPFlag("dataDir", rootCmd.PersistentFlags().Lookup("dataDir"))
+	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
+
+	apiHost = viper.GetString("apiHost")
+	apiPortInsecure = viper.GetString("apiPortInsecure")
+	apiPortSecure = viper.GetString("apiPortSecure")
+	dataDir = viper.GetString("dataDir")
+	timeout = viper.GetDuration("timeout")
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		viper.AddConfigPath(home + "/.config/nf")
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
 	}
 
-	rootCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
-		if connInsecure != nil {
-			connInsecure.Close()
-		}
-		if conn != nil {
-			conn.Close()
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Fatal(err)
 		}
 	}
 }
 
 func initPaths() {
-	if baseDir == "" {
-		homeDir, err := os.UserHomeDir()
+	if dataDir == "" {
+		home, err := os.UserHomeDir()
 		if err != nil {
-			log.Fatalf("could not find user home dir: %v", err)
+			log.Fatal(err)
 		}
-		baseDir = homeDir + "/.nf6/client-cli"
-	}
-	if sslDir == "" {
-		sslDir = baseDir + "/ssl"
-	}
-	if sshDir == "" {
-		sshDir = baseDir + "/ssh"
+		dataDir = home + "/.local/share/nf"
 	}
 
-	mkdirAll(baseDir)
-	mkdirAll(sslDir)
-	mkdirAll(sshDir)
+	sshDir = dataDir + "/ssh"
+	sslDir = dataDir + "/ssl"
+
+	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+	if err := os.MkdirAll(sshDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+	if err := os.MkdirAll(sslDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+
+	sshPrivKeyPath = sshDir + "/id_ed25519"
+	sshPubKeyPath = sshDir + "/id_ed25519.pub"
 
 	sslPrivKeyPath = sslDir + "/client.key"
 	sslPubKeyPath = sslDir + "/client.key.pub"
 	sslCertPath = sslDir + "/client.crt"
 
-	sshPrivKeyPath = sshDir + "/id_ed25519"
-	sshPubKeyPath = sshDir + "/id_ed25519.pub"
 }
 
 func initSsh() {
@@ -195,27 +224,25 @@ func initSsl() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		privKeyPem, err := os.OpenFile(sslPrivKeyPath, os.O_CREATE, 0600)
+		privKeyPem, err := os.OpenFile(sslPrivKeyPath, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			log.Fatal(err)
 		}
-		pem.Encode(privKeyPem, &pem.Block{
-			Type:  "PRIVATE KEY",
-			Bytes: privKeyMarshalled,
-		})
+		if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
+			log.Fatal(err)
+		}
 
 		pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKey)
 		if err != nil {
 			log.Fatal(err)
 		}
-		pubKeyPem, err := os.OpenFile(sslPubKeyPath, os.O_CREATE, 0644)
+		pubKeyPem, err := os.OpenFile(sslPubKeyPath, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
-		pem.Encode(pubKeyPem, &pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: pubKeyMarshalled,
-		})
+		if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 

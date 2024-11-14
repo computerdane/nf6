@@ -1,5 +1,5 @@
 {
-  baseDir ? "$HOME/.nf6/server-api",
+  baseDir ? "$HOME/.local/share/nfapi-dev",
   go,
   writeShellApplication,
 }:
@@ -8,6 +8,6 @@ writeShellApplication {
   name = "dev-server-api";
   runtimeInputs = [ go ];
   text = ''
-    go run ./server-api/*.go -base-dir="${baseDir}" "$@"
+    go run ./server-api/*.go --dataDir "${baseDir}" "$@"
   '';
 }

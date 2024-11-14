@@ -21,7 +21,7 @@ var whoamiCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		reply, err := client.WhoAmI(ctx, &nf6.WhoAmIRequest{})
+		reply, err := clientSecure.WhoAmI(ctx, &nf6.WhoAmIRequest{})
 		if err != nil {
 			log.Fatal(err)
 		}

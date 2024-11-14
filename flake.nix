@@ -9,6 +9,11 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
+        sql-scripts = {
+          init-api-user-sql = ./server-db/init-api-user.sql;
+          init-git-user-sql = ./server-db/init-git-user.sql;
+          init-tables-sql = ./server-db/init-tables.sql;
+        };
       in
       {
         devShell = pkgs.mkShell {
@@ -23,18 +28,16 @@
               protoc-gen-go
               protoc-gen-go-grpc
             ])
-            ++ [
+            ++ pkgs.lib.flatten [
               (pkgs.callPackage ./client-cli/develop.nix { })
               (pkgs.callPackage ./server-api/develop.nix { })
-              (pkgs.callPackage ./server-db/develop.nix { })
+              (pkgs.callPackage ./server-db/develop.nix { inherit sql-scripts; })
             ];
         };
         packages = {
           client-cli = pkgs.callPackage ./client-cli/default.nix { };
           server-api = pkgs.callPackage ./server-api/default.nix { };
-
-          init-sql = ./server-db/init.sql;
-        };
+        } // sql-scripts;
       }
     );
 }

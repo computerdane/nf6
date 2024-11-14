@@ -64,27 +64,25 @@ func (s *SslUtil) GenCaFiles(caName string) error {
 			return err
 		}
 
-		caPem, err := os.OpenFile(caPath, os.O_CREATE, 0644)
+		caPem, err := os.OpenFile(caPath, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			return err
 		}
-		pem.Encode(caPem, &pem.Block{
-			Type:  "CERTIFICATE",
-			Bytes: caBytes,
-		})
+		if err := pem.Encode(caPem, &pem.Block{Type: "CERTIFICATE", Bytes: caBytes}); err != nil {
+			return err
+		}
 
 		caPrivKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(caPrivKey)
 		if err != nil {
 			return err
 		}
-		caPrivKeyPem, err := os.OpenFile(caKeyPath, os.O_CREATE, 0600)
+		caPrivKeyPem, err := os.OpenFile(caKeyPath, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			return err
 		}
-		pem.Encode(caPrivKeyPem, &pem.Block{
-			Type:  "PRIVATE KEY",
-			Bytes: caPrivKeyMarshalled,
-		})
+		if err := pem.Encode(caPrivKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: caPrivKeyMarshalled}); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -118,27 +116,25 @@ func (s *SslUtil) GenCertFiles(caName string, name string) error {
 			return err
 		}
 
-		certPem, err := os.OpenFile(certPath, os.O_CREATE, 0644)
+		certPem, err := os.OpenFile(certPath, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			return err
 		}
-		pem.Encode(certPem, &pem.Block{
-			Type:  "CERTIFICATE",
-			Bytes: caBytes,
-		})
+		if err := pem.Encode(certPem, &pem.Block{Type: "CERTIFICATE", Bytes: caBytes}); err != nil {
+			return err
+		}
 
 		privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
 		if err != nil {
 			return err
 		}
-		privKeyPem, err := os.OpenFile(keyPath, os.O_CREATE, 0600)
+		privKeyPem, err := os.OpenFile(keyPath, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			return err
 		}
-		pem.Encode(privKeyPem, &pem.Block{
-			Type:  "PRIVATE KEY",
-			Bytes: privKeyMarshalled,
-		})
+		if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
+			return err
+		}
 	}
 
 	return nil

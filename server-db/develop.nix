@@ -1,25 +1,33 @@
 {
-  dataDir ? "$HOME/.nf6/server-db",
+  dataDir ? "$HOME/.local/share/nfdb-dev",
   postgresql,
   socketDir ? "/tmp",
+  sql-scripts,
   writeShellApplication,
-  writeText,
 }:
 
-let
-  initSql = writeText "init.sql" (builtins.readFile ./init.sql);
-in
-writeShellApplication {
-  name = "dev-server-db";
-  runtimeInputs = [ postgresql ];
-  text = ''
-    mkdir -p "${dataDir}"
-    chmod 700 "${dataDir}"
+with sql-scripts;
 
-    initdb -D "${dataDir}" || true
-    postgres -D "${dataDir}" -k "${socketDir}"
+[
+  (writeShellApplication {
+    name = "dev-server-db";
+    runtimeInputs = [ postgresql ];
+    text = ''
+      mkdir -p "${dataDir}"
+      chmod 700 "${dataDir}"
 
-    createdb -h "${socketDir}" nf6
-    psql -h ${socketDir} -d nf6 -f "${initSql}"
-  '';
-}
+      initdb -D "${dataDir}" || true
+      postgres -D "${dataDir}" -k "${socketDir}"
+    '';
+  })
+  (writeShellApplication {
+    name = "dev-server-db-init";
+    runtimeInputs = [ postgresql ];
+    text = ''
+      createdb -h "${socketDir}" nf6
+      psql -h ${socketDir} -d nf6 -f "${init-tables-sql}"
+      psql -h ${socketDir} -d nf6 -f "${init-api-user-sql}"
+      psql -h ${socketDir} -d nf6 -f "${init-git-user-sql}"
+    '';
+  })
+]
