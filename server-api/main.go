@@ -26,7 +26,7 @@ var (
 	insecurePort = flag.Int("insecure-port", 6968, "api server insecure port")
 	port         = flag.Int("port", 6969, "api server port")
 	baseDir      = flag.String("base-dir", "/var/lib/nf6/server-api", "location of api data")
-	sslDir       = flag.String("ssl-dir", *baseDir+"/ssl", "location of ssl data")
+	sslDir       = flag.String("ssl-dir", "", "location of ssl data")
 	dbUrl        = flag.String("db-url", "dbname=nf6", "postgres connection string")
 
 	ssl    *ssl_util.SslUtil
@@ -36,8 +36,20 @@ var (
 	config Config
 )
 
+func mkdirAll(dir string) {
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		log.Fatalf("failed to create directory %s: %v", dir, err)
+	}
+}
+
 func main() {
 	flag.Parse()
+
+	*sslDir = *baseDir + "/ssl"
+
+	mkdirAll(*baseDir)
+	mkdirAll(*sslDir)
 
 	ssl = &ssl_util.SslUtil{Dir: *sslDir}
 
@@ -100,7 +112,7 @@ func main() {
 	nf6.RegisterNf6Server(server, &Server{db: dbpool})
 
 	go func() {
-		log.Printf("server listening at %v", insecureLis.Addr())
+		log.Printf("insecure server listening at %v", insecureLis.Addr())
 		if err := insecureServer.Serve(insecureLis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}

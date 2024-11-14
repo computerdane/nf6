@@ -12,16 +12,26 @@
       in
       {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            buf-language-server
-            go
-            gopls
-            openssl
-            postgresql
-            protobuf
-            protoc-gen-go
-            protoc-gen-go-grpc
-          ];
+          buildInputs =
+            (with pkgs; [
+              buf-language-server
+              go
+              gopls
+              openssl
+              postgresql
+              protobuf
+              protoc-gen-go
+              protoc-gen-go-grpc
+            ])
+            ++ [
+              (pkgs.callPackage ./client-cli/develop.nix { })
+              (pkgs.callPackage ./server-api/develop.nix { })
+              (pkgs.callPackage ./server-db/develop.nix { })
+            ];
+        };
+        packages = {
+          client-cli = pkgs.callPackage ./client-cli/default.nix { };
+          server-api = pkgs.callPackage ./server-api/default.nix { };
         };
       }
     );

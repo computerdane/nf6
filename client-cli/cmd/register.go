@@ -14,31 +14,32 @@ func init() {
 }
 
 var registerCmd = &cobra.Command{
-	Use:   "register [email]",
-	Short: "Register with Nf6",
-	Args:  cobra.ExactArgs(1),
+	Use:    "register [email]",
+	Short:  "Register with Nf6",
+	Args:   cobra.ExactArgs(1),
+	PreRun: requireInsecureClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		sslPubKeyBytes, err := os.ReadFile(pubKeyPath)
+		sslPubKeyBytes, err := os.ReadFile(sslPubKeyPath)
 		if err != nil {
-			log.Fatalf("could not read ssl pubkey: %v", err)
+			log.Fatal(err)
 		}
 
-		sshPubKeyBytes, err := os.ReadFile(sshDir + "/id_ed25519.pub")
+		sshPubKeyBytes, err := os.ReadFile(sshPubKeyPath)
 		if err != nil {
-			log.Fatalf("could not read ssh pubkey: %v", err)
+			log.Fatal(err)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		registerReply, err := clientInsecure.Register(ctx, &nf6.RegisterRequest{Email: args[0], SslPublicKey: sslPubKeyBytes, SshPublicKey: sshPubKeyBytes})
 		if err != nil {
-			log.Fatalf("failed to register: %v", err)
+			log.Fatal(err)
 		}
 
 		cert := registerReply.GetSslCert()
-		err = os.WriteFile(certPath, cert, 0600)
+		err = os.WriteFile(sslCertPath, cert, 0600)
 		if err != nil {
-			log.Fatalf("failed to write ssl cert: %v", err)
+			log.Fatal(err)
 		}
 	},
 }
