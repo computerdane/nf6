@@ -64,7 +64,7 @@ func (s *SslUtil) GenCaFiles(caName string) error {
 			return err
 		}
 
-		caPem, err := os.Create(caPath)
+		caPem, err := os.OpenFile(caPath, os.O_CREATE, 0644)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func (s *SslUtil) GenCaFiles(caName string) error {
 		if err != nil {
 			return err
 		}
-		caPrivKeyPem, err := os.Create(caKeyPath)
+		caPrivKeyPem, err := os.OpenFile(caKeyPath, os.O_CREATE, 0600)
 		if err != nil {
 			return err
 		}
@@ -118,7 +118,7 @@ func (s *SslUtil) GenCertFiles(caName string, name string) error {
 			return err
 		}
 
-		certPem, err := os.Create(certPath)
+		certPem, err := os.OpenFile(certPath, os.O_CREATE, 0644)
 		if err != nil {
 			return err
 		}
@@ -131,7 +131,7 @@ func (s *SslUtil) GenCertFiles(caName string, name string) error {
 		if err != nil {
 			return err
 		}
-		privKeyPem, err := os.Create(keyPath)
+		privKeyPem, err := os.OpenFile(keyPath, os.O_CREATE, 0600)
 		if err != nil {
 			return err
 		}

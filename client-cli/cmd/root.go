@@ -195,7 +195,7 @@ func initSsl() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		privKeyPem, err := os.Create(sslPrivKeyPath)
+		privKeyPem, err := os.OpenFile(sslPrivKeyPath, os.O_CREATE, 0600)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -208,7 +208,7 @@ func initSsl() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		pubKeyPem, err := os.Create(sslPubKeyPath)
+		pubKeyPem, err := os.OpenFile(sslPubKeyPath, os.O_CREATE, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
