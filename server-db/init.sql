@@ -1,5 +1,3 @@
-\c nf6;
-
 create table global_config (
   id integer not null primary key default 69,
   domain text not null check (domain <> ''),
