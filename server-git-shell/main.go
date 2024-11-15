@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func parseGitCommand(args []string) error {
+func parseGitCommand(args []string) (string, error) {
 	if args[0] == "git-receive-pack" || args[0] == "git-upload-pack" || args[0] == "git-upload-archive" {
 		for i, arg := range args {
 			// ignore command name
@@ -25,24 +25,34 @@ func parseGitCommand(args []string) error {
 			for _, path := range os.Args[1:] {
 				if strings.HasSuffix(path, name) {
 					args[i] = "'" + path + "'"
-					return nil
+					return path, nil
 				}
 			}
-			return errors.New("repo not found")
+			return "", errors.New("repo not found")
 		}
 	}
-	return errors.New("invalid git command")
+	return "", errors.New("invalid git command")
 }
 
 func main() {
 	cmdStr := os.Getenv("SSH_ORIGINAL_COMMAND")
 	args := strings.Split(cmdStr, " ")
 
-	if err := parseGitCommand(args); err != nil {
+	path, err := parseGitCommand(args)
+	if err != nil {
 		log.Fatal(err)
 	}
-
 	parsedCmdStr := strings.Join(args, " ")
+
+	if _, err := os.Stat(path); err != nil {
+		if err := os.MkdirAll(path, 0700); err != nil {
+			log.Fatal(err)
+		}
+
+		cmd := exec.Command("git", "init")
+		cmd.Dir = path
+		cmd.Run()
+	}
 
 	cmd := exec.Command("git-shell", "-c", parsedCmdStr)
 	cmd.Stdin = os.Stdin
