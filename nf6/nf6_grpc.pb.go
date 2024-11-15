@@ -183,10 +183,11 @@ var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Nf6Secure_CreateRepo_FullMethodName = "/nf6.Nf6Secure/CreateRepo"
-	Nf6Secure_ListRepos_FullMethodName  = "/nf6.Nf6Secure/ListRepos"
-	Nf6Secure_RenameRepo_FullMethodName = "/nf6.Nf6Secure/RenameRepo"
-	Nf6Secure_WhoAmI_FullMethodName     = "/nf6.Nf6Secure/WhoAmI"
+	Nf6Secure_CreateRepo_FullMethodName         = "/nf6.Nf6Secure/CreateRepo"
+	Nf6Secure_ListRepos_FullMethodName          = "/nf6.Nf6Secure/ListRepos"
+	Nf6Secure_RenameRepo_FullMethodName         = "/nf6.Nf6Secure/RenameRepo"
+	Nf6Secure_UpdateSshPublicKey_FullMethodName = "/nf6.Nf6Secure/UpdateSshPublicKey"
+	Nf6Secure_WhoAmI_FullMethodName             = "/nf6.Nf6Secure/WhoAmI"
 )
 
 // Nf6SecureClient is the client API for Nf6Secure service.
@@ -196,6 +197,7 @@ type Nf6SecureClient interface {
 	CreateRepo(ctx context.Context, in *CreateRepoRequest, opts ...grpc.CallOption) (*CreateRepoReply, error)
 	ListRepos(ctx context.Context, in *ListReposRequest, opts ...grpc.CallOption) (*ListReposReply, error)
 	RenameRepo(ctx context.Context, in *RenameRepoRequest, opts ...grpc.CallOption) (*RenameRepoReply, error)
+	UpdateSshPublicKey(ctx context.Context, in *UpdateSshPublicKeyRequest, opts ...grpc.CallOption) (*UpdateSshPublicKeyReply, error)
 	WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ...grpc.CallOption) (*WhoAmIReply, error)
 }
 
@@ -234,6 +236,15 @@ func (c *nf6SecureClient) RenameRepo(ctx context.Context, in *RenameRepoRequest,
 	return out, nil
 }
 
+func (c *nf6SecureClient) UpdateSshPublicKey(ctx context.Context, in *UpdateSshPublicKeyRequest, opts ...grpc.CallOption) (*UpdateSshPublicKeyReply, error) {
+	out := new(UpdateSshPublicKeyReply)
+	err := c.cc.Invoke(ctx, Nf6Secure_UpdateSshPublicKey_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *nf6SecureClient) WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ...grpc.CallOption) (*WhoAmIReply, error) {
 	out := new(WhoAmIReply)
 	err := c.cc.Invoke(ctx, Nf6Secure_WhoAmI_FullMethodName, in, out, opts...)
@@ -250,6 +261,7 @@ type Nf6SecureServer interface {
 	CreateRepo(context.Context, *CreateRepoRequest) (*CreateRepoReply, error)
 	ListRepos(context.Context, *ListReposRequest) (*ListReposReply, error)
 	RenameRepo(context.Context, *RenameRepoRequest) (*RenameRepoReply, error)
+	UpdateSshPublicKey(context.Context, *UpdateSshPublicKeyRequest) (*UpdateSshPublicKeyReply, error)
 	WhoAmI(context.Context, *WhoAmIRequest) (*WhoAmIReply, error)
 	mustEmbedUnimplementedNf6SecureServer()
 }
@@ -266,6 +278,9 @@ func (UnimplementedNf6SecureServer) ListRepos(context.Context, *ListReposRequest
 }
 func (UnimplementedNf6SecureServer) RenameRepo(context.Context, *RenameRepoRequest) (*RenameRepoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenameRepo not implemented")
+}
+func (UnimplementedNf6SecureServer) UpdateSshPublicKey(context.Context, *UpdateSshPublicKeyRequest) (*UpdateSshPublicKeyReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSshPublicKey not implemented")
 }
 func (UnimplementedNf6SecureServer) WhoAmI(context.Context, *WhoAmIRequest) (*WhoAmIReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WhoAmI not implemented")
@@ -337,6 +352,24 @@ func _Nf6Secure_RenameRepo_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Nf6Secure_UpdateSshPublicKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSshPublicKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6SecureServer).UpdateSshPublicKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Secure_UpdateSshPublicKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6SecureServer).UpdateSshPublicKey(ctx, req.(*UpdateSshPublicKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Nf6Secure_WhoAmI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WhoAmIRequest)
 	if err := dec(in); err != nil {
@@ -373,6 +406,10 @@ var Nf6Secure_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenameRepo",
 			Handler:    _Nf6Secure_RenameRepo_Handler,
+		},
+		{
+			MethodName: "UpdateSshPublicKey",
+			Handler:    _Nf6Secure_UpdateSshPublicKey_Handler,
 		},
 		{
 			MethodName: "WhoAmI",

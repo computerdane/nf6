@@ -109,11 +109,11 @@ func initConfig() {
 
 func initPaths() {
 	if dataDir == "" {
-		home, err := os.UserHomeDir()
+		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
-		dataDir = home + "/.local/share/nf6"
+		dataDir = homeDir + "/.local/share/nf6"
 	}
 
 	sshDir = dataDir + "/ssh"

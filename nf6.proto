@@ -14,6 +14,7 @@ service Nf6Secure {
   rpc CreateRepo (CreateRepoRequest) returns (CreateRepoReply) {}
   rpc ListRepos (ListReposRequest) returns (ListReposReply) {}
   rpc RenameRepo (RenameRepoRequest) returns (RenameRepoReply) {}
+  rpc UpdateSshPublicKey (UpdateSshPublicKeyRequest) returns (UpdateSshPublicKeyReply) {}
   rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}   
 }
 
@@ -61,6 +62,14 @@ message RenameRepoRequest {
 }
 
 message RenameRepoReply {
+  bool success = 1;
+}
+
+message UpdateSshPublicKeyRequest {
+  bytes sshPublicKey= 1;
+}
+
+message UpdateSshPublicKeyReply {
   bool success = 1;
 }
 
