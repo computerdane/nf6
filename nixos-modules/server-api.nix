@@ -31,11 +31,6 @@ in
         type = str;
         default = "nf6-api";
       };
-      postgresUser = mkOption {
-        description = "postgres user";
-        type = str;
-        default = "nf6_api";
-      };
       postgresPasswordFile = mkOption {
         description = "path to file containing postgres password";
         type = str;
@@ -44,11 +39,6 @@ in
         description = "postgres host";
         type = str;
         default = "localhost";
-      };
-      postgresDatabase = mkOption {
-        description = "postgres database";
-        type = str;
-        default = "nf6";
       };
       openFirewall = mkOption {
         description = "whether to open ports in firewall";
@@ -84,7 +74,7 @@ in
         script = ''
           PG_PASS=$(cat "${cfg.postgresPasswordFile}")
           nf6-api --config "${configYaml}" \
-            --dbUrl "postgres://${cfg.postgresUser}:$PG_PASS@${cfg.postgresHost}/${cfg.postgresDatabase}"
+            --dbUrl "postgres://nf6_api:$PG_PASS@${cfg.postgresHost}/nf6"
         '';
         serviceConfig = {
           User = cfg.user;

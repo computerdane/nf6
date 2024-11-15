@@ -72,11 +72,11 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		defer db.Close()
-		numAccounts := 0
-		if err := db.QueryRow(context.Background(), "select count(*) from account").Scan(&numAccounts); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("connected to database with %d accounts", numAccounts)
+		// numAccounts := 0
+		// if err := db.QueryRow(context.Background(), "select count(*) from account").Scan(&numAccounts); err != nil {
+		// 	log.Fatal(err)
+		// }
+		// log.Printf("connected to database with %d accounts", numAccounts)
 
 		log.Println("creating grpc servers...")
 
