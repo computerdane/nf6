@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -39,11 +39,12 @@ func main() {
 	args := strings.Split(cmdStr, " ")
 
 	if err := parseGitCommand(args); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	cmd := exec.Command("git-shell", "-c", strings.Join(args, " "))
+	parsedCmdStr := strings.Join(args, " ")
+
+	cmd := exec.Command("git-shell", "-c", parsedCmdStr)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
