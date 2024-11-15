@@ -19,5 +19,5 @@ buildGoModule {
       --fish <($out/bin/${pname} completion fish) \
       --zsh <($out/bin/${pname} completion zsh)
   '';
-  vendorHash = "sha256-yW1i3deY6P3xYllGFdiy93bA6PtXuwPvCgMZXDInyjU=";
+  vendorHash = "sha256-qp2G3u95W58wQ8ikJDooST7wbqKpSkwakyfeSE00Wko=";
 }
