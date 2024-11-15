@@ -2,8 +2,8 @@ package server_secure
 
 import (
 	"context"
-	"regexp"
 
+	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/jackc/pgx/v5"
 	"google.golang.org/grpc/codes"
@@ -16,8 +16,8 @@ func (s *ServerSecure) CreateRepo(ctx context.Context, in *nf6.CreateRepoRequest
 		return nil, err
 	}
 
-	if match, _ := regexp.MatchString(`^[A-Za-z0-9\-_]+$`, in.GetName()); !match {
-		return nil, status.Error(codes.InvalidArgument, "repo name must only contain characters A-Z, a-z, 0-9, -, and _")
+	if match, err := lib.ValidateRepoName(in.GetName()); !match {
+		return nil, err
 	}
 
 	query := "select count(*) from repo where account_id = @account_id and name = @name"
@@ -39,4 +39,62 @@ func (s *ServerSecure) CreateRepo(ctx context.Context, in *nf6.CreateRepoRequest
 	}
 
 	return &nf6.CreateRepoReply{Success: true}, nil
+}
+
+func (s *ServerSecure) ListRepos(ctx context.Context, in *nf6.ListReposRequest) (*nf6.ListReposReply, error) {
+	accountId, err := s.Authenticate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.Query(ctx, "select name from repo where account_id = $1", accountId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "no repos found")
+	}
+
+	reply := &nf6.ListReposReply{Names: []string{}}
+
+	for rows.Next() {
+		var repoName = ""
+		err := rows.Scan(&repoName)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "internal server error")
+		}
+		reply.Names = append(reply.Names, repoName)
+	}
+
+	return reply, nil
+}
+
+func (s *ServerSecure) RenameRepo(ctx context.Context, in *nf6.RenameRepoRequest) (*nf6.RenameRepoReply, error) {
+	accountId, err := s.Authenticate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if match, err := lib.ValidateRepoName(in.GetNewName()); !match {
+		return nil, err
+	}
+
+	query := "select id from repo where account_id = @account_id and name = @name"
+	args := pgx.NamedArgs{
+		"account_id": accountId,
+		"name":       in.GetOldName(),
+	}
+	repoId := 0
+	err = s.db.QueryRow(ctx, query, args).Scan(&repoId)
+	if repoId == 0 || err != nil {
+		return nil, status.Error(codes.NotFound, "repo not found")
+	}
+
+	query = "update repo set name = @name where id = @id"
+	args = pgx.NamedArgs{
+		"name": in.GetNewName(),
+		"id":   repoId,
+	}
+	if _, err := s.db.Exec(ctx, query, args); err != nil {
+		return nil, err
+	}
+
+	return &nf6.RenameRepoReply{Success: true}, nil
 }

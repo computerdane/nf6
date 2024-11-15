@@ -12,6 +12,8 @@ service Nf6Insecure {
 
 service Nf6Secure {
   rpc CreateRepo (CreateRepoRequest) returns (CreateRepoReply) {}
+  rpc ListRepos (ListReposRequest) returns (ListReposReply) {}
+  rpc RenameRepo (RenameRepoRequest) returns (RenameRepoReply) {}
   rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}   
 }
 
@@ -27,6 +29,12 @@ message GetCaCertRequest {}
 
 message GetCaCertReply {
   bytes cert = 1;
+}
+
+message ListReposRequest {}
+
+message ListReposReply {
+  repeated string names = 1;
 }
 
 message PingRequest {
@@ -45,6 +53,15 @@ message RegisterRequest {
 
 message RegisterReply {
   bytes sslCert = 1;
+}
+
+message RenameRepoRequest {
+  string oldName = 1;
+  string newName = 2;
+}
+
+message RenameRepoReply {
+  bool success = 1;
 }
 
 message WhoAmIRequest {}

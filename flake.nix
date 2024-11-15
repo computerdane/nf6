@@ -20,8 +20,10 @@
           buildInputs =
             (with pkgs; [
               buf-language-server
+              git
               go
               gopls
+              openssh
               openssl
               postgresql
               protobuf

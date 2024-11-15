@@ -30,6 +30,7 @@ var (
 	apiPortInsecure string
 	apiPortSecure   string
 	dataDir         string
+	gitHost         string
 	timeout         time.Duration
 
 	sshDir         string
@@ -147,12 +148,14 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&apiPortInsecure, "apiPortInsecure", "6968", "api insecure port")
 	rootCmd.PersistentFlags().StringVar(&apiPortSecure, "apiPortSecure", "6969", "api secure port")
 	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "", "location of data dir (default is $HOME/.local/share/nf6)")
+	rootCmd.PersistentFlags().StringVar(&gitHost, "gitHost", "", "git host without port (default same as apiHost)")
 	rootCmd.PersistentFlags().DurationVar(&timeout, "timeout", 10*time.Second, "grpc timeout")
 
 	viper.BindPFlag("apiHost", rootCmd.PersistentFlags().Lookup("apiHost"))
 	viper.BindPFlag("apiPortInsecure", rootCmd.PersistentFlags().Lookup("apiPortInsecure"))
 	viper.BindPFlag("apiPortSecure", rootCmd.PersistentFlags().Lookup("apiPortSecure"))
 	viper.BindPFlag("dataDir", rootCmd.PersistentFlags().Lookup("dataDir"))
+	viper.BindPFlag("gitHost", rootCmd.PersistentFlags().Lookup("gitHost"))
 	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 
 }
@@ -175,7 +178,12 @@ func initConfig() {
 		apiPortInsecure = viper.GetString("apiPortInsecure")
 		apiPortSecure = viper.GetString("apiPortSecure")
 		dataDir = viper.GetString("dataDir")
+		gitHost = viper.GetString("gitHost")
 		timeout = viper.GetDuration("timeout")
+	}
+
+	if gitHost == "" {
+		gitHost = apiHost
 	}
 }
 
