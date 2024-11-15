@@ -21,12 +21,12 @@ import (
 var (
 	cfgFile string
 
-	dataDir      string
-	dbUrl        string
-	gitReposPath string
-	gitShell     string
-	gitUser      string
-	timeout      time.Duration
+	dataDir     string
+	dbUrl       string
+	gitReposDir string
+	gitShell    string
+	gitUser     string
+	timeout     time.Duration
 
 	db     *pgxpool.Pool
 	socket string
@@ -141,7 +141,7 @@ func handle(conn net.Conn) {
 			if _, err := authorizedKey.WriteRune(':'); err != nil {
 				return
 			}
-			if _, err := authorizedKey.WriteString(gitReposPath); err != nil {
+			if _, err := authorizedKey.WriteString(gitReposDir); err != nil {
 				return
 			}
 			if _, err := authorizedKey.WriteRune('/'); err != nil {
@@ -172,7 +172,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-git-auth/config/config.yaml", "config file")
 	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "/var/lib/nf6-git-auth/data", "where to store persistent data")
 	rootCmd.PersistentFlags().StringVar(&dbUrl, "dbUrl", "dbname=nf6", "url of postgres database")
-	rootCmd.PersistentFlags().StringVar(&gitReposPath, "gitReposPath", "/var/lib/nf6-git/repos", "location of git repos")
+	rootCmd.PersistentFlags().StringVar(&gitReposDir, "gitReposDir", "/var/lib/nf6-git/repos", "location of git repos")
 	rootCmd.PersistentFlags().StringVar(&gitShell, "gitShell", "/bin/nf6-git-shell", "location of git-shell executable")
 	rootCmd.PersistentFlags().StringVar(&gitUser, "gitUser", "git", "name of allowed git user")
 	rootCmd.PersistentFlags().DurationVar(&timeout, "timeout", 5*time.Second, "timeout for requests")
@@ -181,7 +181,7 @@ func init() {
 	viper.BindPFlag("dbUrl", rootCmd.PersistentFlags().Lookup("dbUrl"))
 	viper.BindPFlag("gitShell", rootCmd.PersistentFlags().Lookup("gitShell"))
 	viper.BindPFlag("gitUser", rootCmd.PersistentFlags().Lookup("gitUser"))
-	viper.BindPFlag("gitReposPath", rootCmd.PersistentFlags().Lookup("gitReposPath"))
+	viper.BindPFlag("gitReposDir", rootCmd.PersistentFlags().Lookup("gitReposDir"))
 	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
 
 	rootCmd.AddCommand(listenCmd)
@@ -195,7 +195,7 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		dataDir = viper.GetString("dataDir")
 		dbUrl = viper.GetString("dbUrl")
-		gitReposPath = viper.GetString("gitReposPath")
+		gitReposDir = viper.GetString("gitReposDir")
 		gitShell = viper.GetString("gitShell")
 		gitUser = viper.GetString("gitUser")
 		timeout = viper.GetDuration("timeout")
