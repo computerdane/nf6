@@ -14,6 +14,12 @@
           init-git-user-sql = ./server-db/init-git-user.sql;
           init-tables-sql = ./server-db/init-tables.sql;
         };
+        pkgs-nf6 = {
+          client-cli = pkgs.callPackage ./client-cli/default.nix { };
+          server-api = pkgs.callPackage ./server-api/default.nix { };
+          server-git-auth = pkgs.callPackage ./server-git-auth/default.nix { };
+          server-git-shell = pkgs.callPackage ./server-git-shell/default.nix { };
+        } // sql-scripts;
       in
       {
         devShell = pkgs.mkShell {
@@ -39,12 +45,9 @@
               (pkgs.callPackage ./server-db/develop.nix { inherit sql-scripts; })
             ];
         };
-        packages = {
-          client-cli = pkgs.callPackage ./client-cli/default.nix { };
-          server-api = pkgs.callPackage ./server-api/default.nix { };
-          server-git-auth = pkgs.callPackage ./server-git-auth/default.nix { };
-          server-git-shell = pkgs.callPackage ./server-git-shell/default.nix { };
-        } // sql-scripts;
+        packages = pkgs-nf6 // {
+          nixosModules = import ./nixos-modules/all-modules.nix { inherit pkgs-nf6; };
+        };
       }
     );
 }
