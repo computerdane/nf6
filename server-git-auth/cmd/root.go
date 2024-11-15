@@ -62,14 +62,14 @@ var rootCmd = &cobra.Command{
 
 func handle(conn net.Conn) {
 	defer conn.Close()
-	buffer := make([]byte, 68)
+	buffer := make([]byte, 80)
 	size, err := conn.Read(buffer)
 
 	pubKey := string(buffer[:size])
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	rows, err := db.Query(ctx, query, "ssh-ed25519 "+pubKey+"%")
+	rows, err := db.Query(ctx, query, pubKey+"%")
 	if err != nil {
 		return
 	}
@@ -108,13 +108,16 @@ func handle(conn net.Conn) {
 			if _, err := authorizedKey.WriteString(repoName); err != nil {
 				return
 			}
+			if _, err := authorizedKey.WriteString(".git"); err != nil {
+				return
+			}
 		}
 		wroteOne = true
 	}
 	if !wroteOne {
 		return
 	}
-	if _, err := authorizedKey.WriteString(`" ssh-ed25519 `); err != nil {
+	if _, err := authorizedKey.WriteString(`" `); err != nil {
 		return
 	}
 	if _, err := authorizedKey.WriteString(pubKey); err != nil {

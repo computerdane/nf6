@@ -3,6 +3,7 @@ module github.com/computerdane/nf6
 go 1.22.8
 
 require (
+	github.com/fatih/color v1.18.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/jedib0t/go-pretty/v6 v6.6.1
 	github.com/spf13/cobra v1.8.1
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
