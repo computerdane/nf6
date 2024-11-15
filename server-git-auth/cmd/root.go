@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/computerdane/nf6/lib"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,6 +28,9 @@ var (
 	gitShell    string
 	gitUser     string
 	timeout     time.Duration
+
+	stringOptions   []lib.StringOption
+	durationOptions []lib.DurationOption
 
 	db     *pgxpool.Pool
 	socket string
@@ -170,19 +174,20 @@ func init() {
 	cobra.OnInitialize(initConfig, initDataDir)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-git-auth/config/config.yaml", "config file")
-	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "/var/lib/nf6-git-auth/data", "where to store persistent data")
-	rootCmd.PersistentFlags().StringVar(&dbUrl, "dbUrl", "dbname=nf6", "url of postgres database")
-	rootCmd.PersistentFlags().StringVar(&gitReposDir, "gitReposDir", "/var/lib/nf6-git/repos", "location of git repos")
-	rootCmd.PersistentFlags().StringVar(&gitShell, "gitShell", "/bin/nf6-git-shell", "location of git-shell executable")
-	rootCmd.PersistentFlags().StringVar(&gitUser, "gitUser", "git", "name of allowed git user")
-	rootCmd.PersistentFlags().DurationVar(&timeout, "timeout", 5*time.Second, "timeout for requests")
 
-	viper.BindPFlag("dataDir", rootCmd.PersistentFlags().Lookup("dataDir"))
-	viper.BindPFlag("dbUrl", rootCmd.PersistentFlags().Lookup("dbUrl"))
-	viper.BindPFlag("gitShell", rootCmd.PersistentFlags().Lookup("gitShell"))
-	viper.BindPFlag("gitUser", rootCmd.PersistentFlags().Lookup("gitUser"))
-	viper.BindPFlag("gitReposDir", rootCmd.PersistentFlags().Lookup("gitReposDir"))
-	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
+	stringOptions = []lib.StringOption{
+		{P: &dataDir, Name: "dataDir", Value: "/var/lib/nf6-git-auth/data", Usage: "where to store persistent data"},
+		{P: &dbUrl, Name: "dbUrl", Value: "dbname=nf6", Usage: "url of postgres database"},
+		{P: &gitReposDir, Name: "gitReposDir", Value: "/var/lib/nf6-git/repos", Usage: "location of git repos"},
+		{P: &gitShell, Name: "gitShell", Value: "/bin/nf6-git-shell", Usage: "location of git-shell executable"},
+		{P: &gitUser, Name: "gitUser", Value: "git", Usage: "name of allowed git user"},
+	}
+	durationOptions = []lib.DurationOption{
+		{P: &timeout, Name: "timeout", Value: 5 * time.Second, Usage: "timeout for requests"},
+	}
+
+	lib.AddStringOptions(rootCmd, stringOptions)
+	lib.AddDurationOptions(rootCmd, durationOptions)
 
 	rootCmd.AddCommand(listenCmd)
 	rootCmd.AddCommand(askCmd)
@@ -193,12 +198,8 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	}
 	if err := viper.ReadInConfig(); err == nil {
-		dataDir = viper.GetString("dataDir")
-		dbUrl = viper.GetString("dbUrl")
-		gitReposDir = viper.GetString("gitReposDir")
-		gitShell = viper.GetString("gitShell")
-		gitUser = viper.GetString("gitUser")
-		timeout = viper.GetDuration("timeout")
+		lib.LoadStringOptions(rootCmd, stringOptions)
+		lib.LoadDurationOptions(rootCmd, durationOptions)
 	}
 
 	authorizedKeyPrefix = `command="` + gitShell

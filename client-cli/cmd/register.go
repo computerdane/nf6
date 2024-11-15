@@ -17,7 +17,7 @@ var registerCmd = &cobra.Command{
 	Use:    "register [email]",
 	Short:  "Register with Nf6",
 	Args:   cobra.ExactArgs(1),
-	PreRun: requireInsecureClient,
+	PreRun: RequireInsecureClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		sslPubKeyBytes, err := os.ReadFile(sslPubKeyPath)
 		if err != nil {

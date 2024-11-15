@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -32,6 +33,9 @@ var (
 	dataDir         string
 	gitHost         string
 	timeout         time.Duration
+
+	stringOptions   []lib.StringOption
+	durationOptions []lib.DurationOption
 
 	sshDir         string
 	sshPrivKeyPath string
@@ -56,11 +60,124 @@ var rootCmd = &cobra.Command{
 		fmt.Printf("Thanks for using %s! For help, use `%s help`", cmd.Use, cmd.Use)
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		disconnect()
+		Disconnect()
 	},
 }
 
-func disconnect() {
+func init() {
+	cobra.OnInitialize(initConfig, initPaths, initSsh, initSsl)
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/nf6/config.yaml)")
+
+	stringOptions = []lib.StringOption{
+		{P: &apiHost, Name: "apiHost", Value: "localhost", Usage: "api host without port"},
+		{P: &apiPortInsecure, Name: "apiPortInsecure", Value: "6968", Usage: "api insecure port"},
+		{P: &apiPortSecure, Name: "apiPortSecure", Value: "6969", Usage: "api secure port"},
+		{P: &dataDir, Name: "dataDir", Value: "", Usage: "location of data dir (default is $HOME/.local/share/nf6)"},
+		{P: &gitHost, Name: "gitHost", Value: "", Usage: "git host without port (default same as apiHost)"},
+	}
+	durationOptions = []lib.DurationOption{
+		{P: &timeout, Name: "timeout", Value: 10 * time.Second, Usage: "grpc timeout"},
+	}
+
+	lib.AddStringOptions(rootCmd, stringOptions)
+	lib.AddDurationOptions(rootCmd, durationOptions)
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		viper.AddConfigPath(home + "/.config/nf6")
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+	}
+
+	if err := viper.ReadInConfig(); err == nil {
+		lib.LoadStringOptions(rootCmd, stringOptions)
+		lib.LoadDurationOptions(rootCmd, durationOptions)
+	}
+
+	if gitHost == "" {
+		gitHost = apiHost
+	}
+}
+
+func initPaths() {
+	if dataDir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		dataDir = home + "/.local/share/nf6"
+	}
+
+	sshDir = dataDir + "/ssh"
+	sslDir = dataDir + "/ssl"
+
+	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+	if err := os.MkdirAll(sshDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+	if err := os.MkdirAll(sslDir, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+
+	sshPrivKeyPath = sshDir + "/id_ed25519"
+	sshPubKeyPath = sshDir + "/id_ed25519.pub"
+
+	sslPrivKeyPath = sslDir + "/client.key"
+	sslPubKeyPath = sslDir + "/client.key.pub"
+	sslCertPath = sslDir + "/client.crt"
+}
+
+func initSsh() {
+	if _, err := os.Stat(sshPrivKeyPath); errors.Is(err, os.ErrNotExist) {
+		cmd := exec.Command("ssh-keygen", "-t", "ed25519", "-f", sshPrivKeyPath, "-N", "", "-q")
+		cmd.Run()
+	}
+}
+
+func initSsl() {
+	if _, err := os.Stat(sslPrivKeyPath); errors.Is(err, os.ErrNotExist) {
+		pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		privKeyPem, err := os.OpenFile(sslPrivKeyPath, os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
+			log.Fatal(err)
+		}
+
+		pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pubKeyPem, err := os.OpenFile(sslPubKeyPath, os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func Disconnect() {
 	if connInsecure != nil {
 		connInsecure.Close()
 	}
@@ -69,17 +186,17 @@ func disconnect() {
 	}
 }
 
-func crash(err ...error) {
+func Crash(err ...error) {
 	if len(err) == 0 {
 		color.Red("unknown error!")
 	} else {
 		color.Red(fmt.Sprintf("%v", err[0]))
 	}
-	disconnect()
+	Disconnect()
 	os.Exit(1)
 }
 
-func requireInsecureClient(_ *cobra.Command, _ []string) {
+func RequireInsecureClient(_ *cobra.Command, _ []string) {
 	var err error
 	connInsecure, err = grpc.NewClient(apiHost+":"+apiPortInsecure, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -95,8 +212,8 @@ func requireInsecureClient(_ *cobra.Command, _ []string) {
 	}
 }
 
-func requireSecureClient(_ *cobra.Command, _ []string) {
-	requireInsecureClient(nil, nil)
+func RequireSecureClient(_ *cobra.Command, _ []string) {
+	RequireInsecureClient(nil, nil)
 
 	if _, err := os.Stat(sslCertPath); errors.Is(err, os.ErrNotExist) {
 		log.Print("error: you must be registered!")
@@ -137,124 +254,6 @@ func requireSecureClient(_ *cobra.Command, _ []string) {
 	if clientSecure == nil {
 		log.Print("error: you must be registered!")
 		os.Exit(1)
-	}
-}
-
-func init() {
-	cobra.OnInitialize(initConfig, initPaths, initSsh, initSsl)
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/nf6/config.yaml)")
-	rootCmd.PersistentFlags().StringVar(&apiHost, "apiHost", "localhost", "api host without port")
-	rootCmd.PersistentFlags().StringVar(&apiPortInsecure, "apiPortInsecure", "6968", "api insecure port")
-	rootCmd.PersistentFlags().StringVar(&apiPortSecure, "apiPortSecure", "6969", "api secure port")
-	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "", "location of data dir (default is $HOME/.local/share/nf6)")
-	rootCmd.PersistentFlags().StringVar(&gitHost, "gitHost", "", "git host without port (default same as apiHost)")
-	rootCmd.PersistentFlags().DurationVar(&timeout, "timeout", 10*time.Second, "grpc timeout")
-
-	viper.BindPFlag("apiHost", rootCmd.PersistentFlags().Lookup("apiHost"))
-	viper.BindPFlag("apiPortInsecure", rootCmd.PersistentFlags().Lookup("apiPortInsecure"))
-	viper.BindPFlag("apiPortSecure", rootCmd.PersistentFlags().Lookup("apiPortSecure"))
-	viper.BindPFlag("dataDir", rootCmd.PersistentFlags().Lookup("dataDir"))
-	viper.BindPFlag("gitHost", rootCmd.PersistentFlags().Lookup("gitHost"))
-	viper.BindPFlag("timeout", rootCmd.PersistentFlags().Lookup("timeout"))
-
-}
-
-func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatal(err)
-		}
-		viper.AddConfigPath(home + "/.config/nf6")
-		viper.SetConfigName("config")
-		viper.SetConfigType("yaml")
-	}
-
-	if err := viper.ReadInConfig(); err == nil {
-		apiHost = viper.GetString("apiHost")
-		apiPortInsecure = viper.GetString("apiPortInsecure")
-		apiPortSecure = viper.GetString("apiPortSecure")
-		dataDir = viper.GetString("dataDir")
-		gitHost = viper.GetString("gitHost")
-		timeout = viper.GetDuration("timeout")
-	}
-
-	if gitHost == "" {
-		gitHost = apiHost
-	}
-}
-
-func initPaths() {
-	if dataDir == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatal(err)
-		}
-		dataDir = home + "/.local/share/nf6"
-	}
-
-	sshDir = dataDir + "/ssh"
-	sslDir = dataDir + "/ssl"
-
-	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
-		log.Fatal(err)
-	}
-	if err := os.MkdirAll(sshDir, os.ModePerm); err != nil {
-		log.Fatal(err)
-	}
-	if err := os.MkdirAll(sslDir, os.ModePerm); err != nil {
-		log.Fatal(err)
-	}
-
-	sshPrivKeyPath = sshDir + "/id_ed25519"
-	sshPubKeyPath = sshDir + "/id_ed25519.pub"
-
-	sslPrivKeyPath = sslDir + "/client.key"
-	sslPubKeyPath = sslDir + "/client.key.pub"
-	sslCertPath = sslDir + "/client.crt"
-
-}
-
-func initSsh() {
-	if _, err := os.Stat(sshPrivKeyPath); errors.Is(err, os.ErrNotExist) {
-		cmd := exec.Command("ssh-keygen", "-t", "ed25519", "-f", sshPrivKeyPath, "-N", "", "-q")
-		cmd.Run()
-	}
-}
-
-func initSsl() {
-	if _, err := os.Stat(sslPrivKeyPath); errors.Is(err, os.ErrNotExist) {
-		pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
-		if err != nil {
-			log.Fatal(err)
-		}
-		privKeyPem, err := os.OpenFile(sslPrivKeyPath, os.O_CREATE|os.O_WRONLY, 0600)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
-			log.Fatal(err)
-		}
-
-		pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKey)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pubKeyPem, err := os.OpenFile(sslPubKeyPath, os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
-			log.Fatal(err)
-		}
 	}
 }
 

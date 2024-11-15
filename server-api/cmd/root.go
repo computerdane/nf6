@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/computerdane/nf6/server-api/server_insecure"
 	"github.com/computerdane/nf6/server-api/server_secure"
@@ -27,6 +28,9 @@ var (
 	dbUrl        string
 	portInsecure int
 	portSecure   int
+
+	stringOptions []lib.StringOption
+	intOptions    []lib.IntOption
 
 	sslDir string
 )
@@ -112,15 +116,18 @@ func init() {
 	cobra.OnInitialize(initConfig, initDataDir)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-api/config/config.yaml", "config file")
-	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "/var/lib/nf6-api/data", "where to store persistent data")
-	rootCmd.PersistentFlags().StringVar(&dbUrl, "dbUrl", "dbname=nf6", "url of postgres database")
-	rootCmd.PersistentFlags().IntVar(&portInsecure, "portInsecure", 6968, "port for insecure connections")
-	rootCmd.PersistentFlags().IntVar(&portSecure, "portSecure", 6969, "port for secure connections")
 
-	viper.BindPFlag("dataDir", rootCmd.PersistentFlags().Lookup("dataDir"))
-	viper.BindPFlag("dbUrl", rootCmd.PersistentFlags().Lookup("dbUrl"))
-	viper.BindPFlag("portInsecure", rootCmd.PersistentFlags().Lookup("portInsecure"))
-	viper.BindPFlag("portSecure", rootCmd.PersistentFlags().Lookup("portSecure"))
+	stringOptions = []lib.StringOption{
+		{P: &dataDir, Name: "dataDir", Value: "/var/lib/nf6-api/data", Usage: "where to store persistent data"},
+		{P: &dbUrl, Name: "dbUrl", Value: "dbname=nf6", Usage: "url of postgres database"},
+	}
+	intOptions = []lib.IntOption{
+		{P: &portInsecure, Name: "portInsecure", Value: 6968, Usage: "port for insecure connections"},
+		{P: &portSecure, Name: "portSecure", Value: 6969, Usage: "port for secure connections"},
+	}
+
+	lib.AddStringOptions(rootCmd, stringOptions)
+	lib.AddIntOptions(rootCmd, intOptions)
 }
 
 func initConfig() {
@@ -130,10 +137,8 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("could not read config file: %v", err)
 	} else {
-		dataDir = viper.GetString("dataDir")
-		dbUrl = viper.GetString("dbUrl")
-		portInsecure = viper.GetInt("portInsecure")
-		portSecure = viper.GetInt("portSecure")
+		lib.LoadStringOptions(rootCmd, stringOptions)
+		lib.LoadIntOptions(rootCmd, intOptions)
 	}
 }
 

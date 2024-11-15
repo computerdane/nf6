@@ -16,13 +16,13 @@ func init() {
 var whoamiCmd = &cobra.Command{
 	Use:    "whoami",
 	Short:  "Get info from the server about your user",
-	PreRun: requireSecureClient,
+	PreRun: RequireSecureClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		reply, err := clientSecure.WhoAmI(ctx, &nf6.WhoAmIRequest{})
 		if err != nil {
-			crash(err)
+			Crash(err)
 		}
 
 		t := table.NewWriter()
