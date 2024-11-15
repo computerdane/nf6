@@ -33,6 +33,7 @@ var whoamiCmd = &cobra.Command{
 		t.AppendSeparator()
 		t.AppendRow(table.Row{"SSH Pubkey", reply.GetSshPublicKey()})
 		t.AppendSeparator()
+		t.SetStyle(table.StyleRounded)
 		t.Render()
 	},
 }
