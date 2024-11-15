@@ -31,12 +31,17 @@
             ++ pkgs.lib.flatten [
               (pkgs.callPackage ./client-cli/develop.nix { })
               (pkgs.callPackage ./server-api/develop.nix { })
+              (pkgs.callPackage ./server-git-auth/develop.nix { })
+              (pkgs.callPackage ./server-git-shell/develop.nix { })
+
               (pkgs.callPackage ./server-db/develop.nix { inherit sql-scripts; })
             ];
         };
         packages = {
           client-cli = pkgs.callPackage ./client-cli/default.nix { };
           server-api = pkgs.callPackage ./server-api/default.nix { };
+          server-git-auth = pkgs.callPackage ./server-git-auth/default.nix { };
+          server-git-shell = pkgs.callPackage ./server-git-shell/default.nix { };
         } // sql-scripts;
       }
     );

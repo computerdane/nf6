@@ -5,23 +5,36 @@ option go_package = "github.com/computerdane/nf6";
 package nf6;
 
 service Nf6Insecure {
-  rpc Ping (PingRequest) returns (PingResponse) {}
   rpc GetCaCert (GetCaCertRequest) returns (GetCaCertReply) {}
+  rpc Ping (PingRequest) returns (PingReply) {}
   rpc Register (RegisterRequest) returns (RegisterReply) {}
 }
 
-message PingRequest {
-  bool ping = 1;
+service Nf6Secure {
+  rpc CreateRepo (CreateRepoRequest) returns (CreateRepoReply) {}
+  rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}   
 }
 
-message PingResponse {
-  bool pong = 1;
+message CreateRepoRequest {
+  string name = 1;
+}
+
+message CreateRepoReply {
+  bool success = 1;
 }
 
 message GetCaCertRequest {}
 
 message GetCaCertReply {
   bytes cert = 1;
+}
+
+message PingRequest {
+  bool ping = 1;
+}
+
+message PingReply {
+  bool pong = 1;
 }
 
 message RegisterRequest {
@@ -34,45 +47,10 @@ message RegisterReply {
   bytes sslCert = 1;
 }
 
-service Nf6Secure {
-  rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}
-  
-  rpc GetMachine (GetMachineRequest) returns (GetMachineReply) {}
-  rpc GetRepo (GetRepoRequest) returns (GetRepoReply) {}
-
-  rpc RebuildSystem (RebuildSystemRequest) returns (RebuildSystemReply) {}
-}
-
 message WhoAmIRequest {}
 
 message WhoAmIReply {
   string email = 1;
   string sslPublicKey = 2;
   string sshPublicKey = 3;
-}
-
-message GetMachineRequest {
-  string hostName = 1;
-}
-
-message GetMachineReply {
-  string address = 1;
-  string jumpAddress = 2;
-}
-
-message GetRepoRequest {
-  string repoName = 1;
-}
-
-message GetRepoReply {
-  string repoUrl = 1;
-}
-
-message RebuildSystemRequest {
-  string hostName = 1;
-  optional string repoName = 2;
-}
-
-message RebuildSystemReply {
-  string buildId = 1;
 }

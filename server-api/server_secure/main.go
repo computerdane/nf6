@@ -26,17 +26,17 @@ func NewServer(db *pgxpool.Pool) *ServerSecure {
 	return &ServerSecure{db: db}
 }
 
-func (s *ServerSecure) Authenticate(ctx context.Context) (string, error) {
+func (s *ServerSecure) Authenticate(ctx context.Context) (uint64, error) {
 	p, ok := peer.FromContext(ctx)
 	if !ok {
-		return "", status.Error(codes.Unauthenticated, "missing peer")
+		return 0, status.Error(codes.Unauthenticated, "missing peer")
 	}
 	authInfo, ok := p.AuthInfo.(credentials.TLSInfo)
 	if !ok {
-		return "", status.Error(codes.Unauthenticated, "missing transport credentials")
+		return 0, status.Error(codes.Unauthenticated, "missing transport credentials")
 	}
 	if len(authInfo.State.VerifiedChains) == 0 || len(authInfo.State.VerifiedChains[0]) == 0 {
-		return "", status.Error(codes.Unauthenticated, "missing verified certificate")
+		return 0, status.Error(codes.Unauthenticated, "missing verified certificate")
 	}
 
 	pubKeyBytes := authInfo.State.VerifiedChains[0][0].PublicKey.(ed25519.PublicKey)
@@ -46,35 +46,19 @@ func (s *ServerSecure) Authenticate(ctx context.Context) (string, error) {
 	}
 	pubKeyPem := new(bytes.Buffer)
 	if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
-		return "", status.Error(codes.Unauthenticated, "failed to encode public key")
+		return 0, status.Error(codes.Unauthenticated, "failed to encode public key")
 	}
 	pubKey := string(pubKeyPem.Bytes())
 
-	var accountExists int
-	err = s.db.QueryRow(ctx, "select count(*) from account where ssl_public_key = $1", pubKey).Scan(&accountExists)
+	var accountId uint64 = 0
+	err = s.db.QueryRow(ctx, "select id from account where ssl_public_key = $1", pubKey).Scan(&accountId)
 	if err != nil {
 		log.Print(err)
-		return "", status.Error(codes.Unauthenticated, "unknown")
+		return 0, status.Error(codes.Unauthenticated, "unknown")
 	}
-	if accountExists == 0 {
-		return "", status.Error(codes.Unauthenticated, "account does not exist")
-	}
-
-	return pubKey, nil
-}
-
-func (s *ServerSecure) WhoAmI(ctx context.Context, in *nf6.WhoAmIRequest) (*nf6.WhoAmIReply, error) {
-	pubKey, err := s.Authenticate(ctx)
-	if err != nil {
-		return nil, err
+	if accountId == 0 {
+		return 0, status.Error(codes.Unauthenticated, "account does not exist")
 	}
 
-	reply := &nf6.WhoAmIReply{SslPublicKey: pubKey}
-
-	err = s.db.QueryRow(ctx, "select email, ssh_public_key from account where ssl_public_key = $1", pubKey).Scan(&reply.Email, &reply.SshPublicKey)
-	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "unknown")
-	}
-
-	return reply, nil
+	return accountId, nil
 }

@@ -22,9 +22,9 @@ func NewServer(db *pgxpool.Pool, caCert []byte, ssl *ssl_util.SslUtil) *ServerIn
 	return &ServerInsecure{db: db, caCert: caCert, ssl: ssl}
 }
 
-func (s *ServerInsecure) Ping(_ context.Context, in *nf6.PingRequest) (*nf6.PingResponse, error) {
+func (s *ServerInsecure) Ping(_ context.Context, in *nf6.PingRequest) (*nf6.PingReply, error) {
 	if in.GetPing() {
-		return &nf6.PingResponse{Pong: true}, nil
+		return &nf6.PingReply{Pong: true}, nil
 	}
 	return nil, status.Error(codes.InvalidArgument, "ping must be true")
 }

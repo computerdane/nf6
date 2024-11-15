@@ -1,6 +1,6 @@
 {
-  cfgFile ? "$HOME/.config/nf-dev/config.yaml",
-  dataDir ? "$HOME/.local/share/nf-dev",
+  cfgFile ? "$HOME/.config/nf6-dev/config.yaml",
+  dataDir ? "$HOME/.local/share/nf6-dev",
   go,
   writeShellApplication,
 }:

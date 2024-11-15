@@ -32,10 +32,8 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "nfapi",
+	Use:   "nf6-api",
 	Short: "Nf6 API server",
-	PreRun: func(cmd *cobra.Command, args []string) {
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("loading certs...")
 
@@ -113,8 +111,8 @@ var rootCmd = &cobra.Command{
 func init() {
 	cobra.OnInitialize(initConfig, initDataDir)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nfapi/config/config.yaml", "config file")
-	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "/var/lib/nfapi/data", "where to store persistent data")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-api/config/config.yaml", "config file")
+	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "/var/lib/nf6-api/data", "where to store persistent data")
 	rootCmd.PersistentFlags().StringVar(&dbUrl, "dbUrl", "dbname=nf6", "url of postgres database")
 	rootCmd.PersistentFlags().IntVar(&portInsecure, "portInsecure", 6968, "port for insecure connections")
 	rootCmd.PersistentFlags().IntVar(&portSecure, "portSecure", 6969, "port for secure connections")

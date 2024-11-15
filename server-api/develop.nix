@@ -1,6 +1,6 @@
 {
-  cfgFile ? "$HOME/.config/nfapi-dev/config.yaml",
-  baseDir ? "$HOME/.local/share/nfapi-dev",
+  cfgFile ? "$HOME/.config/nf6-api-dev/config.yaml",
+  baseDir ? "$HOME/.local/share/nf6-api-dev",
   go,
   writeShellApplication,
 }:

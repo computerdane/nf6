@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/computerdane/nf6/nf6"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -55,13 +56,27 @@ var rootCmd = &cobra.Command{
 		fmt.Printf("Thanks for using %s! For help, use `%s help`", cmd.Use, cmd.Use)
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		if connInsecure != nil {
-			connInsecure.Close()
-		}
-		if connSecure != nil {
-			connSecure.Close()
-		}
+		disconnect()
 	},
+}
+
+func disconnect() {
+	if connInsecure != nil {
+		connInsecure.Close()
+	}
+	if connSecure != nil {
+		connSecure.Close()
+	}
+}
+
+func crash(err ...error) {
+	if len(err) == 0 {
+		color.Red("unknown error!")
+	} else {
+		color.Red(fmt.Sprintf("%v", err[0]))
+	}
+	disconnect()
+	os.Exit(1)
 }
 
 func requireInsecureClient(_ *cobra.Command, _ []string) {
@@ -128,11 +143,11 @@ func requireSecureClient(_ *cobra.Command, _ []string) {
 func init() {
 	cobra.OnInitialize(initConfig, initPaths, initSsh, initSsl)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/nf/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/nf6/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&apiHost, "apiHost", "localhost", "api host without port")
 	rootCmd.PersistentFlags().StringVar(&apiPortInsecure, "apiPortInsecure", "6968", "api insecure port")
 	rootCmd.PersistentFlags().StringVar(&apiPortSecure, "apiPortSecure", "6969", "api secure port")
-	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "", "location of data dir (default is $HOME/.local/share/nf)")
+	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", "", "location of data dir (default is $HOME/.local/share/nf6)")
 	rootCmd.PersistentFlags().DurationVar(&timeout, "timeout", 10*time.Second, "grpc timeout")
 
 	viper.BindPFlag("apiHost", rootCmd.PersistentFlags().Lookup("apiHost"))
@@ -151,16 +166,12 @@ func initConfig() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		viper.AddConfigPath(home + "/.config/nf")
+		viper.AddConfigPath(home + "/.config/nf6")
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 	}
 
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			log.Fatal(err)
-		}
-	} else {
+	if err := viper.ReadInConfig(); err == nil {
 		apiHost = viper.GetString("apiHost")
 		apiPortInsecure = viper.GetString("apiPortInsecure")
 		apiPortSecure = viper.GetString("apiPortSecure")
@@ -175,7 +186,7 @@ func initPaths() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		dataDir = home + "/.local/share/nf"
+		dataDir = home + "/.local/share/nf6"
 	}
 
 	sshDir = dataDir + "/ssh"

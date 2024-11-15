@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"github.com/computerdane/nf6/nf6"
@@ -23,7 +22,7 @@ var whoamiCmd = &cobra.Command{
 		defer cancel()
 		reply, err := clientSecure.WhoAmI(ctx, &nf6.WhoAmIRequest{})
 		if err != nil {
-			log.Fatal(err)
+			crash(err)
 		}
 
 		t := table.NewWriter()

@@ -1,5 +1,5 @@
 {
-  dataDir ? "$HOME/.local/share/nfdb-dev",
+  dataDir ? "$HOME/.local/share/nf6-db-dev",
   postgresql,
   socketDir ? "/tmp",
   sql-scripts,
