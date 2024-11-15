@@ -22,10 +22,14 @@ func parseGitCommand(args []string) (string, error) {
 			// get repo name without outer quotes
 			name := arg[1 : len(arg)-1]
 			// substitute path corresponding to repo name
-			for _, path := range os.Args[1:] {
-				if strings.HasSuffix(path, name) {
-					args[i] = "'" + path + "'"
-					return path, nil
+			for _, mapping := range os.Args[1:] {
+				tokens := strings.Split(mapping, ":")
+				if len(tokens) != 2 {
+					return "", errors.New("invalid input")
+				}
+				if name == tokens[0] {
+					args[i] = "'" + tokens[1] + "'"
+					return tokens[1], nil
 				}
 			}
 			return "", errors.New("repo not found")
