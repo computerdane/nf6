@@ -9,7 +9,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -212,17 +211,10 @@ func initPaths() {
 }
 
 func initSsh() {
-	cmd := exec.Command("ssh-keygen", "-t", "ed25519", "-f", sshPrivKeyPath, "-N", "''", "-q")
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		log.Fatal(err)
+	if _, err := os.Stat(sshPrivKeyPath); errors.Is(err, os.ErrNotExist) {
+		cmd := exec.Command("ssh-keygen", "-t", "ed25519", "-f", sshPrivKeyPath, "-N", "", "-q")
+		cmd.Run()
 	}
-	defer stdin.Close()
-	_, err = io.WriteString(stdin, "n\n") // Answer 'n' to prompt to overwrite existing file
-	if err != nil {
-		log.Fatal(err)
-	}
-	cmd.Run()
 }
 
 func initSsl() {
