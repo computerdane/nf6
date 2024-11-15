@@ -33,8 +33,13 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "nf6-git-auth",
 	Short: "Nf6 Git Auth server",
+	Args:  cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
+		if args[0] != "listen" {
+			log.Fatal("please pass 'listen' as first argument")
+		}
+
 		var err error
 		db, err = pgxpool.New(context.Background(), dbUrl)
 		if err != nil {
@@ -46,7 +51,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("gitauth server listening at %v", listener.Addr())
+		log.Printf("listening at %v", listener.Addr())
 
 		for {
 			conn, err := listener.Accept()
