@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 
 	"github.com/computerdane/nf6/nf6"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -15,8 +18,17 @@ func init() {
 	repoCmd.AddCommand(repoCreateCmd)
 	repoCmd.AddCommand(repoLsCmd)
 	repoCmd.AddCommand(repoRenameCmd)
+	repoCmd.AddCommand(repoSetDefaultCmd)
 
 	rootCmd.AddCommand(repoCmd)
+}
+
+func repoNameOrDefault(args []string) string {
+	if len(args) == 0 {
+		return defaultRepo
+	} else {
+		return args[0]
+	}
 }
 
 var repoCmd = &cobra.Command{
@@ -27,14 +39,15 @@ var repoCmd = &cobra.Command{
 var repoCloneCmd = &cobra.Command{
 	Use:    "clone [name] [gitCloneArgs]",
 	Short:  "Clone a repo",
-	Args:   cobra.MinimumNArgs(1),
 	PreRun: RequireSecureClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		sshCommand := fmt.Sprintf(`ssh -i "%s"`, sshPrivKeyPath)
-		repoUrl := fmt.Sprintf("git@%s:%s", gitHost, args[0])
+		repoUrl := fmt.Sprintf("git@%s:%s", gitHost, repoNameOrDefault(args))
 
 		gitArgs := []string{"clone", "-c", "core.sshCommand=" + sshCommand, repoUrl}
-		gitArgs = append(gitArgs, args[1:]...)
+		if len(args) > 1 {
+			gitArgs = append(gitArgs, args[1:]...)
+		}
 
 		gitCmd := exec.Command("git", gitArgs...)
 		gitCmd.Stdin = os.Stdin
@@ -47,12 +60,12 @@ var repoCloneCmd = &cobra.Command{
 var repoCreateCmd = &cobra.Command{
 	Use:    "create [name]",
 	Short:  "Create a repo",
-	Args:   cobra.ExactArgs(1),
+	Args:   cobra.MaximumNArgs(1),
 	PreRun: RequireSecureClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		reply, err := clientSecure.CreateRepo(ctx, &nf6.CreateRepoRequest{Name: args[0]})
+		reply, err := clientSecure.CreateRepo(ctx, &nf6.CreateRepoRequest{Name: repoNameOrDefault(args)})
 		if err != nil {
 			Crash(err)
 		}
@@ -74,7 +87,13 @@ var repoLsCmd = &cobra.Command{
 			Crash(err)
 		}
 		for _, repoName := range reply.Names {
-			fmt.Println(repoName)
+			if repoName == defaultRepo {
+				color.New(color.FgGreen, color.Bold).Print(repoName)
+				fmt.Print(" (default)")
+			} else {
+				fmt.Print(repoName)
+			}
+			fmt.Println()
 		}
 	},
 }
@@ -93,6 +112,29 @@ var repoRenameCmd = &cobra.Command{
 		}
 		if !reply.GetSuccess() {
 			Crash()
+		}
+	},
+}
+
+var repoSetDefaultCmd = &cobra.Command{
+	Use:    "set-default [name]",
+	Short:  "Set the default repo",
+	Args:   cobra.ExactArgs(1),
+	PreRun: RequireSecureClient,
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		reply, err := clientSecure.ListRepos(ctx, &nf6.ListReposRequest{})
+		if err != nil {
+			Crash(err)
+		}
+
+		if slices.Contains(reply.GetNames(), args[0]) {
+			defaultRepo = args[0]
+			viper.Set("defaultRepo", defaultRepo)
+			if err := viper.WriteConfig(); err != nil {
+				Crash(err)
+			}
 		}
 	},
 }

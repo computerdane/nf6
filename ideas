@@ -1,0 +1,6 @@
+nf account transfer
+nf account clone
+nf repo set-default
+nf deploy [machine] [repo]
+nf status
+nf status [machine]

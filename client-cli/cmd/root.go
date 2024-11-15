@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"time"
 
 	"github.com/computerdane/nf6/lib"
@@ -31,6 +32,7 @@ var (
 	apiPortInsecure string
 	apiPortSecure   string
 	dataDir         string
+	defaultRepo     string
 	gitHost         string
 	timeout         time.Duration
 
@@ -74,6 +76,7 @@ func init() {
 		{P: &apiPortInsecure, Name: "apiPortInsecure", Value: "6968", Usage: "api insecure port"},
 		{P: &apiPortSecure, Name: "apiPortSecure", Value: "6969", Usage: "api secure port"},
 		{P: &dataDir, Name: "dataDir", Value: "", Usage: "location of data dir (default is $HOME/.local/share/nf6)"},
+		{P: &defaultRepo, Name: "defaultRepo", Value: "main", Usage: "default repo to use for all commands"},
 		{P: &gitHost, Name: "gitHost", Value: "", Usage: "git host without port (default same as apiHost)"},
 	}
 	durationOptions = []lib.DurationOption{
@@ -100,6 +103,15 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		lib.LoadStringOptions(rootCmd, stringOptions)
 		lib.LoadDurationOptions(rootCmd, durationOptions)
+	}
+
+	// try to generate config file
+	cfgFileDir := path.Dir(cfgFile)
+	if err := os.MkdirAll(cfgFileDir, os.ModePerm); err != nil {
+		log.Printf("failed to make config directory: %v", err)
+	}
+	if err := viper.WriteConfig(); err != nil {
+		log.Printf("failed to generate config: %v", err)
 	}
 
 	if gitHost == "" {
