@@ -18,7 +18,7 @@ create table account (
 create table repo (
   id bigserial primary key,
   account_id bigint references account(id),
-  name text not null check (name <> '') check (name ~* '^[A-Za-z0-9\-_]+$'),
+  name text not null check (name <> '') check (name ~* '^[A-Za-z0-9][A-Za-z0-9\-_]+[A-Za-z0-9]$'),
 
   unique (account_id, name)
 );
