@@ -40,6 +40,11 @@ in
         description = "path to file containing postgres password";
         type = str;
       };
+      postgresHost = mkOption {
+        description = "postgres host";
+        type = str;
+        default = "localhost";
+      };
       postgresDatabase = mkOption {
         description = "postgres database";
         type = str;
@@ -78,7 +83,8 @@ in
         path = [ pkgs-nf6.server-api ];
         script = ''
           PG_PASS=$(cat "${cfg.postgresPasswordFile}")
-          nf6-api --config "${configYaml}"
+          nf6-api --config "${configYaml}" \
+            --dbUrl "postgres://${cfg.postgresUser}:$PG_PASS@${cfg.postgresHost}/${cfg.postgresDatabase}"
         '';
         serviceConfig = {
           User = cfg.user;
