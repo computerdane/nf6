@@ -53,7 +53,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		cmd := exec.Command("git", "init")
+		cmd := exec.Command("git", "init", "--bare")
 		cmd.Dir = path
 		cmd.Run()
 	}
