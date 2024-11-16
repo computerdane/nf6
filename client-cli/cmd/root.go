@@ -67,7 +67,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initPaths, initSsh, initSsl)
+	cobra.OnInitialize(initConfig, initPaths)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/nf6/config.yaml)")
 
@@ -149,14 +149,14 @@ func initPaths() {
 	sslCertPath = sslDir + "/client.crt"
 }
 
-func initSsh() {
+func RequireSsh() {
 	if _, err := os.Stat(sshPrivKeyPath); errors.Is(err, os.ErrNotExist) {
 		cmd := exec.Command("ssh-keygen", "-t", "ed25519", "-f", sshPrivKeyPath, "-N", "", "-q")
 		cmd.Run()
 	}
 }
 
-func initSsl() {
+func RequireSsl() {
 	if _, err := os.Stat(sslPrivKeyPath); errors.Is(err, os.ErrNotExist) {
 		pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
 		if err != nil {
@@ -189,26 +189,10 @@ func initSsl() {
 	}
 }
 
-func Disconnect() {
-	if connInsecure != nil {
-		connInsecure.Close()
-	}
-	if connSecure != nil {
-		connSecure.Close()
-	}
-}
-
-func Crash(err ...error) {
-	if len(err) == 0 {
-		color.Red("unknown error!")
-	} else {
-		color.Red(fmt.Sprintf("%v", err[0]))
-	}
-	Disconnect()
-	os.Exit(1)
-}
-
 func RequireInsecureClient(_ *cobra.Command, _ []string) {
+	RequireSsh()
+	RequireSsl()
+
 	var err error
 	connInsecure, err = grpc.NewClient(apiHost+":"+apiPortInsecure, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -267,6 +251,25 @@ func RequireSecureClient(_ *cobra.Command, _ []string) {
 		log.Print("error: you must be registered!")
 		os.Exit(1)
 	}
+}
+
+func Disconnect() {
+	if connInsecure != nil {
+		connInsecure.Close()
+	}
+	if connSecure != nil {
+		connSecure.Close()
+	}
+}
+
+func Crash(err ...error) {
+	if len(err) == 0 {
+		color.Red("unknown error!")
+	} else {
+		color.Red(fmt.Sprintf("%v", err[0]))
+	}
+	Disconnect()
+	os.Exit(1)
 }
 
 func Execute() {
