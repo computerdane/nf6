@@ -9,7 +9,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -59,7 +58,7 @@ var rootCmd = &cobra.Command{
 	Use:   "nf",
 	Short: "nf simplifies OS provisioning and deployment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Thanks for using %s! For help, use `%s help`", cmd.Use, cmd.Use)
+		fmt.Printf("Thanks for using nf6! For help, use %s\n", color.CyanString("nf help"))
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		Disconnect()
@@ -93,7 +92,7 @@ func initConfig() {
 	} else {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 		viper.AddConfigPath(home + "/.config/nf6")
 		viper.SetConfigName("config")
@@ -108,10 +107,10 @@ func initConfig() {
 	// try to generate config file
 	cfgFileDir := path.Dir(cfgFile)
 	if err := os.MkdirAll(cfgFileDir, os.ModePerm); err != nil {
-		log.Printf("failed to make config directory: %v", err)
+		Warn("failed to make config directory: ", err)
 	}
 	if err := viper.WriteConfig(); err != nil {
-		log.Printf("failed to generate config: %v", err)
+		Warn("failed to generate config: ", err)
 	}
 
 	if gitHost == "" {
@@ -132,13 +131,13 @@ func initPaths() {
 	sslDir = dataDir + "/ssl"
 
 	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
-		log.Fatal(err)
+		Crash(err)
 	}
 	if err := os.MkdirAll(sshDir, os.ModePerm); err != nil {
-		log.Fatal(err)
+		Crash(err)
 	}
 	if err := os.MkdirAll(sslDir, os.ModePerm); err != nil {
-		log.Fatal(err)
+		Crash(err)
 	}
 
 	sshPrivKeyPath = sshDir + "/id_ed25519"
@@ -160,31 +159,31 @@ func RequireSsl() {
 	if _, err := os.Stat(sslPrivKeyPath); errors.Is(err, os.ErrNotExist) {
 		pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 
 		privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 		privKeyPem, err := os.OpenFile(sslPrivKeyPath, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 		if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 
 		pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKey)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 		pubKeyPem, err := os.OpenFile(sslPubKeyPath, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 		if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 	}
 }
@@ -196,7 +195,7 @@ func RequireInsecureClient(_ *cobra.Command, _ []string) {
 	var err error
 	connInsecure, err = grpc.NewClient(apiHost+":"+apiPortInsecure, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("failed to dial: %v", err)
+		Crash("failed to dial: ", err)
 	}
 	clientInsecure = nf6.NewNf6InsecureClient(connInsecure)
 
@@ -204,7 +203,7 @@ func RequireInsecureClient(_ *cobra.Command, _ []string) {
 	defer cancel()
 	pingReply, err := clientInsecure.Ping(ctx, &nf6.PingRequest{Ping: true})
 	if err != nil || !pingReply.GetPong() {
-		log.Fatalf("failed to ping server: %v", err)
+		Crash("failed to ping server: ", err)
 	}
 }
 
@@ -212,27 +211,26 @@ func RequireSecureClient(_ *cobra.Command, _ []string) {
 	RequireInsecureClient(nil, nil)
 
 	if _, err := os.Stat(sslCertPath); errors.Is(err, os.ErrNotExist) {
-		log.Print("error: you must be registered!")
-		os.Exit(1)
+		Crash("you must be registered!")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	caCertReply, err := clientInsecure.GetCaCert(ctx, &nf6.GetCaCertRequest{})
 	if err != nil {
-		log.Fatalf("failed to get ca cert: %v", err)
+		Crash("failed to get ca cert: ", err)
 	}
 	caCert := caCertReply.GetCert()
 
 	caCertPool := x509.NewCertPool()
 	ok := caCertPool.AppendCertsFromPEM(caCert)
 	if !ok {
-		log.Fatalf("failed to append ca cert: %v", err)
+		Crash("failed to append ca cert: ", err)
 	}
 
 	cert, err := tls.LoadX509KeyPair(sslCertPath, sslPrivKeyPath)
 	if err != nil {
-		log.Fatalf("failed to load x509 keypair: %v", err)
+		Crash("failed to load x509 keypair: ", err)
 	}
 	creds := credentials.NewTLS(&tls.Config{
 		Certificates: []tls.Certificate{cert},
@@ -243,13 +241,12 @@ func RequireSecureClient(_ *cobra.Command, _ []string) {
 
 	connSecure, err = grpc.NewClient(apiHost+":"+apiPortSecure, grpc.WithTransportCredentials(creds), grpc.WithAuthority("a"))
 	if err != nil {
-		log.Fatalf("failed to dial: %v", err)
+		Crash("failed to dial: ", err)
 	}
 	clientSecure = nf6.NewNf6SecureClient(connSecure)
 
 	if clientSecure == nil {
-		log.Print("error: you must be registered!")
-		os.Exit(1)
+		Crash("you must be registered!")
 	}
 }
 
@@ -262,11 +259,20 @@ func Disconnect() {
 	}
 }
 
-func Crash(err ...error) {
-	if len(err) == 0 {
-		color.Red("unknown error!")
+var (
+	red    = color.New(color.FgRed).FprintlnFunc()
+	yellow = color.New(color.FgYellow).FprintlnFunc()
+)
+
+func Warn(a ...any) {
+	yellow(os.Stderr, a...)
+}
+
+func Crash(a ...any) {
+	if len(a) == 0 {
+		red(os.Stderr, "unknown error!")
 	} else {
-		color.Red(fmt.Sprintf("%v", err[0]))
+		red(os.Stderr, a...)
 	}
 	Disconnect()
 	os.Exit(1)
@@ -274,6 +280,6 @@ func Crash(err ...error) {
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		Crash(err)
 	}
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"github.com/computerdane/nf6/nf6"
@@ -21,25 +20,25 @@ var registerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		sslPubKeyBytes, err := os.ReadFile(sslPubKeyPath)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 
 		sshPubKeyBytes, err := os.ReadFile(sshPubKeyPath)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		registerReply, err := clientInsecure.Register(ctx, &nf6.RegisterRequest{Email: args[0], SslPublicKey: sslPubKeyBytes, SshPublicKey: sshPubKeyBytes})
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 
 		cert := registerReply.GetSslCert()
 		err = os.WriteFile(sslCertPath, cert, 0600)
 		if err != nil {
-			log.Fatal(err)
+			Crash(err)
 		}
 	},
 }
