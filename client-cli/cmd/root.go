@@ -94,9 +94,8 @@ func initConfig() {
 		if err != nil {
 			Crash(err)
 		}
-		viper.AddConfigPath(home + "/.config/nf6")
-		viper.SetConfigName("config")
-		viper.SetConfigType("yaml")
+		cfgFile = home + "/.config/nf6/config.yaml"
+		viper.SetConfigFile(cfgFile)
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
@@ -108,6 +107,9 @@ func initConfig() {
 	cfgFileDir := path.Dir(cfgFile)
 	if err := os.MkdirAll(cfgFileDir, os.ModePerm); err != nil {
 		Warn("failed to make config directory: ", err)
+	}
+	if _, err := os.OpenFile(cfgFile, os.O_CREATE|os.O_RDONLY, 0600); err != nil {
+		Warn("failed to create config file: ", err)
 	}
 	if err := viper.WriteConfig(); err != nil {
 		Warn("failed to generate config: ", err)
