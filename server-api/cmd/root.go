@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path"
 
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
@@ -22,15 +23,13 @@ import (
 )
 
 var (
-	cfgFile string
+	cfgFile          string
+	shouldSaveConfig bool
 
 	dataDir      string
 	dbUrl        string
 	portInsecure int
 	portSecure   int
-
-	stringOptions []lib.StringOption
-	intOptions    []lib.IntOption
 
 	sslDir string
 )
@@ -116,29 +115,47 @@ func init() {
 	cobra.OnInitialize(initConfig, initDataDir)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-api/config/config.yaml", "config file")
+	rootCmd.PersistentFlags().BoolVar(&shouldSaveConfig, "save-config", false, "save to the config file with the provided flags")
 
-	stringOptions = []lib.StringOption{
-		{P: &dataDir, Name: "dataDir", Value: "/var/lib/nf6-api/data", Usage: "where to store persistent data"},
-		{P: &dbUrl, Name: "dbUrl", Value: "dbname=nf6", Usage: "url of postgres database"},
-	}
-	intOptions = []lib.IntOption{
-		{P: &portInsecure, Name: "portInsecure", Value: 6968, Usage: "port for insecure connections"},
-		{P: &portSecure, Name: "portSecure", Value: 6969, Usage: "port for secure connections"},
-	}
-
-	lib.AddStringOptions(rootCmd, stringOptions)
-	lib.AddIntOptions(rootCmd, intOptions)
+	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "dataDir", Shorthand: "", Value: "/var/lib/nf6-api/data", Usage: "where to store persistent data"})
+	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "dbUrl", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
+	lib.AddOption(rootCmd, lib.Option{P: &portInsecure, Name: "portInsecure", Shorthand: "", Value: 6968, Usage: "port for insecure connections"})
+	lib.AddOption(rootCmd, lib.Option{P: &portSecure, Name: "portSecure", Shorthand: "", Value: 6969, Usage: "port for secure connections"})
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
+	if cfgFile == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		cfgFile = home + "/.config/nf6-api/config.yaml"
 	}
-	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("could not read config file: %v", err)
-	} else {
-		lib.LoadStringOptions(rootCmd, stringOptions)
-		lib.LoadIntOptions(rootCmd, intOptions)
+	viper.SetConfigFile(cfgFile)
+
+	if _, err := os.Stat(cfgFile); err != nil {
+		genConfig()
+	}
+
+	if err := viper.ReadInConfig(); err == nil {
+		lib.LoadOptions()
+	}
+
+	if shouldSaveConfig {
+		genConfig()
+	}
+}
+
+func genConfig() {
+	cfgFileDir := path.Dir(cfgFile)
+	if err := os.MkdirAll(cfgFileDir, os.ModePerm); err != nil {
+		log.Println("failed to make config directory: ", err)
+	}
+	if _, err := os.OpenFile(cfgFile, os.O_CREATE|os.O_RDONLY, 0600); err != nil {
+		log.Println("failed to create config file: ", err)
+	}
+	if err := viper.WriteConfig(); err != nil {
+		log.Println("failed to generate config: ", err)
 	}
 }
 

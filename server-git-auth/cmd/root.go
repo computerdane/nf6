@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -20,7 +21,8 @@ import (
 )
 
 var (
-	cfgFile string
+	cfgFile          string
+	shouldSaveConfig bool
 
 	dataDir     string
 	dbUrl       string
@@ -28,9 +30,6 @@ var (
 	gitShell    string
 	gitUser     string
 	timeout     time.Duration
-
-	stringOptions   []lib.StringOption
-	durationOptions []lib.DurationOption
 
 	db     *pgxpool.Pool
 	socket string
@@ -175,34 +174,53 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-git-auth/config/config.yaml", "config file")
 
-	stringOptions = []lib.StringOption{
-		{P: &dataDir, Name: "dataDir", Value: "/var/lib/nf6-git-auth/data", Usage: "where to store persistent data"},
-		{P: &dbUrl, Name: "dbUrl", Value: "dbname=nf6", Usage: "url of postgres database"},
-		{P: &gitReposDir, Name: "gitReposDir", Value: "/var/lib/nf6-git/repos", Usage: "location of git repos"},
-		{P: &gitShell, Name: "gitShell", Value: "/bin/nf6-git-shell", Usage: "location of git-shell executable"},
-		{P: &gitUser, Name: "gitUser", Value: "git", Usage: "name of allowed git user"},
-	}
-	durationOptions = []lib.DurationOption{
-		{P: &timeout, Name: "timeout", Value: 5 * time.Second, Usage: "timeout for requests"},
-	}
-
-	lib.AddStringOptions(rootCmd, stringOptions)
-	lib.AddDurationOptions(rootCmd, durationOptions)
+	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "dataDir", Shorthand: "", Value: "/var/lib/nf6-git-auth/data", Usage: "where to store persistent data"})
+	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "dbUrl", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
+	lib.AddOption(rootCmd, lib.Option{P: &gitReposDir, Name: "gitReposDir", Shorthand: "", Value: "/var/lib/nf6-git/repos", Usage: "location of git repos"})
+	lib.AddOption(rootCmd, lib.Option{P: &gitShell, Name: "gitShell", Shorthand: "", Value: "/bin/nf6-git-shell", Usage: "location of git-shell executable"})
+	lib.AddOption(rootCmd, lib.Option{P: &gitUser, Name: "gitUser", Shorthand: "", Value: "git", Usage: "name of allowed git user"})
+	lib.AddOption(rootCmd, lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for requests"})
 
 	rootCmd.AddCommand(listenCmd)
 	rootCmd.AddCommand(askCmd)
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
+	if cfgFile == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		cfgFile = home + "/.config/nf6-git-auth/config.yaml"
 	}
+	viper.SetConfigFile(cfgFile)
+
+	if _, err := os.Stat(cfgFile); err != nil {
+		genConfig()
+	}
+
 	if err := viper.ReadInConfig(); err == nil {
-		lib.LoadStringOptions(rootCmd, stringOptions)
-		lib.LoadDurationOptions(rootCmd, durationOptions)
+		lib.LoadOptions()
+	}
+
+	if shouldSaveConfig {
+		genConfig()
 	}
 
 	authorizedKeyPrefix = `command="` + gitShell
+}
+
+func genConfig() {
+	cfgFileDir := path.Dir(cfgFile)
+	if err := os.MkdirAll(cfgFileDir, os.ModePerm); err != nil {
+		log.Println("failed to make config directory: ", err)
+	}
+	if _, err := os.OpenFile(cfgFile, os.O_CREATE|os.O_RDONLY, 0600); err != nil {
+		log.Println("failed to create config file: ", err)
+	}
+	if err := viper.WriteConfig(); err != nil {
+		log.Println("failed to generate config: ", err)
+	}
 }
 
 func initDataDir() {

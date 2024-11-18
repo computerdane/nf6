@@ -22,62 +22,60 @@ func ValidateRepoName(name string) (valid bool, err error) {
 	return false, status.Error(codes.InvalidArgument, "Repo name must only contain characters A-Z, a-z, 0-9, -, and _. Repo name must not start or end with - or _. Repo name must not have two or more consecutive - and/or _.")
 }
 
-type StringOption struct {
-	P     *string
-	Name  string
-	Value string
-	Usage string
+type Option struct {
+	P         any
+	Name      string
+	Shorthand string
+	Value     any
+	Usage     string
 }
 
-func AddStringOptions(cmd *cobra.Command, options []StringOption) {
-	for _, o := range options {
-		cmd.PersistentFlags().StringVar(o.P, o.Name, o.Value, o.Usage)
-		viper.BindPFlag(o.Name, cmd.PersistentFlags().Lookup(o.Name))
-		*o.P = viper.GetString(o.Name)
+var options = []Option{}
+
+func AddOption(cmd *cobra.Command, o Option) {
+	switch o.Value.(type) {
+	case string:
+		if o.Shorthand == "" {
+			cmd.PersistentFlags().StringVar(o.P.(*string), o.Name, o.Value.(string), o.Usage)
+		} else {
+			cmd.PersistentFlags().StringVarP(o.P.(*string), o.Name, o.Shorthand, o.Value.(string), o.Usage)
+		}
+	case int:
+		if o.Shorthand == "" {
+			cmd.PersistentFlags().IntVar(o.P.(*int), o.Name, o.Value.(int), o.Usage)
+		} else {
+			cmd.PersistentFlags().IntVarP(o.P.(*int), o.Name, o.Shorthand, o.Value.(int), o.Usage)
+		}
+	case bool:
+		if o.Shorthand == "" {
+			cmd.PersistentFlags().BoolVar(o.P.(*bool), o.Name, o.Value.(bool), o.Usage)
+		} else {
+			cmd.PersistentFlags().BoolVarP(o.P.(*bool), o.Name, o.Shorthand, o.Value.(bool), o.Usage)
+		}
+	case time.Duration:
+		if o.Shorthand == "" {
+			cmd.PersistentFlags().DurationVar(o.P.(*time.Duration), o.Name, o.Value.(time.Duration), o.Usage)
+		} else {
+			cmd.PersistentFlags().DurationVarP(o.P.(*time.Duration), o.Name, o.Shorthand, o.Value.(time.Duration), o.Usage)
+		}
+	default:
+		return
 	}
-}
-func LoadStringOptions(cmd *cobra.Command, options []StringOption) {
-	for _, o := range options {
-		*o.P = viper.GetString(o.Name)
-	}
+	viper.BindPFlag(o.Name, cmd.PersistentFlags().Lookup(o.Name))
+	options = append(options, o)
 }
 
-type IntOption struct {
-	P     *int
-	Name  string
-	Value int
-	Usage string
-}
-
-func AddIntOptions(cmd *cobra.Command, options []IntOption) {
+func LoadOptions() {
 	for _, o := range options {
-		cmd.PersistentFlags().IntVar(o.P, o.Name, o.Value, o.Usage)
-		viper.BindPFlag(o.Name, cmd.PersistentFlags().Lookup(o.Name))
-		*o.P = viper.GetInt(o.Name)
-	}
-}
-func LoadIntOptions(cmd *cobra.Command, options []IntOption) {
-	for _, o := range options {
-		*o.P = viper.GetInt(o.Name)
-	}
-}
-
-type DurationOption struct {
-	P     *time.Duration
-	Name  string
-	Value time.Duration
-	Usage string
-}
-
-func AddDurationOptions(cmd *cobra.Command, options []DurationOption) {
-	for _, o := range options {
-		cmd.PersistentFlags().DurationVar(o.P, o.Name, o.Value, o.Usage)
-		viper.BindPFlag(o.Name, cmd.PersistentFlags().Lookup(o.Name))
-		*o.P = viper.GetDuration(o.Name)
-	}
-}
-func LoadDurationOptions(cmd *cobra.Command, options []DurationOption) {
-	for _, o := range options {
-		*o.P = viper.GetDuration(o.Name)
+		switch o.Value.(type) {
+		case string:
+			*o.P.(*string) = viper.GetString(o.Name)
+		case int:
+			*o.P.(*int) = viper.GetInt(o.Name)
+		case bool:
+			*o.P.(*bool) = viper.GetBool(o.Name)
+		case time.Duration:
+			*o.P.(*time.Duration) = viper.GetDuration(o.Name)
+		}
 	}
 }

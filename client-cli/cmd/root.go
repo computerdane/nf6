@@ -25,18 +25,16 @@ import (
 )
 
 var (
-	cfgFile string
+	cfgFile          string
+	shouldSaveConfig bool
 
 	apiHost         string
-	apiPortInsecure string
-	apiPortSecure   string
+	apiPortInsecure int
+	apiPortSecure   int
 	dataDir         string
 	defaultRepo     string
 	gitHost         string
 	timeout         time.Duration
-
-	stringOptions   []lib.StringOption
-	durationOptions []lib.DurationOption
 
 	sshDir         string
 	sshPrivKeyPath string
@@ -69,41 +67,45 @@ func init() {
 	cobra.OnInitialize(initConfig, initPaths)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/nf6/config.yaml)")
+	rootCmd.PersistentFlags().BoolVar(&shouldSaveConfig, "save-config", false, "save to the config file with the provided flags")
 
-	stringOptions = []lib.StringOption{
-		{P: &apiHost, Name: "apiHost", Value: "localhost", Usage: "api host without port"},
-		{P: &apiPortInsecure, Name: "apiPortInsecure", Value: "6968", Usage: "api insecure port"},
-		{P: &apiPortSecure, Name: "apiPortSecure", Value: "6969", Usage: "api secure port"},
-		{P: &dataDir, Name: "dataDir", Value: "", Usage: "location of data dir (default is $HOME/.local/share/nf6)"},
-		{P: &defaultRepo, Name: "defaultRepo", Value: "main", Usage: "default repo to use for all commands"},
-		{P: &gitHost, Name: "gitHost", Value: "", Usage: "git host without port (default same as apiHost)"},
-	}
-	durationOptions = []lib.DurationOption{
-		{P: &timeout, Name: "timeout", Value: 10 * time.Second, Usage: "grpc timeout"},
-	}
-
-	lib.AddStringOptions(rootCmd, stringOptions)
-	lib.AddDurationOptions(rootCmd, durationOptions)
+	lib.AddOption(rootCmd, lib.Option{P: &apiHost, Name: "api-host", Shorthand: "", Value: "localhost", Usage: "api host without port"})
+	lib.AddOption(rootCmd, lib.Option{P: &apiPortInsecure, Name: "api-port-insecure", Shorthand: "", Value: 6968, Usage: "api insecure port"})
+	lib.AddOption(rootCmd, lib.Option{P: &apiPortSecure, Name: "api-port-secure", Shorthand: "", Value: 6969, Usage: "api secure port"})
+	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "data-dir", Shorthand: "", Value: "", Usage: "location of data dir (default is $HOME/.local/share/nf6)"})
+	lib.AddOption(rootCmd, lib.Option{P: &defaultRepo, Name: "default-repo", Shorthand: "", Value: "main", Usage: "default repo to use for all commands"})
+	lib.AddOption(rootCmd, lib.Option{P: &gitHost, Name: "git-host", Shorthand: "", Value: "", Usage: "git host without port (default same as apiHost)"})
+	lib.AddOption(rootCmd, lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 10 * time.Second, Usage: "grpc timeout"})
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
+	if cfgFile == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			Crash(err)
 		}
 		cfgFile = home + "/.config/nf6/config.yaml"
-		viper.SetConfigFile(cfgFile)
+	}
+	viper.SetConfigFile(cfgFile)
+
+	if _, err := os.Stat(cfgFile); err != nil {
+		genConfig()
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
-		lib.LoadStringOptions(rootCmd, stringOptions)
-		lib.LoadDurationOptions(rootCmd, durationOptions)
+		lib.LoadOptions()
 	}
 
-	// try to generate config file
+	if shouldSaveConfig {
+		genConfig()
+	}
+
+	if gitHost == "" {
+		gitHost = apiHost
+	}
+}
+
+func genConfig() {
 	cfgFileDir := path.Dir(cfgFile)
 	if err := os.MkdirAll(cfgFileDir, os.ModePerm); err != nil {
 		Warn("failed to make config directory: ", err)
@@ -113,10 +115,6 @@ func initConfig() {
 	}
 	if err := viper.WriteConfig(); err != nil {
 		Warn("failed to generate config: ", err)
-	}
-
-	if gitHost == "" {
-		gitHost = apiHost
 	}
 }
 
@@ -195,7 +193,7 @@ func RequireInsecureClient(_ *cobra.Command, _ []string) {
 	RequireSsl()
 
 	var err error
-	connInsecure, err = grpc.NewClient(apiHost+":"+apiPortInsecure, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	connInsecure, err = grpc.NewClient(fmt.Sprintf("%s:%d", apiHost, apiPortInsecure), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		Crash("failed to dial: ", err)
 	}
@@ -241,7 +239,7 @@ func RequireSecureClient(_ *cobra.Command, _ []string) {
 		RootCAs:      caCertPool,
 	})
 
-	connSecure, err = grpc.NewClient(apiHost+":"+apiPortSecure, grpc.WithTransportCredentials(creds), grpc.WithAuthority("a"))
+	connSecure, err = grpc.NewClient(fmt.Sprintf("%s:%d", apiHost, apiPortSecure), grpc.WithTransportCredentials(creds), grpc.WithAuthority("a"))
 	if err != nil {
 		Crash("failed to dial: ", err)
 	}
