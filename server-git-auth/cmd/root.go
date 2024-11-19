@@ -173,6 +173,7 @@ func init() {
 	cobra.OnInitialize(initConfig, initDataDir)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-git-auth/config/config.yaml", "config file")
+	rootCmd.PersistentFlags().BoolVar(&shouldSaveConfig, "save-config", false, "save to the config file with the provided flags")
 
 	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "dataDir", Shorthand: "", Value: "/var/lib/nf6-git-auth/data", Usage: "where to store persistent data"})
 	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "dbUrl", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})

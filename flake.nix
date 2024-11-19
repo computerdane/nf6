@@ -41,6 +41,7 @@
               (pkgs.callPackage ./server-api/develop.nix { })
               (pkgs.callPackage ./server-git-auth/develop.nix { })
               (pkgs.callPackage ./server-git-shell/develop.nix { })
+              (pkgs.callPackage ./server-router/develop.nix { })
 
               (pkgs.callPackage ./server-db/develop.nix { inherit sql-scripts; })
             ];
