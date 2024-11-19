@@ -23,6 +23,7 @@ var (
 	cfgFile          string
 	shouldSaveConfig bool
 
+	dataDir      string
 	dbUrl        string
 	port         int
 	wgPrivKeyStr string
@@ -136,11 +137,12 @@ func handle(conn net.Conn) {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(initConfig, initDataDir)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-router/config/config.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVar(&shouldSaveConfig, "save-config", false, "save to the config file with the provided flags")
 
+	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "dataDir", Shorthand: "", Value: "/var/lib/nf6-router/data", Usage: "where to store persistent data"})
 	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "dbUrl", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
 	lib.AddOption(rootCmd, lib.Option{P: &port, Name: "port", Shorthand: "", Value: 51820, Usage: "wireguard listen port"})
 	lib.AddOption(rootCmd, lib.Option{P: &wgPrivKeyStr, Name: "privateKey", Shorthand: "", Value: "", Usage: "wireguard private key"})
@@ -183,6 +185,14 @@ func genConfig() {
 	}
 	if err := viper.WriteConfig(); err != nil {
 		log.Println("failed to generate config: ", err)
+	}
+}
+
+func initDataDir() {
+	socket = dataDir + "/socket.sock"
+
+	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
+		log.Fatal(err)
 	}
 }
 
