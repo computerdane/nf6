@@ -117,10 +117,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-api/config/config.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVar(&shouldSaveConfig, "save-config", false, "save to the config file with the provided flags")
 
-	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "dataDir", Shorthand: "", Value: "/var/lib/nf6-api/data", Usage: "where to store persistent data"})
-	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "dbUrl", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
-	lib.AddOption(rootCmd, lib.Option{P: &portInsecure, Name: "portInsecure", Shorthand: "", Value: 6968, Usage: "port for insecure connections"})
-	lib.AddOption(rootCmd, lib.Option{P: &portSecure, Name: "portSecure", Shorthand: "", Value: 6969, Usage: "port for secure connections"})
+	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "data-dir", Shorthand: "", Value: "/var/lib/nf6-api/data", Usage: "where to store persistent data"})
+	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "db-url", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
+	lib.AddOption(rootCmd, lib.Option{P: &portInsecure, Name: "port-insecure", Shorthand: "", Value: 6968, Usage: "port for insecure connections"})
+	lib.AddOption(rootCmd, lib.Option{P: &portSecure, Name: "port-secure", Shorthand: "", Value: 6969, Usage: "port for secure connections"})
 }
 
 func initConfig() {

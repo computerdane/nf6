@@ -183,8 +183,11 @@ var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	Nf6Secure_AddMachine_FullMethodName         = "/nf6.Nf6Secure/AddMachine"
 	Nf6Secure_CreateRepo_FullMethodName         = "/nf6.Nf6Secure/CreateRepo"
+	Nf6Secure_ListMachines_FullMethodName       = "/nf6.Nf6Secure/ListMachines"
 	Nf6Secure_ListRepos_FullMethodName          = "/nf6.Nf6Secure/ListRepos"
+	Nf6Secure_RenameMachine_FullMethodName      = "/nf6.Nf6Secure/RenameMachine"
 	Nf6Secure_RenameRepo_FullMethodName         = "/nf6.Nf6Secure/RenameRepo"
 	Nf6Secure_UpdateSshPublicKey_FullMethodName = "/nf6.Nf6Secure/UpdateSshPublicKey"
 	Nf6Secure_WhoAmI_FullMethodName             = "/nf6.Nf6Secure/WhoAmI"
@@ -194,8 +197,11 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Nf6SecureClient interface {
+	AddMachine(ctx context.Context, in *AddMachineRequest, opts ...grpc.CallOption) (*AddMachineReply, error)
 	CreateRepo(ctx context.Context, in *CreateRepoRequest, opts ...grpc.CallOption) (*CreateRepoReply, error)
+	ListMachines(ctx context.Context, in *ListMachinesRequest, opts ...grpc.CallOption) (*ListMachinesReply, error)
 	ListRepos(ctx context.Context, in *ListReposRequest, opts ...grpc.CallOption) (*ListReposReply, error)
+	RenameMachine(ctx context.Context, in *RenameMachineRequest, opts ...grpc.CallOption) (*RenameMachineReply, error)
 	RenameRepo(ctx context.Context, in *RenameRepoRequest, opts ...grpc.CallOption) (*RenameRepoReply, error)
 	UpdateSshPublicKey(ctx context.Context, in *UpdateSshPublicKeyRequest, opts ...grpc.CallOption) (*UpdateSshPublicKeyReply, error)
 	WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ...grpc.CallOption) (*WhoAmIReply, error)
@@ -209,6 +215,15 @@ func NewNf6SecureClient(cc grpc.ClientConnInterface) Nf6SecureClient {
 	return &nf6SecureClient{cc}
 }
 
+func (c *nf6SecureClient) AddMachine(ctx context.Context, in *AddMachineRequest, opts ...grpc.CallOption) (*AddMachineReply, error) {
+	out := new(AddMachineReply)
+	err := c.cc.Invoke(ctx, Nf6Secure_AddMachine_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *nf6SecureClient) CreateRepo(ctx context.Context, in *CreateRepoRequest, opts ...grpc.CallOption) (*CreateRepoReply, error) {
 	out := new(CreateRepoReply)
 	err := c.cc.Invoke(ctx, Nf6Secure_CreateRepo_FullMethodName, in, out, opts...)
@@ -218,9 +233,27 @@ func (c *nf6SecureClient) CreateRepo(ctx context.Context, in *CreateRepoRequest,
 	return out, nil
 }
 
+func (c *nf6SecureClient) ListMachines(ctx context.Context, in *ListMachinesRequest, opts ...grpc.CallOption) (*ListMachinesReply, error) {
+	out := new(ListMachinesReply)
+	err := c.cc.Invoke(ctx, Nf6Secure_ListMachines_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *nf6SecureClient) ListRepos(ctx context.Context, in *ListReposRequest, opts ...grpc.CallOption) (*ListReposReply, error) {
 	out := new(ListReposReply)
 	err := c.cc.Invoke(ctx, Nf6Secure_ListRepos_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nf6SecureClient) RenameMachine(ctx context.Context, in *RenameMachineRequest, opts ...grpc.CallOption) (*RenameMachineReply, error) {
+	out := new(RenameMachineReply)
+	err := c.cc.Invoke(ctx, Nf6Secure_RenameMachine_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -258,8 +291,11 @@ func (c *nf6SecureClient) WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ..
 // All implementations must embed UnimplementedNf6SecureServer
 // for forward compatibility
 type Nf6SecureServer interface {
+	AddMachine(context.Context, *AddMachineRequest) (*AddMachineReply, error)
 	CreateRepo(context.Context, *CreateRepoRequest) (*CreateRepoReply, error)
+	ListMachines(context.Context, *ListMachinesRequest) (*ListMachinesReply, error)
 	ListRepos(context.Context, *ListReposRequest) (*ListReposReply, error)
+	RenameMachine(context.Context, *RenameMachineRequest) (*RenameMachineReply, error)
 	RenameRepo(context.Context, *RenameRepoRequest) (*RenameRepoReply, error)
 	UpdateSshPublicKey(context.Context, *UpdateSshPublicKeyRequest) (*UpdateSshPublicKeyReply, error)
 	WhoAmI(context.Context, *WhoAmIRequest) (*WhoAmIReply, error)
@@ -270,11 +306,20 @@ type Nf6SecureServer interface {
 type UnimplementedNf6SecureServer struct {
 }
 
+func (UnimplementedNf6SecureServer) AddMachine(context.Context, *AddMachineRequest) (*AddMachineReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddMachine not implemented")
+}
 func (UnimplementedNf6SecureServer) CreateRepo(context.Context, *CreateRepoRequest) (*CreateRepoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRepo not implemented")
 }
+func (UnimplementedNf6SecureServer) ListMachines(context.Context, *ListMachinesRequest) (*ListMachinesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMachines not implemented")
+}
 func (UnimplementedNf6SecureServer) ListRepos(context.Context, *ListReposRequest) (*ListReposReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRepos not implemented")
+}
+func (UnimplementedNf6SecureServer) RenameMachine(context.Context, *RenameMachineRequest) (*RenameMachineReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenameMachine not implemented")
 }
 func (UnimplementedNf6SecureServer) RenameRepo(context.Context, *RenameRepoRequest) (*RenameRepoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenameRepo not implemented")
@@ -298,6 +343,24 @@ func RegisterNf6SecureServer(s grpc.ServiceRegistrar, srv Nf6SecureServer) {
 	s.RegisterService(&Nf6Secure_ServiceDesc, srv)
 }
 
+func _Nf6Secure_AddMachine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddMachineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6SecureServer).AddMachine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Secure_AddMachine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6SecureServer).AddMachine(ctx, req.(*AddMachineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Nf6Secure_CreateRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRepoRequest)
 	if err := dec(in); err != nil {
@@ -316,6 +379,24 @@ func _Nf6Secure_CreateRepo_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Nf6Secure_ListMachines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMachinesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6SecureServer).ListMachines(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Secure_ListMachines_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6SecureServer).ListMachines(ctx, req.(*ListMachinesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Nf6Secure_ListRepos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListReposRequest)
 	if err := dec(in); err != nil {
@@ -330,6 +411,24 @@ func _Nf6Secure_ListRepos_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(Nf6SecureServer).ListRepos(ctx, req.(*ListReposRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Nf6Secure_RenameMachine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenameMachineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6SecureServer).RenameMachine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Secure_RenameMachine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6SecureServer).RenameMachine(ctx, req.(*RenameMachineRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -396,12 +495,24 @@ var Nf6Secure_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*Nf6SecureServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "AddMachine",
+			Handler:    _Nf6Secure_AddMachine_Handler,
+		},
+		{
 			MethodName: "CreateRepo",
 			Handler:    _Nf6Secure_CreateRepo_Handler,
 		},
 		{
+			MethodName: "ListMachines",
+			Handler:    _Nf6Secure_ListMachines_Handler,
+		},
+		{
 			MethodName: "ListRepos",
 			Handler:    _Nf6Secure_ListRepos_Handler,
+		},
+		{
+			MethodName: "RenameMachine",
+			Handler:    _Nf6Secure_RenameMachine_Handler,
 		},
 		{
 			MethodName: "RenameRepo",

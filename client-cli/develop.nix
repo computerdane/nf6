@@ -9,6 +9,6 @@ writeShellApplication {
   name = "dev-client-cli";
   runtimeInputs = [ go ];
   text = ''
-    go run ./client-cli/*.go --config "${cfgFile}" --dataDir "${dataDir}" "$@"
+    go run ./client-cli/*.go --config "${cfgFile}" --data-dir "${dataDir}" "$@"
   '';
 }

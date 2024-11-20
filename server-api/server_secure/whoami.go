@@ -17,7 +17,7 @@ func (s *ServerSecure) WhoAmI(ctx context.Context, in *nf6.WhoAmIRequest) (*nf6.
 	reply := &nf6.WhoAmIReply{}
 
 	if err := s.db.QueryRow(ctx, "select email, ssh_public_key, ssl_public_key from account where id = $1", accountId).Scan(&reply.Email, &reply.SshPublicKey, &reply.SslPublicKey); err != nil {
-		return nil, status.Error(codes.Unauthenticated, "unknown")
+		return nil, status.Error(codes.Unauthenticated, "account does not exist")
 	}
 
 	return reply, nil

@@ -53,8 +53,7 @@ func (s *ServerSecure) Authenticate(ctx context.Context) (uint64, error) {
 	var accountId uint64 = 0
 	err = s.db.QueryRow(ctx, "select id from account where ssl_public_key = $1", pubKey).Scan(&accountId)
 	if err != nil {
-		log.Print(err)
-		return 0, status.Error(codes.Unauthenticated, "unknown")
+		return 0, status.Error(codes.Unauthenticated, "account does not exist")
 	}
 	if accountId == 0 {
 		return 0, status.Error(codes.Unauthenticated, "account does not exist")

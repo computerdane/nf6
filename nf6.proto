@@ -11,11 +11,24 @@ service Nf6Insecure {
 }
 
 service Nf6Secure {
+  rpc AddMachine (AddMachineRequest) returns (AddMachineReply) {}
   rpc CreateRepo (CreateRepoRequest) returns (CreateRepoReply) {}
+  rpc ListMachines (ListMachinesRequest) returns (ListMachinesReply) {}
   rpc ListRepos (ListReposRequest) returns (ListReposReply) {}
+  rpc RenameMachine (RenameMachineRequest) returns (RenameMachineReply) {}
   rpc RenameRepo (RenameRepoRequest) returns (RenameRepoReply) {}
   rpc UpdateSshPublicKey (UpdateSshPublicKeyRequest) returns (UpdateSshPublicKeyReply) {}
   rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}   
+}
+
+message AddMachineRequest {
+  string hostName = 1;
+  string wgPublicKey = 2;
+  string addrIpv6 = 3;
+}
+
+message AddMachineReply {
+  bool success = 1;
 }
 
 message CreateRepoRequest {
@@ -30,6 +43,12 @@ message GetCaCertRequest {}
 
 message GetCaCertReply {
   bytes cert = 1;
+}
+
+message ListMachinesRequest {}
+
+message ListMachinesReply {
+  repeated string names = 1;
 }
 
 message ListReposRequest {}
@@ -54,6 +73,15 @@ message RegisterRequest {
 
 message RegisterReply {
   bytes sslCert = 1;
+}
+
+message RenameMachineRequest {
+  string oldName = 1;
+  string newName = 2;
+}
+
+message RenameMachineReply {
+  bool success = 1;
 }
 
 message RenameRepoRequest {

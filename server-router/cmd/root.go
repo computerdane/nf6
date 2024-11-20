@@ -142,12 +142,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-router/config/config.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVar(&shouldSaveConfig, "save-config", false, "save to the config file with the provided flags")
 
-	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "dataDir", Shorthand: "", Value: "/var/lib/nf6-router/data", Usage: "where to store persistent data"})
-	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "dbUrl", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
+	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "data-dir", Shorthand: "", Value: "/var/lib/nf6-router/data", Usage: "where to store persistent data"})
+	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "db-url", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
 	lib.AddOption(rootCmd, lib.Option{P: &port, Name: "port", Shorthand: "", Value: 51820, Usage: "wireguard listen port"})
-	lib.AddOption(rootCmd, lib.Option{P: &wgPrivKeyStr, Name: "privateKey", Shorthand: "", Value: "", Usage: "wireguard private key"})
+	lib.AddOption(rootCmd, lib.Option{P: &wgPrivKeyStr, Name: "private-key", Shorthand: "", Value: "", Usage: "wireguard private key"})
 	lib.AddOption(rootCmd, lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for requests"})
-	lib.AddOption(rootCmd, lib.Option{P: &deviceName, Name: "deviceName", Shorthand: "", Value: "wg", Usage: "name of wireguard device"})
+	lib.AddOption(rootCmd, lib.Option{P: &deviceName, Name: "device-name", Shorthand: "", Value: "wg", Usage: "name of wireguard device"})
 
 	rootCmd.AddCommand(listenCmd)
 }

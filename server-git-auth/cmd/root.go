@@ -175,11 +175,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/var/lib/nf6-git-auth/config/config.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVar(&shouldSaveConfig, "save-config", false, "save to the config file with the provided flags")
 
-	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "dataDir", Shorthand: "", Value: "/var/lib/nf6-git-auth/data", Usage: "where to store persistent data"})
-	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "dbUrl", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
-	lib.AddOption(rootCmd, lib.Option{P: &gitReposDir, Name: "gitReposDir", Shorthand: "", Value: "/var/lib/nf6-git/repos", Usage: "location of git repos"})
-	lib.AddOption(rootCmd, lib.Option{P: &gitShell, Name: "gitShell", Shorthand: "", Value: "/bin/nf6-git-shell", Usage: "location of git-shell executable"})
-	lib.AddOption(rootCmd, lib.Option{P: &gitUser, Name: "gitUser", Shorthand: "", Value: "git", Usage: "name of allowed git user"})
+	lib.AddOption(rootCmd, lib.Option{P: &dataDir, Name: "data-dir", Shorthand: "", Value: "/var/lib/nf6-git-auth/data", Usage: "where to store persistent data"})
+	lib.AddOption(rootCmd, lib.Option{P: &dbUrl, Name: "db-url", Shorthand: "", Value: "dbname=nf6", Usage: "url of postgres database"})
+	lib.AddOption(rootCmd, lib.Option{P: &gitReposDir, Name: "git-repos-dir", Shorthand: "", Value: "/var/lib/nf6-git/repos", Usage: "location of git repos"})
+	lib.AddOption(rootCmd, lib.Option{P: &gitShell, Name: "git-shell", Shorthand: "", Value: "/bin/nf6-git-shell", Usage: "location of git-shell executable"})
+	lib.AddOption(rootCmd, lib.Option{P: &gitUser, Name: "git-user", Shorthand: "", Value: "git", Usage: "name of allowed git user"})
 	lib.AddOption(rootCmd, lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for requests"})
 
 	rootCmd.AddCommand(listenCmd)

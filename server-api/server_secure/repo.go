@@ -16,7 +16,7 @@ func (s *ServerSecure) CreateRepo(ctx context.Context, in *nf6.CreateRepoRequest
 		return nil, err
 	}
 
-	if match, err := lib.ValidateRepoName(in.GetName()); !match {
+	if err := lib.ValidateRepoName(in.GetName()); err != nil {
 		return nil, err
 	}
 
@@ -72,7 +72,7 @@ func (s *ServerSecure) RenameRepo(ctx context.Context, in *nf6.RenameRepoRequest
 		return nil, err
 	}
 
-	if match, err := lib.ValidateRepoName(in.GetNewName()); !match {
+	if err := lib.ValidateRepoName(in.GetNewName()); err != nil {
 		return nil, err
 	}
 

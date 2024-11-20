@@ -2,8 +2,7 @@ create table account (
   id bigserial primary key,
   email text not null unique check (email <> ''),
   ssh_public_key text not null unique check (ssh_public_key <> ''),
-  ssl_public_key text not null unique check (ssl_public_key <> ''),
-  subnet_ipv6 cidr not null unique check (masklen(subnet_ipv6) = 52)
+  ssl_public_key text not null unique check (ssl_public_key <> '')
 );
 
 create table repo (
@@ -22,4 +21,10 @@ create table machine (
   addr_ipv6 inet not null unique,
 
   unique (account_id, host_name)
+);
+
+create table subnet (
+  id bigserial primary key,
+  account_id bigint references account(id),
+  subnet_ipv6 cidr not null unique
 );
