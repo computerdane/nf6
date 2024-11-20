@@ -45,9 +45,9 @@ in
   config =
     let
       configYaml = pkgs.writeText "config.yaml" (builtins.toJSON cfg.settings);
-      dataDir = if (cfg.settings ? dataDir) then cfg.settings.dataDir else "/var/lib/nf6-git-auth/data";
+      dataDir = if (cfg.settings ? data-dir) then cfg.settings.data-dir else "/var/lib/nf6-git-auth/data";
       gitReposDir =
-        if (cfg.settings ? gitReposPath) then cfg.settings.gitReposPath else "/var/lib/nf6-git/repos";
+        if (cfg.settings ? get-repos-path) then cfg.settings.git-repos-path else "/var/lib/nf6-git/repos";
     in
     lib.mkIf cfg.enable {
       users.groups.${cfg.group} = { };
@@ -63,8 +63,8 @@ in
         script = ''
           PG_PASS=$(cat "${cfg.postgresPasswordFile}")
           nf6-git-auth listen --config "${configYaml}" \
-            --dbUrl "postgres://nf6_git:$PG_PASS@${cfg.postgresHost}/nf6" \
-            --gitShell "${pkgs-nf6.server-git-shell}/bin/nf6-git-shell"
+            --db-url "postgres://nf6_git:$PG_PASS@${cfg.postgresHost}/nf6" \
+            --git-shell "${pkgs-nf6.server-git-shell}/bin/nf6-git-shell"
         '';
         serviceConfig = {
           User = cfg.user;

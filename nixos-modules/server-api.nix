@@ -50,10 +50,10 @@ in
   config =
     let
       configYaml = pkgs.writeText "config.yaml" (builtins.toJSON cfg.settings);
-      dataDir = if (cfg.settings ? dataDir) then cfg.settings.dataDir else "/var/lib/nf6-api/data";
+      dataDir = if (cfg.settings ? data-dir) then cfg.settings.data-dir else "/var/lib/nf6-api/data";
       ports = [
-        (if (cfg.settings ? portInsecure) then cfg.portInsecure else 6968)
-        (if (cfg.settings ? portSecure) then cfg.portSecure else 6969)
+        (if (cfg.settings ? port-insecure) then cfg.settings.port-insecure else 6968)
+        (if (cfg.settings ? port-secure) then cfg.settings.port-secure else 6969)
       ];
     in
     lib.mkIf cfg.enable {
@@ -74,7 +74,7 @@ in
         script = ''
           PG_PASS=$(cat "${cfg.postgresPasswordFile}")
           nf6-api --config "${configYaml}" \
-            --dbUrl "postgres://nf6_api:$PG_PASS@${cfg.postgresHost}/nf6"
+            --db-url "postgres://nf6_api:$PG_PASS@${cfg.postgresHost}/nf6"
         '';
         serviceConfig = {
           User = cfg.user;
