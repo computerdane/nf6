@@ -81,6 +81,8 @@ func GenCaFiles(dir string, caName string) error {
 		if err := pem.Encode(caPem, &pem.Block{Type: "CERTIFICATE", Bytes: caBytes}); err != nil {
 			return status.Error(codes.Internal, "failed to encode ca certificate")
 		}
+	} else {
+		return status.Error(codes.AlreadyExists, "keypair already exists")
 	}
 
 	return nil

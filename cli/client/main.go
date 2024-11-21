@@ -30,8 +30,8 @@ var (
 	tlsDir string
 
 	tlsName        string
+	tlsCaName      string
 	tlsPrivKeyPath string
-	tlsPubKeyPath  string
 	tlsCertPath    string
 	tlsCaCertPath  string
 
@@ -80,8 +80,8 @@ func InitState() {
 	lib.InitStateDir()
 
 	tlsName = "client"
+	tlsCaName = "ca"
 	tlsPrivKeyPath = tlsDir + "/" + tlsName + ".key"
-	tlsPubKeyPath = tlsDir + "/" + tlsName + ".pub"
 	tlsCertPath = tlsDir + "/" + tlsName + ".crt"
 	tlsCaCertPath = tlsDir + "/ca.crt"
 }
