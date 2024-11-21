@@ -28,7 +28,7 @@ func SetSystemStateDir(dir string) {
 	SetStateDir("/var/lib/" + dir + "/state")
 }
 
-func InitState() {
+func InitStateDir() {
 	if err := os.MkdirAll(stateDir, os.ModePerm); err != nil {
 		Crash(err)
 	}
