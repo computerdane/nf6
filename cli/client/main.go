@@ -1,12 +1,14 @@
 package client
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -30,26 +32,6 @@ var (
 	clientPublic nf6.Nf6PublicClient
 )
 
-func InitConfig() {
-	if configPath == "" {
-		lib.SetHomeConfigPath("nf6")
-	} else {
-		lib.SetConfigPath(configPath)
-	}
-	lib.InitConfig(saveConfig)
-}
-
-func InitState() {
-	if stateDir == "" {
-		lib.SetHomeStateDir("nf6")
-	} else {
-		lib.SetStateDir(stateDir)
-	}
-	lib.AddStateSubDir(&lib.StateSubDir{P: &sshDir, Name: "ssh"})
-	lib.AddStateSubDir(&lib.StateSubDir{P: &tlsDir, Name: "tls"})
-	lib.InitStateDir()
-}
-
 func Init(cmd *cobra.Command) {
 	cobra.OnInitialize(InitConfig, InitState)
 
@@ -63,6 +45,39 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
 
-	cmd.AddCommand(keygenCmd)
+	cmd.AddCommand(gentlsCmd)
 	cmd.AddCommand(registerCmd)
+}
+
+func InitConfig() {
+	if configPath == "" {
+		lib.SetHomeConfigPath("nf6")
+	} else {
+		lib.SetConfigPath(configPath)
+	}
+	lib.InitConfig(saveConfig)
+	lib.SetTimeout(timeout)
+}
+
+func InitState() {
+	if stateDir == "" {
+		lib.SetHomeStateDir("nf6")
+	} else {
+		lib.SetStateDir(stateDir)
+	}
+	lib.AddStateSubDir(&lib.StateSubDir{P: &sshDir, Name: "ssh"})
+	lib.AddStateSubDir(&lib.StateSubDir{P: &tlsDir, Name: "tls"})
+	lib.InitStateDir()
+}
+
+func ConnectPublic(_ *cobra.Command, _ []string) {
+	var err error
+	connPublic, err = grpc.NewClient(fmt.Sprintf("%s:%d", host, portPublic), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		lib.Crash("failed to connect to server: ", err)
+	}
+	clientPublic = nf6.NewNf6PublicClient(connPublic)
+}
+
+func Connect(_ *cobra.Command, _ []string) {
 }

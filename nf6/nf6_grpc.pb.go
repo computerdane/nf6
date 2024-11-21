@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Nf6Public_CreateAccount_FullMethodName = "/nf6.Nf6Public/CreateAccount"
+	Nf6Public_GetCaCert_FullMethodName     = "/nf6.Nf6Public/GetCaCert"
 )
 
 // Nf6PublicClient is the client API for Nf6Public service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Nf6PublicClient interface {
 	CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*None, error)
+	GetCaCert(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetCaCert_Reply, error)
 }
 
 type nf6PublicClient struct {
@@ -46,11 +48,21 @@ func (c *nf6PublicClient) CreateAccount(ctx context.Context, in *CreateAccount_R
 	return out, nil
 }
 
+func (c *nf6PublicClient) GetCaCert(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetCaCert_Reply, error) {
+	out := new(GetCaCert_Reply)
+	err := c.cc.Invoke(ctx, Nf6Public_GetCaCert_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Nf6PublicServer is the server API for Nf6Public service.
 // All implementations must embed UnimplementedNf6PublicServer
 // for forward compatibility
 type Nf6PublicServer interface {
 	CreateAccount(context.Context, *CreateAccount_Request) (*None, error)
+	GetCaCert(context.Context, *None) (*GetCaCert_Reply, error)
 	mustEmbedUnimplementedNf6PublicServer()
 }
 
@@ -60,6 +72,9 @@ type UnimplementedNf6PublicServer struct {
 
 func (UnimplementedNf6PublicServer) CreateAccount(context.Context, *CreateAccount_Request) (*None, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
+}
+func (UnimplementedNf6PublicServer) GetCaCert(context.Context, *None) (*GetCaCert_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCaCert not implemented")
 }
 func (UnimplementedNf6PublicServer) mustEmbedUnimplementedNf6PublicServer() {}
 
@@ -92,6 +107,24 @@ func _Nf6Public_CreateAccount_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Nf6Public_GetCaCert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(None)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6PublicServer).GetCaCert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Public_GetCaCert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6PublicServer).GetCaCert(ctx, req.(*None))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Nf6Public_ServiceDesc is the grpc.ServiceDesc for Nf6Public service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +135,10 @@ var Nf6Public_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateAccount",
 			Handler:    _Nf6Public_CreateAccount_Handler,
+		},
+		{
+			MethodName: "GetCaCert",
+			Handler:    _Nf6Public_GetCaCert_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
