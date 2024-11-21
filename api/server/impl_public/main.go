@@ -28,6 +28,9 @@ func (s *ServerPublic) GetCaCert(_ context.Context, in *nf6.None) (*nf6.GetCaCer
 }
 
 func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_Request) (*nf6.CreateAccount_Reply, error) {
+	if err := lib.ValidateEmail(in.GetEmail()); err != nil {
+		return nil, err
+	}
 	if in.GetSshPubKey() == "" {
 		return nil, status.Error(codes.InvalidArgument, "SSH public key must not be empty")
 	}
@@ -35,6 +38,12 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 		return nil, status.Error(codes.InvalidArgument, "TLS public key must not be empty")
 	}
 	if err := lib.DbCheckNotExists(ctx, s.db, "account", "email", in.GetEmail()); err != nil {
+		return nil, err
+	}
+	if err := lib.DbCheckNotExists(ctx, s.db, "account", "ssh_pub_key", in.GetSshPubKey()); err != nil {
+		return nil, err
+	}
+	if err := lib.DbCheckNotExists(ctx, s.db, "account", "tls_pub_key", in.GetTlsPubKey()); err != nil {
 		return nil, err
 	}
 	cert, err := lib.GenCert(s.tlsDir, s.tlsCaName, []byte(in.GetTlsPubKey()))

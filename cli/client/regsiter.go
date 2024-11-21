@@ -6,13 +6,14 @@ import (
 
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
 var registerCmd = &cobra.Command{
 	Use:    "register [email]",
 	Short:  "Register using your email",
-	Args:   cobra.ExactArgs(1),
+	Args:   cobra.MaximumNArgs(1),
 	PreRun: ConnectPublic,
 	Run: func(cmd *cobra.Command, args []string) {
 		if _, err := os.Stat(sshPrivKeyPath); err != nil {
@@ -21,7 +22,16 @@ var registerCmd = &cobra.Command{
 		if _, err := os.Stat(tlsPrivKeyPath); err != nil {
 			gentlsCmd.Run(nil, []string{})
 		}
-		email := args[0]
+		email := ""
+		if len(args) > 0 {
+			email = args[0]
+		}
+		if err := lib.PromptOrValidate(&email, &promptui.Prompt{
+			Label:    "Email",
+			Validate: lib.ValidateEmail,
+		}); err != nil {
+			lib.Crash(err)
+		}
 		sshPubKey, err := os.ReadFile(sshPubKeyPath)
 		if err != nil {
 			lib.Crash("failed to read SSH public key: ", err)

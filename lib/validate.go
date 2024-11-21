@@ -2,6 +2,7 @@ package lib
 
 import (
 	"net"
+	"net/mail"
 	"regexp"
 
 	"github.com/manifoldco/promptui"
@@ -10,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func PromptOrValidate(value *string, prompt promptui.Prompt) error {
+func PromptOrValidate(value *string, prompt *promptui.Prompt) error {
 	if *value == "" {
 		result, err := prompt.Run()
 		if err != nil {
@@ -21,6 +22,13 @@ func PromptOrValidate(value *string, prompt promptui.Prompt) error {
 		if err := prompt.Validate(*value); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func ValidateEmail(email string) error {
+	if _, err := mail.ParseAddress(email); err != nil {
+		return status.Error(codes.InvalidArgument, "Invalid email")
 	}
 	return nil
 }

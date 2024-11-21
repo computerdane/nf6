@@ -62,9 +62,9 @@ message GetAccount_Reply {
   string tlsPubKey = 3;
 }
 message UpdateAccount_Request {
-  string email = 1;
-  string sshPubKey = 2;
-  string tlsPubKey = 3;
+  optional string email = 1;
+  optional string sshPubKey = 2;
+  optional string tlsPubKey = 3;
 }
 
 message CreateHost_Request {

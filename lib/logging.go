@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -22,7 +23,7 @@ var (
 )
 
 func toJson(a any) []byte {
-	output, err := json.MarshalIndent(a, "", "  ")
+	output, err := json.Marshal(a)
 	if err != nil {
 		Crash(err)
 	}
@@ -39,9 +40,17 @@ func Output(a any) {
 		if err := json.Unmarshal(j, &m); err != nil {
 			Crash(err)
 		}
+		keys := make([]string, len(m))
+		i := 0
+		for k := range m {
+			keys[i] = k
+			i++
+		}
+		sort.Strings(keys)
 		tbl := table.NewWriter()
 		tbl.SetOutputMirror(os.Stdout)
-		for k, v := range m {
+		for _, k := range keys {
+			v := m[k]
 			tbl.AppendRow(table.Row{k, v})
 			tbl.AppendSeparator()
 		}
