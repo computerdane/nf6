@@ -21,6 +21,7 @@ var (
 
 	defaultRepo string
 	host        string
+	output      string
 	port        int
 	portPublic  int
 	stateDir    string
@@ -55,11 +56,13 @@ func Init(cmd *cobra.Command) {
 
 	lib.AddOption(cmd, &lib.Option{P: &defaultRepo, Name: "default-repo", Shorthand: "", Value: "main", Usage: "default repo to use for all commands"})
 	lib.AddOption(cmd, &lib.Option{P: &host, Name: "host", Shorthand: "H", Value: "localhost", Usage: "server host without port"})
+	lib.AddOption(cmd, &lib.Option{P: &output, Name: "output", Shorthand: "", Value: "table", Usage: "output type, json/table"})
 	lib.AddOption(cmd, &lib.Option{P: &port, Name: "port", Shorthand: "", Value: 6969, Usage: "server port"})
 	lib.AddOption(cmd, &lib.Option{P: &portPublic, Name: "port-public", Shorthand: "", Value: 6968, Usage: "server public port"})
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
 
+	cmd.AddCommand(accountCmd)
 	cmd.AddCommand(gensshCmd)
 	cmd.AddCommand(gentlsCmd)
 	cmd.AddCommand(registerCmd)
@@ -77,6 +80,7 @@ func InitConfig() {
 	}
 	lib.InitConfig(saveConfig)
 	lib.SetTimeout(timeout)
+	lib.SetOutputType(output)
 }
 
 func InitState() {

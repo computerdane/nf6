@@ -1,17 +1,56 @@
 package lib
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"google.golang.org/grpc/status"
 )
+
+var OutputType = ""
+
+func SetOutputType(t string) {
+	OutputType = t
+}
 
 var (
 	red    = color.New(color.FgRed).FprintlnFunc()
 	yellow = color.New(color.FgYellow).FprintlnFunc()
 )
+
+func toJson(a any) []byte {
+	output, err := json.MarshalIndent(a, "", "  ")
+	if err != nil {
+		Crash(err)
+	}
+	return output
+}
+
+func Output(a any) {
+	switch OutputType {
+	case "json":
+		fmt.Println(string(toJson(a)))
+	case "table":
+		j := toJson(a)
+		var m map[string]interface{}
+		if err := json.Unmarshal(j, &m); err != nil {
+			Crash(err)
+		}
+		tbl := table.NewWriter()
+		tbl.SetOutputMirror(os.Stdout)
+		for k, v := range m {
+			tbl.AppendRow(table.Row{k, v})
+			tbl.AppendSeparator()
+		}
+		tbl.SetStyle(table.StyleRounded)
+		tbl.Render()
+	default:
+		fmt.Println(a)
+	}
+}
 
 func Crash(a ...any) {
 	if len(a) == 1 {

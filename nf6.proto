@@ -57,10 +57,9 @@ service Nf6 {
 // Users
 
 message GetAccount_Reply {
-  uint64 id = 1;
-  string email = 2;
-  string sshPubKey = 3;
-  string tlsPubKey = 4;
+  string email = 1;
+  string sshPubKey = 2;
+  string tlsPubKey = 3;
 }
 message UpdateAccount_Request {
   string email = 1;

@@ -10,10 +10,9 @@ import (
 )
 
 var registerCmd = &cobra.Command{
-	Use:   "register [email]",
-	Short: "Register using your email",
-	Args:  cobra.ExactArgs(1),
-
+	Use:    "register [email]",
+	Short:  "Register using your email",
+	Args:   cobra.ExactArgs(1),
 	PreRun: ConnectPublic,
 	Run: func(cmd *cobra.Command, args []string) {
 		if _, err := os.Stat(sshPrivKeyPath); err != nil {
