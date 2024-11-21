@@ -1,18 +1,18 @@
 package main
 
 import (
-	"github.com/computerdane/nf6/cli/client"
+	"github.com/computerdane/nf6/api/server"
 	"github.com/computerdane/nf6/lib"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "nf",
-	Short: "Nf6 simplifies computer networking and deployment",
+	Use:   "nf6-api",
+	Short: "API server for Nf6",
 }
 
 func init() {
-	client.Init(rootCmd)
+	server.Init(rootCmd)
 }
 
 func main() {

@@ -12,6 +12,8 @@
       in
       {
         devShell = pkgs.mkShell {
+          IS_DEV_SHELL = "1";
+
           buildInputs = with pkgs; [
             buf-language-server
             git

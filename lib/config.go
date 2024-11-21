@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var IsDevShell = os.Getenv("IS_DEV_SHELL") != ""
+
 type Option struct {
 	P         any
 	Name      string
