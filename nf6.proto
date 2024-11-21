@@ -71,6 +71,7 @@ message CreateHost_Request {
   string name = 1;
   string addr6 = 2;
   string wgPubKey = 3;
+  optional string tlsPubKey = 4;
 }
 message GetHost_Request {
   string name = 1;
@@ -80,15 +81,17 @@ message GetHost_Reply {
   string name = 2;
   string addr6 = 3;
   string wgPubKey = 4;
+  optional string tlsPubKey = 5;
 }
 message ListHosts_Reply {
   repeated string names = 1;
 }
 message UpdateHost_Request {
   uint64 id = 1;
-  string name = 2;
-  string addr6 = 3;
-  string wgPubKey = 4;
+  optional string name = 2;
+  optional string addr6 = 3;
+  optional string wgPubKey = 4;
+  optional string tlsPubKey = 5;
 }
 
 message CreateRepo_Request {
@@ -106,7 +109,7 @@ message ListRepos_Reply {
 }
 message UpdateRepo_Request {
   uint64 id = 1;
-  string name = 2;
+  optional string name = 2;
 }
 
 // Git Server

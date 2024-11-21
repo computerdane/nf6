@@ -12,6 +12,13 @@ import (
 )
 
 var OutputType = ""
+var TableStyle = table.StyleDefault
+var ShowIds = false
+
+func init() {
+	TableStyle.Options.DrawBorder = false
+	TableStyle.Options.SeparateColumns = false
+}
 
 func SetOutputType(t string) {
 	OutputType = t
@@ -47,15 +54,37 @@ func Output(a any) {
 			i++
 		}
 		sort.Strings(keys)
+		for i, s := range keys {
+			if s == "id" {
+				keys[0], keys[i] = keys[i], keys[0]
+				break
+			}
+		}
 		tbl := table.NewWriter()
 		tbl.SetOutputMirror(os.Stdout)
 		for _, k := range keys {
+			if k == "id" && !ShowIds {
+				continue
+			}
 			v := m[k]
 			tbl.AppendRow(table.Row{k, v})
-			tbl.AppendSeparator()
 		}
-		tbl.SetStyle(table.StyleRounded)
+		tbl.SetStyle(TableStyle)
 		tbl.Render()
+	default:
+		fmt.Println(a)
+	}
+}
+
+func OutputStringList(a []string) {
+	switch OutputType {
+	case "json":
+		fmt.Println(string(toJson(a)))
+	case "table":
+		sort.Strings(a)
+		for _, s := range a {
+			fmt.Println(s)
+		}
 	default:
 		fmt.Println(a)
 	}

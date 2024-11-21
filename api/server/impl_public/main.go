@@ -56,8 +56,7 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 		"ssh_pub_key": in.GetSshPubKey(),
 		"tls_pub_key": in.GetTlsPubKey(),
 	}
-	_, err = s.db.Exec(ctx, query, args)
-	if err != nil {
+	if _, err := s.db.Exec(ctx, query, args); err != nil {
 		return nil, status.Error(codes.Unknown, "account creation failed")
 	}
 	return &nf6.CreateAccount_Reply{Cert: string(cert)}, nil

@@ -44,8 +44,8 @@ var (
 	conn       *grpc.ClientConn
 	connPublic *grpc.ClientConn
 
-	client       nf6.Nf6Client
-	clientPublic nf6.Nf6PublicClient
+	api       nf6.Nf6Client
+	apiPublic nf6.Nf6PublicClient
 )
 
 func Init(cmd *cobra.Command) {
@@ -65,6 +65,7 @@ func Init(cmd *cobra.Command) {
 	cmd.AddCommand(accountCmd)
 	cmd.AddCommand(gensshCmd)
 	cmd.AddCommand(gentlsCmd)
+	cmd.AddCommand(hostCmd)
 	cmd.AddCommand(registerCmd)
 }
 
@@ -115,12 +116,12 @@ func ConnectPublic(_ *cobra.Command, _ []string) {
 	if err != nil {
 		lib.Crash("failed to connect to public server: ", err)
 	}
-	clientPublic = nf6.NewNf6PublicClient(connPublic)
+	apiPublic = nf6.NewNf6PublicClient(connPublic)
 
 	if _, err := os.Stat(tlsCaCertPath); err != nil {
 		ctx, cancel := lib.Context()
 		defer cancel()
-		reply, err := clientPublic.GetCaCert(ctx, nil)
+		reply, err := apiPublic.GetCaCert(ctx, nil)
 		if err != nil {
 			lib.Crash("failed to get server's ca cert: ", err)
 		}
@@ -173,8 +174,8 @@ func Connect(_ *cobra.Command, _ []string) {
 	if err != nil {
 		lib.Crash("failed to connect to server: ", err)
 	}
-	client = nf6.NewNf6Client(conn)
-	if client == nil {
+	api = nf6.NewNf6Client(conn)
+	if api == nil {
 		lib.Crash("please register first!")
 	}
 }

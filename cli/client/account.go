@@ -24,7 +24,7 @@ var accountGetCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := lib.Context()
 		defer cancel()
-		reply, err := client.GetAccount(ctx, nil)
+		reply, err := api.GetAccount(ctx, nil)
 		if err != nil {
 			lib.Crash(err)
 		}
@@ -50,7 +50,7 @@ var accountSetEmailCmd = &cobra.Command{
 		}
 		ctx, cancel := lib.Context()
 		defer cancel()
-		_, err := client.UpdateAccount(ctx, &nf6.UpdateAccount_Request{Email: &email})
+		_, err := api.UpdateAccount(ctx, &nf6.UpdateAccount_Request{Email: &email})
 		if err != nil {
 			lib.Crash(err)
 		}

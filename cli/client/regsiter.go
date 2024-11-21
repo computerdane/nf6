@@ -12,7 +12,7 @@ import (
 
 var registerCmd = &cobra.Command{
 	Use:    "register [email]",
-	Short:  "Register using your email",
+	Short:  "Register a new account",
 	Args:   cobra.MaximumNArgs(1),
 	PreRun: ConnectPublic,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -47,7 +47,7 @@ var registerCmd = &cobra.Command{
 		}
 		ctx, cancel := lib.Context()
 		defer cancel()
-		reply, err := clientPublic.CreateAccount(ctx, &nf6.CreateAccount_Request{Email: email, SshPubKey: sshPubKeyOnly, TlsPubKey: string(tlsPubKey)})
+		reply, err := apiPublic.CreateAccount(ctx, &nf6.CreateAccount_Request{Email: email, SshPubKey: sshPubKeyOnly, TlsPubKey: string(tlsPubKey)})
 		if err != nil {
 			lib.Crash(err)
 		}
