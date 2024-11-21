@@ -9,7 +9,7 @@ message None {}
 */
 
 service Nf6Public {
-  rpc CreateAccount (CreateAccount_Request) returns (None) {}
+  rpc CreateAccount (CreateAccount_Request) returns (CreateAccount_Reply) {}
   rpc GetCaCert (None) returns (GetCaCert_Reply) {}
 }
 
@@ -17,6 +17,10 @@ message CreateAccount_Request {
   string email = 1;
   string sshPubKey = 2;
   string tlsPubKey = 3;
+}
+
+message CreateAccount_Reply {
+  string cert = 1;
 }
 
 message GetCaCert_Reply {

@@ -35,13 +35,13 @@ var servePublicCmd = &cobra.Command{
 		}
 		fmt.Printf("listening at %v", lis.Addr())
 
-		caCert, err := os.ReadFile(tlsCaCertPath)
+		tlsCaCert, err := os.ReadFile(tlsCaCertPath)
 		if err != nil {
 			lib.Crash("failed to read ca cert file: ", err)
 		}
 
 		server := grpc.NewServer()
-		nf6.RegisterNf6PublicServer(server, impl_public.NewServerPublic(db, string(caCert)))
+		nf6.RegisterNf6PublicServer(server, impl_public.NewServerPublic(db, string(tlsCaCert), tlsDir, tlsCaName))
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)
 		}

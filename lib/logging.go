@@ -18,13 +18,14 @@ func Crash(a ...any) {
 		if _, ok := a[0].(error); ok {
 			if s, ok := status.FromError(a[0].(error)); ok {
 				red(os.Stderr, fmt.Sprintf("[%s] %s", s.Code().String(), s.Message()))
+				os.Exit(1)
 			}
 		}
 	} else if len(a) == 0 {
 		red(os.Stderr, "unknown error!")
-	} else {
-		red(os.Stderr, a...)
+		os.Exit(1)
 	}
+	red(os.Stderr, a...)
 	os.Exit(1)
 }
 

@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Nf6PublicClient interface {
-	CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*None, error)
+	CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*CreateAccount_Reply, error)
 	GetCaCert(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetCaCert_Reply, error)
 }
 
@@ -39,8 +39,8 @@ func NewNf6PublicClient(cc grpc.ClientConnInterface) Nf6PublicClient {
 	return &nf6PublicClient{cc}
 }
 
-func (c *nf6PublicClient) CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*None, error) {
-	out := new(None)
+func (c *nf6PublicClient) CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*CreateAccount_Reply, error) {
+	out := new(CreateAccount_Reply)
 	err := c.cc.Invoke(ctx, Nf6Public_CreateAccount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (c *nf6PublicClient) GetCaCert(ctx context.Context, in *None, opts ...grpc.
 // All implementations must embed UnimplementedNf6PublicServer
 // for forward compatibility
 type Nf6PublicServer interface {
-	CreateAccount(context.Context, *CreateAccount_Request) (*None, error)
+	CreateAccount(context.Context, *CreateAccount_Request) (*CreateAccount_Reply, error)
 	GetCaCert(context.Context, *None) (*GetCaCert_Reply, error)
 	mustEmbedUnimplementedNf6PublicServer()
 }
@@ -70,7 +70,7 @@ type Nf6PublicServer interface {
 type UnimplementedNf6PublicServer struct {
 }
 
-func (UnimplementedNf6PublicServer) CreateAccount(context.Context, *CreateAccount_Request) (*None, error) {
+func (UnimplementedNf6PublicServer) CreateAccount(context.Context, *CreateAccount_Request) (*CreateAccount_Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
 }
 func (UnimplementedNf6PublicServer) GetCaCert(context.Context, *None) (*GetCaCert_Reply, error) {

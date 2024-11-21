@@ -29,9 +29,14 @@ var (
 	sshDir string
 	tlsDir string
 
+	sshName        string
+	sshPrivKeyPath string
+	sshPubKeyPath  string
+
 	tlsName        string
 	tlsCaName      string
 	tlsPrivKeyPath string
+	tlsPubKeyPath  string
 	tlsCertPath    string
 	tlsCaCertPath  string
 
@@ -55,6 +60,7 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
 
+	cmd.AddCommand(gensshCmd)
 	cmd.AddCommand(gentlsCmd)
 	cmd.AddCommand(registerCmd)
 }
@@ -87,9 +93,14 @@ func InitState() {
 	lib.AddStateSubDir(&lib.StateSubDir{P: &tlsDir, Name: "tls"})
 	lib.InitStateDir()
 
+	sshName = "id_ed25519"
+	sshPrivKeyPath = sshDir + "/" + sshName
+	sshPubKeyPath = sshDir + "/" + sshName + ".pub"
+
 	tlsName = "client"
 	tlsCaName = "ca"
 	tlsPrivKeyPath = tlsDir + "/" + tlsName + ".key"
+	tlsPubKeyPath = tlsDir + "/" + tlsName + ".pub"
 	tlsCertPath = tlsDir + "/" + tlsName + ".crt"
 	tlsCaCertPath = tlsDir + "/ca.crt"
 }
