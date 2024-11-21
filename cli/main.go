@@ -2,7 +2,13 @@ package main
 
 import (
 	"github.com/computerdane/nf6/cli/client"
+	"github.com/computerdane/nf6/lib"
 	"github.com/spf13/cobra"
+)
+
+var (
+	configPath string
+	saveConfig bool
 )
 
 var rootCmd = &cobra.Command{
@@ -11,9 +17,11 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(client.RegisterCmd)
+	client.Init(rootCmd)
 }
 
 func main() {
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		lib.Crash(err)
+	}
 }

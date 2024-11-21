@@ -30,7 +30,29 @@ var (
 	clientPublic nf6.Nf6PublicClient
 )
 
-func initCommand(cmd *cobra.Command) {
+func InitConfig() {
+	if configPath == "" {
+		lib.SetHomeConfigPath("nf6")
+	} else {
+		lib.SetConfigPath(configPath)
+	}
+	lib.InitConfig(saveConfig)
+}
+
+func InitState() {
+	if stateDir == "" {
+		lib.SetHomeStateDir("nf6")
+	} else {
+		lib.SetStateDir(stateDir)
+	}
+	lib.AddStateSubDir(&lib.StateSubDir{P: &sshDir, Name: "ssh"})
+	lib.AddStateSubDir(&lib.StateSubDir{P: &tlsDir, Name: "tls"})
+	lib.InitStateDir()
+}
+
+func Init(cmd *cobra.Command) {
+	cobra.OnInitialize(InitConfig, InitState)
+
 	cmd.PersistentFlags().StringVar(&configPath, "config-path", "", "path to config file")
 	cmd.PersistentFlags().BoolVar(&saveConfig, "save-config", false, "save the flags for this execution to the config file")
 
@@ -41,19 +63,6 @@ func initCommand(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
 
-	if configPath == "" {
-		lib.SetHomeConfigPath("nf6")
-	} else {
-		lib.SetConfigPath(configPath)
-	}
-	lib.InitConfig(false)
-
-	if stateDir == "" {
-		lib.SetHomeStateDir("nf6")
-	} else {
-		lib.SetStateDir(stateDir)
-	}
-	lib.AddStateSubDir(&lib.StateSubDir{P: &sshDir, Name: "ssh"})
-	lib.AddStateSubDir(&lib.StateSubDir{P: &tlsDir, Name: "tls"})
-	lib.InitStateDir()
+	cmd.AddCommand(keygenCmd)
+	cmd.AddCommand(registerCmd)
 }
