@@ -5,11 +5,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	gentlsDir string
+)
+
+func init() {
+	gentlsCmd.PersistentFlags().StringVarP(&gentlsDir, "dir", "d", "", "directory to put new keypair")
+}
+
 var gentlsCmd = &cobra.Command{
 	Use:   "gentls",
-	Short: "Generate a new TLS private key and certificate",
+	Short: "Generate a new TLS keypair",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.GenKeyFiles(tlsDir, "client"); err != nil {
+		if gentlsDir == "" {
+			gentlsDir = tlsDir
+		}
+		if err := lib.GenKeyFiles(gentlsDir, "client"); err != nil {
 			lib.Crash(err)
 		}
 	},
