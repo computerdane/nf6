@@ -41,6 +41,7 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaCertPath, Name: "tls-ca-cert-path", Shorthand: "", Value: "", Usage: "path to the root ca cert"})
 
 	cmd.AddCommand(serveCmd)
+	cmd.AddCommand(servePublicCmd)
 }
 
 func InitConfig() {

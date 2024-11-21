@@ -49,7 +49,7 @@ func Init(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVar(&saveConfig, "save-config", false, "save the flags for this execution to the config file")
 
 	lib.AddOption(cmd, &lib.Option{P: &defaultRepo, Name: "default-repo", Shorthand: "", Value: "main", Usage: "default repo to use for all commands"})
-	lib.AddOption(cmd, &lib.Option{P: &host, Name: "host", Shorthand: "H", Value: "nf6.sh", Usage: "server host without port"})
+	lib.AddOption(cmd, &lib.Option{P: &host, Name: "host", Shorthand: "H", Value: "localhost", Usage: "server host without port"})
 	lib.AddOption(cmd, &lib.Option{P: &port, Name: "port", Shorthand: "", Value: 6969, Usage: "server port"})
 	lib.AddOption(cmd, &lib.Option{P: &portPublic, Name: "port-public", Shorthand: "", Value: 6968, Usage: "server public port"})
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
@@ -107,15 +107,15 @@ func ConnectPublic(_ *cobra.Command, _ []string) {
 		defer cancel()
 		reply, err := clientPublic.GetCaCert(ctx, nil)
 		if err != nil {
-			lib.Warn("failed to get server's ca cert: ", err)
+			lib.Crash("failed to get server's ca cert: ", err)
 		}
 		caCert := reply.GetCaCert()
 		caCertFile, err := os.OpenFile(tlsCaCertPath, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
-			lib.Warn("failed to open ca cert file: ", err)
+			lib.Crash("failed to open ca cert file: ", err)
 		}
 		if _, err := caCertFile.WriteString(caCert); err != nil {
-			lib.Warn("failed to write ca cert file: ", err)
+			lib.Crash("failed to write ca cert file: ", err)
 		}
 	}
 }
