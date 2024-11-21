@@ -1,13 +1,17 @@
 package client
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -24,6 +28,12 @@ var (
 
 	sshDir string
 	tlsDir string
+
+	tlsName        string
+	tlsPrivKeyPath string
+	tlsPubKeyPath  string
+	tlsCertPath    string
+	tlsCaCertPath  string
 
 	conn       *grpc.ClientConn
 	connPublic *grpc.ClientConn
@@ -68,16 +78,80 @@ func InitState() {
 	lib.AddStateSubDir(&lib.StateSubDir{P: &sshDir, Name: "ssh"})
 	lib.AddStateSubDir(&lib.StateSubDir{P: &tlsDir, Name: "tls"})
 	lib.InitStateDir()
+
+	tlsName = "client"
+	tlsPrivKeyPath = tlsDir + "/" + tlsName + ".key"
+	tlsPubKeyPath = tlsDir + "/" + tlsName + ".pub"
+	tlsCertPath = tlsDir + "/" + tlsName + ".crt"
+	tlsCaCertPath = tlsDir + "/ca.crt"
 }
 
 func ConnectPublic(_ *cobra.Command, _ []string) {
 	var err error
 	connPublic, err = grpc.NewClient(fmt.Sprintf("%s:%d", host, portPublic), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		lib.Crash("failed to connect to server: ", err)
+		lib.Crash("failed to connect to public server: ", err)
 	}
 	clientPublic = nf6.NewNf6PublicClient(connPublic)
+
+	if _, err := os.Stat(tlsCaCertPath); err != nil {
+		ctx, cancel := lib.Context()
+		defer cancel()
+		reply, err := clientPublic.GetCaCert(ctx, nil)
+		if err != nil {
+			lib.Warn("failed to get server's ca cert: ", err)
+		}
+		caCert := reply.GetCaCert()
+		caCertFile, err := os.OpenFile(tlsCaCertPath, os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			lib.Warn("failed to open ca cert file: ", err)
+		}
+		if _, err := caCertFile.WriteString(caCert); err != nil {
+			lib.Warn("failed to write ca cert file: ", err)
+		}
+	}
 }
 
 func Connect(_ *cobra.Command, _ []string) {
+	if _, err := os.Stat(tlsCaCertPath); err != nil {
+		ConnectPublic(nil, nil)
+		connPublic.Close()
+	}
+	if _, err := os.Stat(tlsCaCertPath); err != nil {
+		lib.Crash("ca cert file not found: ", err)
+	}
+	if _, err := os.Stat(tlsCertPath); err != nil {
+		lib.Crash("please register first!")
+	}
+	if _, err := os.Stat(tlsPrivKeyPath); err != nil {
+		lib.Crash("please register first!")
+	}
+
+	caCert, err := os.ReadFile(tlsCaCertPath)
+	if err != nil {
+		lib.Crash("failed to read ca cert: ", err)
+	}
+	pool := x509.NewCertPool()
+	if ok := pool.AppendCertsFromPEM(caCert); !ok {
+		lib.Crash("failed to append ca cert")
+	}
+	cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsPrivKeyPath)
+	if err != nil {
+		lib.Crash("failed to load x509 keypair: ", err)
+	}
+	creds := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    pool,
+		RootCAs:      pool,
+	})
+
+	conn, err = grpc.NewClient(fmt.Sprintf("%s:%d", host, port), grpc.WithTransportCredentials(creds), grpc.WithAuthority(lib.TlsName))
+	if err != nil {
+		lib.Crash("failed to connect to server: ", err)
+	}
+	client = nf6.NewNf6Client(conn)
+	if client == nil {
+		lib.Crash("please register first!")
+	}
 }

@@ -17,15 +17,17 @@ import (
 )
 
 var (
+	TlsName = "nf6"
+
 	notBefore = time.Now()
 	notAfter  = time.Now().AddDate(1000, 0, 0)
 
 	ca = &x509.Certificate{
 		SerialNumber: big.NewInt(69420),
 
-		Subject:     pkix.Name{CommonName: "nf6"},
+		Subject:     pkix.Name{CommonName: TlsName},
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		DNSNames:    []string{"nf6"},
+		DNSNames:    []string{TlsName},
 		NotBefore:   notBefore,
 		NotAfter:    notAfter,
 
@@ -36,9 +38,9 @@ var (
 	cert = &x509.Certificate{
 		SerialNumber: big.NewInt(42069),
 
-		Subject:     pkix.Name{CommonName: "nf6"},
+		Subject:     pkix.Name{CommonName: TlsName},
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		DNSNames:    []string{"nf6"},
+		DNSNames:    []string{TlsName},
 		NotBefore:   notBefore,
 		NotAfter:    notAfter,
 

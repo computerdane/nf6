@@ -6,11 +6,13 @@ import (
 )
 
 var (
-	gentlsDir string
+	gentlsDir  string
+	gentlsName string
 )
 
 func init() {
 	gentlsCmd.PersistentFlags().StringVarP(&gentlsDir, "dir", "d", "", "directory to put new keypair")
+	gentlsCmd.PersistentFlags().StringVarP(&gentlsName, "name", "n", "", "file name for keypair")
 }
 
 var gentlsCmd = &cobra.Command{
@@ -20,7 +22,10 @@ var gentlsCmd = &cobra.Command{
 		if gentlsDir == "" {
 			gentlsDir = tlsDir
 		}
-		if err := lib.GenKeyFiles(gentlsDir, "client"); err != nil {
+		if gentlsName == "" {
+			gentlsName = tlsName
+		}
+		if err := lib.GenKeyFiles(gentlsDir, gentlsName); err != nil {
 			lib.Crash(err)
 		}
 	},
