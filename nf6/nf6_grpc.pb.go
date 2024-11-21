@@ -19,163 +19,89 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Nf6Insecure_GetCaCert_FullMethodName = "/nf6.Nf6Insecure/GetCaCert"
-	Nf6Insecure_Ping_FullMethodName      = "/nf6.Nf6Insecure/Ping"
-	Nf6Insecure_Register_FullMethodName  = "/nf6.Nf6Insecure/Register"
+	Nf6Public_CreateAccount_FullMethodName = "/nf6.Nf6Public/CreateAccount"
 )
 
-// Nf6InsecureClient is the client API for Nf6Insecure service.
+// Nf6PublicClient is the client API for Nf6Public service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type Nf6InsecureClient interface {
-	GetCaCert(ctx context.Context, in *GetCaCertRequest, opts ...grpc.CallOption) (*GetCaCertReply, error)
-	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingReply, error)
-	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error)
+type Nf6PublicClient interface {
+	CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*None, error)
 }
 
-type nf6InsecureClient struct {
+type nf6PublicClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewNf6InsecureClient(cc grpc.ClientConnInterface) Nf6InsecureClient {
-	return &nf6InsecureClient{cc}
+func NewNf6PublicClient(cc grpc.ClientConnInterface) Nf6PublicClient {
+	return &nf6PublicClient{cc}
 }
 
-func (c *nf6InsecureClient) GetCaCert(ctx context.Context, in *GetCaCertRequest, opts ...grpc.CallOption) (*GetCaCertReply, error) {
-	out := new(GetCaCertReply)
-	err := c.cc.Invoke(ctx, Nf6Insecure_GetCaCert_FullMethodName, in, out, opts...)
+func (c *nf6PublicClient) CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6Public_CreateAccount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6InsecureClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingReply, error) {
-	out := new(PingReply)
-	err := c.cc.Invoke(ctx, Nf6Insecure_Ping_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *nf6InsecureClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error) {
-	out := new(RegisterReply)
-	err := c.cc.Invoke(ctx, Nf6Insecure_Register_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Nf6InsecureServer is the server API for Nf6Insecure service.
-// All implementations must embed UnimplementedNf6InsecureServer
+// Nf6PublicServer is the server API for Nf6Public service.
+// All implementations must embed UnimplementedNf6PublicServer
 // for forward compatibility
-type Nf6InsecureServer interface {
-	GetCaCert(context.Context, *GetCaCertRequest) (*GetCaCertReply, error)
-	Ping(context.Context, *PingRequest) (*PingReply, error)
-	Register(context.Context, *RegisterRequest) (*RegisterReply, error)
-	mustEmbedUnimplementedNf6InsecureServer()
+type Nf6PublicServer interface {
+	CreateAccount(context.Context, *CreateAccount_Request) (*None, error)
+	mustEmbedUnimplementedNf6PublicServer()
 }
 
-// UnimplementedNf6InsecureServer must be embedded to have forward compatible implementations.
-type UnimplementedNf6InsecureServer struct {
+// UnimplementedNf6PublicServer must be embedded to have forward compatible implementations.
+type UnimplementedNf6PublicServer struct {
 }
 
-func (UnimplementedNf6InsecureServer) GetCaCert(context.Context, *GetCaCertRequest) (*GetCaCertReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCaCert not implemented")
+func (UnimplementedNf6PublicServer) CreateAccount(context.Context, *CreateAccount_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
 }
-func (UnimplementedNf6InsecureServer) Ping(context.Context, *PingRequest) (*PingReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
-}
-func (UnimplementedNf6InsecureServer) Register(context.Context, *RegisterRequest) (*RegisterReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
-}
-func (UnimplementedNf6InsecureServer) mustEmbedUnimplementedNf6InsecureServer() {}
+func (UnimplementedNf6PublicServer) mustEmbedUnimplementedNf6PublicServer() {}
 
-// UnsafeNf6InsecureServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to Nf6InsecureServer will
+// UnsafeNf6PublicServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to Nf6PublicServer will
 // result in compilation errors.
-type UnsafeNf6InsecureServer interface {
-	mustEmbedUnimplementedNf6InsecureServer()
+type UnsafeNf6PublicServer interface {
+	mustEmbedUnimplementedNf6PublicServer()
 }
 
-func RegisterNf6InsecureServer(s grpc.ServiceRegistrar, srv Nf6InsecureServer) {
-	s.RegisterService(&Nf6Insecure_ServiceDesc, srv)
+func RegisterNf6PublicServer(s grpc.ServiceRegistrar, srv Nf6PublicServer) {
+	s.RegisterService(&Nf6Public_ServiceDesc, srv)
 }
 
-func _Nf6Insecure_GetCaCert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCaCertRequest)
+func _Nf6Public_CreateAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAccount_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6InsecureServer).GetCaCert(ctx, in)
+		return srv.(Nf6PublicServer).CreateAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Insecure_GetCaCert_FullMethodName,
+		FullMethod: Nf6Public_CreateAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6InsecureServer).GetCaCert(ctx, req.(*GetCaCertRequest))
+		return srv.(Nf6PublicServer).CreateAccount(ctx, req.(*CreateAccount_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Insecure_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(Nf6InsecureServer).Ping(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Nf6Insecure_Ping_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6InsecureServer).Ping(ctx, req.(*PingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Nf6Insecure_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegisterRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(Nf6InsecureServer).Register(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Nf6Insecure_Register_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6InsecureServer).Register(ctx, req.(*RegisterRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Nf6Insecure_ServiceDesc is the grpc.ServiceDesc for Nf6Insecure service.
+// Nf6Public_ServiceDesc is the grpc.ServiceDesc for Nf6Public service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "nf6.Nf6Insecure",
-	HandlerType: (*Nf6InsecureServer)(nil),
+var Nf6Public_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "nf6.Nf6Public",
+	HandlerType: (*Nf6PublicServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetCaCert",
-			Handler:    _Nf6Insecure_GetCaCert_Handler,
-		},
-		{
-			MethodName: "Ping",
-			Handler:    _Nf6Insecure_Ping_Handler,
-		},
-		{
-			MethodName: "Register",
-			Handler:    _Nf6Insecure_Register_Handler,
+			MethodName: "CreateAccount",
+			Handler:    _Nf6Public_CreateAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -183,348 +109,629 @@ var Nf6Insecure_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Nf6Secure_AddMachine_FullMethodName         = "/nf6.Nf6Secure/AddMachine"
-	Nf6Secure_CreateRepo_FullMethodName         = "/nf6.Nf6Secure/CreateRepo"
-	Nf6Secure_ListMachines_FullMethodName       = "/nf6.Nf6Secure/ListMachines"
-	Nf6Secure_ListRepos_FullMethodName          = "/nf6.Nf6Secure/ListRepos"
-	Nf6Secure_RenameMachine_FullMethodName      = "/nf6.Nf6Secure/RenameMachine"
-	Nf6Secure_RenameRepo_FullMethodName         = "/nf6.Nf6Secure/RenameRepo"
-	Nf6Secure_UpdateSshPublicKey_FullMethodName = "/nf6.Nf6Secure/UpdateSshPublicKey"
-	Nf6Secure_WhoAmI_FullMethodName             = "/nf6.Nf6Secure/WhoAmI"
+	Nf6_GetAccount_FullMethodName           = "/nf6.Nf6/GetAccount"
+	Nf6_UpdateAccount_FullMethodName        = "/nf6.Nf6/UpdateAccount"
+	Nf6_CreateHost_FullMethodName           = "/nf6.Nf6/CreateHost"
+	Nf6_GetHost_FullMethodName              = "/nf6.Nf6/GetHost"
+	Nf6_ListHosts_FullMethodName            = "/nf6.Nf6/ListHosts"
+	Nf6_UpdateHost_FullMethodName           = "/nf6.Nf6/UpdateHost"
+	Nf6_CreateRepo_FullMethodName           = "/nf6.Nf6/CreateRepo"
+	Nf6_GetRepo_FullMethodName              = "/nf6.Nf6/GetRepo"
+	Nf6_ListRepos_FullMethodName            = "/nf6.Nf6/ListRepos"
+	Nf6_UpdateRepo_FullMethodName           = "/nf6.Nf6/UpdateRepo"
+	Nf6_GitServer_GetAccount_FullMethodName = "/nf6.Nf6/GitServer_GetAccount"
+	Nf6_GitServer_ListRepos_FullMethodName  = "/nf6.Nf6/GitServer_ListRepos"
+	Nf6_WgServer_ListHosts_FullMethodName   = "/nf6.Nf6/WgServer_ListHosts"
 )
 
-// Nf6SecureClient is the client API for Nf6Secure service.
+// Nf6Client is the client API for Nf6 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type Nf6SecureClient interface {
-	AddMachine(ctx context.Context, in *AddMachineRequest, opts ...grpc.CallOption) (*AddMachineReply, error)
-	CreateRepo(ctx context.Context, in *CreateRepoRequest, opts ...grpc.CallOption) (*CreateRepoReply, error)
-	ListMachines(ctx context.Context, in *ListMachinesRequest, opts ...grpc.CallOption) (*ListMachinesReply, error)
-	ListRepos(ctx context.Context, in *ListReposRequest, opts ...grpc.CallOption) (*ListReposReply, error)
-	RenameMachine(ctx context.Context, in *RenameMachineRequest, opts ...grpc.CallOption) (*RenameMachineReply, error)
-	RenameRepo(ctx context.Context, in *RenameRepoRequest, opts ...grpc.CallOption) (*RenameRepoReply, error)
-	UpdateSshPublicKey(ctx context.Context, in *UpdateSshPublicKeyRequest, opts ...grpc.CallOption) (*UpdateSshPublicKeyReply, error)
-	WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ...grpc.CallOption) (*WhoAmIReply, error)
+type Nf6Client interface {
+	// Users
+	GetAccount(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetAccount_Reply, error)
+	UpdateAccount(ctx context.Context, in *UpdateAccount_Request, opts ...grpc.CallOption) (*None, error)
+	CreateHost(ctx context.Context, in *CreateHost_Request, opts ...grpc.CallOption) (*None, error)
+	GetHost(ctx context.Context, in *GetHost_Request, opts ...grpc.CallOption) (*GetHost_Reply, error)
+	ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*ListHosts_Reply, error)
+	UpdateHost(ctx context.Context, in *UpdateHost_Request, opts ...grpc.CallOption) (*None, error)
+	CreateRepo(ctx context.Context, in *CreateRepo_Request, opts ...grpc.CallOption) (*None, error)
+	GetRepo(ctx context.Context, in *GetRepo_Request, opts ...grpc.CallOption) (*GetRepo_Reply, error)
+	ListRepos(ctx context.Context, in *None, opts ...grpc.CallOption) (*ListRepos_Reply, error)
+	UpdateRepo(ctx context.Context, in *UpdateRepo_Request, opts ...grpc.CallOption) (*None, error)
+	// Git server
+	GitServer_GetAccount(ctx context.Context, in *GitServer_GetAccount_Request, opts ...grpc.CallOption) (*GitServer_GetAccount_Reply, error)
+	GitServer_ListRepos(ctx context.Context, in *GitServer_ListRepos_Request, opts ...grpc.CallOption) (*GitServer_ListRepos_Reply, error)
+	// WireGuard server
+	WgServer_ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*WgServer_ListHosts_Reply, error)
 }
 
-type nf6SecureClient struct {
+type nf6Client struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewNf6SecureClient(cc grpc.ClientConnInterface) Nf6SecureClient {
-	return &nf6SecureClient{cc}
+func NewNf6Client(cc grpc.ClientConnInterface) Nf6Client {
+	return &nf6Client{cc}
 }
 
-func (c *nf6SecureClient) AddMachine(ctx context.Context, in *AddMachineRequest, opts ...grpc.CallOption) (*AddMachineReply, error) {
-	out := new(AddMachineReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_AddMachine_FullMethodName, in, out, opts...)
+func (c *nf6Client) GetAccount(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetAccount_Reply, error) {
+	out := new(GetAccount_Reply)
+	err := c.cc.Invoke(ctx, Nf6_GetAccount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6SecureClient) CreateRepo(ctx context.Context, in *CreateRepoRequest, opts ...grpc.CallOption) (*CreateRepoReply, error) {
-	out := new(CreateRepoReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_CreateRepo_FullMethodName, in, out, opts...)
+func (c *nf6Client) UpdateAccount(ctx context.Context, in *UpdateAccount_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6_UpdateAccount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6SecureClient) ListMachines(ctx context.Context, in *ListMachinesRequest, opts ...grpc.CallOption) (*ListMachinesReply, error) {
-	out := new(ListMachinesReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_ListMachines_FullMethodName, in, out, opts...)
+func (c *nf6Client) CreateHost(ctx context.Context, in *CreateHost_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6_CreateHost_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6SecureClient) ListRepos(ctx context.Context, in *ListReposRequest, opts ...grpc.CallOption) (*ListReposReply, error) {
-	out := new(ListReposReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_ListRepos_FullMethodName, in, out, opts...)
+func (c *nf6Client) GetHost(ctx context.Context, in *GetHost_Request, opts ...grpc.CallOption) (*GetHost_Reply, error) {
+	out := new(GetHost_Reply)
+	err := c.cc.Invoke(ctx, Nf6_GetHost_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6SecureClient) RenameMachine(ctx context.Context, in *RenameMachineRequest, opts ...grpc.CallOption) (*RenameMachineReply, error) {
-	out := new(RenameMachineReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_RenameMachine_FullMethodName, in, out, opts...)
+func (c *nf6Client) ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*ListHosts_Reply, error) {
+	out := new(ListHosts_Reply)
+	err := c.cc.Invoke(ctx, Nf6_ListHosts_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6SecureClient) RenameRepo(ctx context.Context, in *RenameRepoRequest, opts ...grpc.CallOption) (*RenameRepoReply, error) {
-	out := new(RenameRepoReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_RenameRepo_FullMethodName, in, out, opts...)
+func (c *nf6Client) UpdateHost(ctx context.Context, in *UpdateHost_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6_UpdateHost_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6SecureClient) UpdateSshPublicKey(ctx context.Context, in *UpdateSshPublicKeyRequest, opts ...grpc.CallOption) (*UpdateSshPublicKeyReply, error) {
-	out := new(UpdateSshPublicKeyReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_UpdateSshPublicKey_FullMethodName, in, out, opts...)
+func (c *nf6Client) CreateRepo(ctx context.Context, in *CreateRepo_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6_CreateRepo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nf6SecureClient) WhoAmI(ctx context.Context, in *WhoAmIRequest, opts ...grpc.CallOption) (*WhoAmIReply, error) {
-	out := new(WhoAmIReply)
-	err := c.cc.Invoke(ctx, Nf6Secure_WhoAmI_FullMethodName, in, out, opts...)
+func (c *nf6Client) GetRepo(ctx context.Context, in *GetRepo_Request, opts ...grpc.CallOption) (*GetRepo_Reply, error) {
+	out := new(GetRepo_Reply)
+	err := c.cc.Invoke(ctx, Nf6_GetRepo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Nf6SecureServer is the server API for Nf6Secure service.
-// All implementations must embed UnimplementedNf6SecureServer
+func (c *nf6Client) ListRepos(ctx context.Context, in *None, opts ...grpc.CallOption) (*ListRepos_Reply, error) {
+	out := new(ListRepos_Reply)
+	err := c.cc.Invoke(ctx, Nf6_ListRepos_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nf6Client) UpdateRepo(ctx context.Context, in *UpdateRepo_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6_UpdateRepo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nf6Client) GitServer_GetAccount(ctx context.Context, in *GitServer_GetAccount_Request, opts ...grpc.CallOption) (*GitServer_GetAccount_Reply, error) {
+	out := new(GitServer_GetAccount_Reply)
+	err := c.cc.Invoke(ctx, Nf6_GitServer_GetAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nf6Client) GitServer_ListRepos(ctx context.Context, in *GitServer_ListRepos_Request, opts ...grpc.CallOption) (*GitServer_ListRepos_Reply, error) {
+	out := new(GitServer_ListRepos_Reply)
+	err := c.cc.Invoke(ctx, Nf6_GitServer_ListRepos_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nf6Client) WgServer_ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*WgServer_ListHosts_Reply, error) {
+	out := new(WgServer_ListHosts_Reply)
+	err := c.cc.Invoke(ctx, Nf6_WgServer_ListHosts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Nf6Server is the server API for Nf6 service.
+// All implementations must embed UnimplementedNf6Server
 // for forward compatibility
-type Nf6SecureServer interface {
-	AddMachine(context.Context, *AddMachineRequest) (*AddMachineReply, error)
-	CreateRepo(context.Context, *CreateRepoRequest) (*CreateRepoReply, error)
-	ListMachines(context.Context, *ListMachinesRequest) (*ListMachinesReply, error)
-	ListRepos(context.Context, *ListReposRequest) (*ListReposReply, error)
-	RenameMachine(context.Context, *RenameMachineRequest) (*RenameMachineReply, error)
-	RenameRepo(context.Context, *RenameRepoRequest) (*RenameRepoReply, error)
-	UpdateSshPublicKey(context.Context, *UpdateSshPublicKeyRequest) (*UpdateSshPublicKeyReply, error)
-	WhoAmI(context.Context, *WhoAmIRequest) (*WhoAmIReply, error)
-	mustEmbedUnimplementedNf6SecureServer()
+type Nf6Server interface {
+	// Users
+	GetAccount(context.Context, *None) (*GetAccount_Reply, error)
+	UpdateAccount(context.Context, *UpdateAccount_Request) (*None, error)
+	CreateHost(context.Context, *CreateHost_Request) (*None, error)
+	GetHost(context.Context, *GetHost_Request) (*GetHost_Reply, error)
+	ListHosts(context.Context, *None) (*ListHosts_Reply, error)
+	UpdateHost(context.Context, *UpdateHost_Request) (*None, error)
+	CreateRepo(context.Context, *CreateRepo_Request) (*None, error)
+	GetRepo(context.Context, *GetRepo_Request) (*GetRepo_Reply, error)
+	ListRepos(context.Context, *None) (*ListRepos_Reply, error)
+	UpdateRepo(context.Context, *UpdateRepo_Request) (*None, error)
+	// Git server
+	GitServer_GetAccount(context.Context, *GitServer_GetAccount_Request) (*GitServer_GetAccount_Reply, error)
+	GitServer_ListRepos(context.Context, *GitServer_ListRepos_Request) (*GitServer_ListRepos_Reply, error)
+	// WireGuard server
+	WgServer_ListHosts(context.Context, *None) (*WgServer_ListHosts_Reply, error)
+	mustEmbedUnimplementedNf6Server()
 }
 
-// UnimplementedNf6SecureServer must be embedded to have forward compatible implementations.
-type UnimplementedNf6SecureServer struct {
+// UnimplementedNf6Server must be embedded to have forward compatible implementations.
+type UnimplementedNf6Server struct {
 }
 
-func (UnimplementedNf6SecureServer) AddMachine(context.Context, *AddMachineRequest) (*AddMachineReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddMachine not implemented")
+func (UnimplementedNf6Server) GetAccount(context.Context, *None) (*GetAccount_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAccount not implemented")
 }
-func (UnimplementedNf6SecureServer) CreateRepo(context.Context, *CreateRepoRequest) (*CreateRepoReply, error) {
+func (UnimplementedNf6Server) UpdateAccount(context.Context, *UpdateAccount_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAccount not implemented")
+}
+func (UnimplementedNf6Server) CreateHost(context.Context, *CreateHost_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateHost not implemented")
+}
+func (UnimplementedNf6Server) GetHost(context.Context, *GetHost_Request) (*GetHost_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHost not implemented")
+}
+func (UnimplementedNf6Server) ListHosts(context.Context, *None) (*ListHosts_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListHosts not implemented")
+}
+func (UnimplementedNf6Server) UpdateHost(context.Context, *UpdateHost_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateHost not implemented")
+}
+func (UnimplementedNf6Server) CreateRepo(context.Context, *CreateRepo_Request) (*None, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRepo not implemented")
 }
-func (UnimplementedNf6SecureServer) ListMachines(context.Context, *ListMachinesRequest) (*ListMachinesReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListMachines not implemented")
+func (UnimplementedNf6Server) GetRepo(context.Context, *GetRepo_Request) (*GetRepo_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRepo not implemented")
 }
-func (UnimplementedNf6SecureServer) ListRepos(context.Context, *ListReposRequest) (*ListReposReply, error) {
+func (UnimplementedNf6Server) ListRepos(context.Context, *None) (*ListRepos_Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRepos not implemented")
 }
-func (UnimplementedNf6SecureServer) RenameMachine(context.Context, *RenameMachineRequest) (*RenameMachineReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RenameMachine not implemented")
+func (UnimplementedNf6Server) UpdateRepo(context.Context, *UpdateRepo_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRepo not implemented")
 }
-func (UnimplementedNf6SecureServer) RenameRepo(context.Context, *RenameRepoRequest) (*RenameRepoReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RenameRepo not implemented")
+func (UnimplementedNf6Server) GitServer_GetAccount(context.Context, *GitServer_GetAccount_Request) (*GitServer_GetAccount_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GitServer_GetAccount not implemented")
 }
-func (UnimplementedNf6SecureServer) UpdateSshPublicKey(context.Context, *UpdateSshPublicKeyRequest) (*UpdateSshPublicKeyReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateSshPublicKey not implemented")
+func (UnimplementedNf6Server) GitServer_ListRepos(context.Context, *GitServer_ListRepos_Request) (*GitServer_ListRepos_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GitServer_ListRepos not implemented")
 }
-func (UnimplementedNf6SecureServer) WhoAmI(context.Context, *WhoAmIRequest) (*WhoAmIReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WhoAmI not implemented")
+func (UnimplementedNf6Server) WgServer_ListHosts(context.Context, *None) (*WgServer_ListHosts_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WgServer_ListHosts not implemented")
 }
-func (UnimplementedNf6SecureServer) mustEmbedUnimplementedNf6SecureServer() {}
+func (UnimplementedNf6Server) mustEmbedUnimplementedNf6Server() {}
 
-// UnsafeNf6SecureServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to Nf6SecureServer will
+// UnsafeNf6Server may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to Nf6Server will
 // result in compilation errors.
-type UnsafeNf6SecureServer interface {
-	mustEmbedUnimplementedNf6SecureServer()
+type UnsafeNf6Server interface {
+	mustEmbedUnimplementedNf6Server()
 }
 
-func RegisterNf6SecureServer(s grpc.ServiceRegistrar, srv Nf6SecureServer) {
-	s.RegisterService(&Nf6Secure_ServiceDesc, srv)
+func RegisterNf6Server(s grpc.ServiceRegistrar, srv Nf6Server) {
+	s.RegisterService(&Nf6_ServiceDesc, srv)
 }
 
-func _Nf6Secure_AddMachine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddMachineRequest)
+func _Nf6_GetAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(None)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).AddMachine(ctx, in)
+		return srv.(Nf6Server).GetAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_AddMachine_FullMethodName,
+		FullMethod: Nf6_GetAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).AddMachine(ctx, req.(*AddMachineRequest))
+		return srv.(Nf6Server).GetAccount(ctx, req.(*None))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Secure_CreateRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateRepoRequest)
+func _Nf6_UpdateAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAccount_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).CreateRepo(ctx, in)
+		return srv.(Nf6Server).UpdateAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_CreateRepo_FullMethodName,
+		FullMethod: Nf6_UpdateAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).CreateRepo(ctx, req.(*CreateRepoRequest))
+		return srv.(Nf6Server).UpdateAccount(ctx, req.(*UpdateAccount_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Secure_ListMachines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListMachinesRequest)
+func _Nf6_CreateHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateHost_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).ListMachines(ctx, in)
+		return srv.(Nf6Server).CreateHost(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_ListMachines_FullMethodName,
+		FullMethod: Nf6_CreateHost_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).ListMachines(ctx, req.(*ListMachinesRequest))
+		return srv.(Nf6Server).CreateHost(ctx, req.(*CreateHost_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Secure_ListRepos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListReposRequest)
+func _Nf6_GetHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHost_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).ListRepos(ctx, in)
+		return srv.(Nf6Server).GetHost(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_ListRepos_FullMethodName,
+		FullMethod: Nf6_GetHost_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).ListRepos(ctx, req.(*ListReposRequest))
+		return srv.(Nf6Server).GetHost(ctx, req.(*GetHost_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Secure_RenameMachine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RenameMachineRequest)
+func _Nf6_ListHosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(None)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).RenameMachine(ctx, in)
+		return srv.(Nf6Server).ListHosts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_RenameMachine_FullMethodName,
+		FullMethod: Nf6_ListHosts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).RenameMachine(ctx, req.(*RenameMachineRequest))
+		return srv.(Nf6Server).ListHosts(ctx, req.(*None))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Secure_RenameRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RenameRepoRequest)
+func _Nf6_UpdateHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateHost_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).RenameRepo(ctx, in)
+		return srv.(Nf6Server).UpdateHost(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_RenameRepo_FullMethodName,
+		FullMethod: Nf6_UpdateHost_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).RenameRepo(ctx, req.(*RenameRepoRequest))
+		return srv.(Nf6Server).UpdateHost(ctx, req.(*UpdateHost_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Secure_UpdateSshPublicKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateSshPublicKeyRequest)
+func _Nf6_CreateRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRepo_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).UpdateSshPublicKey(ctx, in)
+		return srv.(Nf6Server).CreateRepo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_UpdateSshPublicKey_FullMethodName,
+		FullMethod: Nf6_CreateRepo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).UpdateSshPublicKey(ctx, req.(*UpdateSshPublicKeyRequest))
+		return srv.(Nf6Server).CreateRepo(ctx, req.(*CreateRepo_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Secure_WhoAmI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WhoAmIRequest)
+func _Nf6_GetRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRepo_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6SecureServer).WhoAmI(ctx, in)
+		return srv.(Nf6Server).GetRepo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Secure_WhoAmI_FullMethodName,
+		FullMethod: Nf6_GetRepo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6SecureServer).WhoAmI(ctx, req.(*WhoAmIRequest))
+		return srv.(Nf6Server).GetRepo(ctx, req.(*GetRepo_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Nf6Secure_ServiceDesc is the grpc.ServiceDesc for Nf6Secure service.
+func _Nf6_ListRepos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(None)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).ListRepos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_ListRepos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).ListRepos(ctx, req.(*None))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Nf6_UpdateRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRepo_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).UpdateRepo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_UpdateRepo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).UpdateRepo(ctx, req.(*UpdateRepo_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Nf6_GitServer_GetAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GitServer_GetAccount_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).GitServer_GetAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_GitServer_GetAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).GitServer_GetAccount(ctx, req.(*GitServer_GetAccount_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Nf6_GitServer_ListRepos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GitServer_ListRepos_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).GitServer_ListRepos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_GitServer_ListRepos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).GitServer_ListRepos(ctx, req.(*GitServer_ListRepos_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Nf6_WgServer_ListHosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(None)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).WgServer_ListHosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_WgServer_ListHosts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).WgServer_ListHosts(ctx, req.(*None))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Nf6_ServiceDesc is the grpc.ServiceDesc for Nf6 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Nf6Secure_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "nf6.Nf6Secure",
-	HandlerType: (*Nf6SecureServer)(nil),
+var Nf6_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "nf6.Nf6",
+	HandlerType: (*Nf6Server)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "AddMachine",
-			Handler:    _Nf6Secure_AddMachine_Handler,
+			MethodName: "GetAccount",
+			Handler:    _Nf6_GetAccount_Handler,
+		},
+		{
+			MethodName: "UpdateAccount",
+			Handler:    _Nf6_UpdateAccount_Handler,
+		},
+		{
+			MethodName: "CreateHost",
+			Handler:    _Nf6_CreateHost_Handler,
+		},
+		{
+			MethodName: "GetHost",
+			Handler:    _Nf6_GetHost_Handler,
+		},
+		{
+			MethodName: "ListHosts",
+			Handler:    _Nf6_ListHosts_Handler,
+		},
+		{
+			MethodName: "UpdateHost",
+			Handler:    _Nf6_UpdateHost_Handler,
 		},
 		{
 			MethodName: "CreateRepo",
-			Handler:    _Nf6Secure_CreateRepo_Handler,
+			Handler:    _Nf6_CreateRepo_Handler,
 		},
 		{
-			MethodName: "ListMachines",
-			Handler:    _Nf6Secure_ListMachines_Handler,
+			MethodName: "GetRepo",
+			Handler:    _Nf6_GetRepo_Handler,
 		},
 		{
 			MethodName: "ListRepos",
-			Handler:    _Nf6Secure_ListRepos_Handler,
+			Handler:    _Nf6_ListRepos_Handler,
 		},
 		{
-			MethodName: "RenameMachine",
-			Handler:    _Nf6Secure_RenameMachine_Handler,
+			MethodName: "UpdateRepo",
+			Handler:    _Nf6_UpdateRepo_Handler,
 		},
 		{
-			MethodName: "RenameRepo",
-			Handler:    _Nf6Secure_RenameRepo_Handler,
+			MethodName: "GitServer_GetAccount",
+			Handler:    _Nf6_GitServer_GetAccount_Handler,
 		},
 		{
-			MethodName: "UpdateSshPublicKey",
-			Handler:    _Nf6Secure_UpdateSshPublicKey_Handler,
+			MethodName: "GitServer_ListRepos",
+			Handler:    _Nf6_GitServer_ListRepos_Handler,
 		},
 		{
-			MethodName: "WhoAmI",
-			Handler:    _Nf6Secure_WhoAmI_Handler,
+			MethodName: "WgServer_ListHosts",
+			Handler:    _Nf6_WgServer_ListHosts_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "nf6.proto",
+}
+
+const (
+	Nf6Wg_CreateRoute_FullMethodName = "/nf6.Nf6Wg/CreateRoute"
+)
+
+// Nf6WgClient is the client API for Nf6Wg service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type Nf6WgClient interface {
+	CreateRoute(ctx context.Context, in *CreateRoute_Request, opts ...grpc.CallOption) (*None, error)
+}
+
+type nf6WgClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewNf6WgClient(cc grpc.ClientConnInterface) Nf6WgClient {
+	return &nf6WgClient{cc}
+}
+
+func (c *nf6WgClient) CreateRoute(ctx context.Context, in *CreateRoute_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6Wg_CreateRoute_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Nf6WgServer is the server API for Nf6Wg service.
+// All implementations must embed UnimplementedNf6WgServer
+// for forward compatibility
+type Nf6WgServer interface {
+	CreateRoute(context.Context, *CreateRoute_Request) (*None, error)
+	mustEmbedUnimplementedNf6WgServer()
+}
+
+// UnimplementedNf6WgServer must be embedded to have forward compatible implementations.
+type UnimplementedNf6WgServer struct {
+}
+
+func (UnimplementedNf6WgServer) CreateRoute(context.Context, *CreateRoute_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRoute not implemented")
+}
+func (UnimplementedNf6WgServer) mustEmbedUnimplementedNf6WgServer() {}
+
+// UnsafeNf6WgServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to Nf6WgServer will
+// result in compilation errors.
+type UnsafeNf6WgServer interface {
+	mustEmbedUnimplementedNf6WgServer()
+}
+
+func RegisterNf6WgServer(s grpc.ServiceRegistrar, srv Nf6WgServer) {
+	s.RegisterService(&Nf6Wg_ServiceDesc, srv)
+}
+
+func _Nf6Wg_CreateRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoute_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6WgServer).CreateRoute(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Wg_CreateRoute_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6WgServer).CreateRoute(ctx, req.(*CreateRoute_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Nf6Wg_ServiceDesc is the grpc.ServiceDesc for Nf6Wg service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Nf6Wg_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "nf6.Nf6Wg",
+	HandlerType: (*Nf6WgServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateRoute",
+			Handler:    _Nf6Wg_CreateRoute_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

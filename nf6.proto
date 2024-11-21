@@ -1,110 +1,141 @@
 syntax = "proto3";
-
-option go_package = "github.com/computerdane/nf6";
-
+option go_package = "github.com/computerdane/nf6/nf6";
 package nf6;
 
-service Nf6Insecure {
-  rpc GetCaCert (GetCaCertRequest) returns (GetCaCertReply) {}
-  rpc Ping (PingRequest) returns (PingReply) {}
-  rpc Register (RegisterRequest) returns (RegisterReply) {}
+message None {}
+
+/*
+  === API server listener (unencrypted) ===
+*/
+
+service Nf6Public {
+  rpc CreateAccount (CreateAccount_Request) returns (None) {}
 }
 
-service Nf6Secure {
-  rpc AddMachine (AddMachineRequest) returns (AddMachineReply) {}
-  rpc CreateRepo (CreateRepoRequest) returns (CreateRepoReply) {}
-  rpc ListMachines (ListMachinesRequest) returns (ListMachinesReply) {}
-  rpc ListRepos (ListReposRequest) returns (ListReposReply) {}
-  rpc RenameMachine (RenameMachineRequest) returns (RenameMachineReply) {}
-  rpc RenameRepo (RenameRepoRequest) returns (RenameRepoReply) {}
-  rpc UpdateSshPublicKey (UpdateSshPublicKeyRequest) returns (UpdateSshPublicKeyReply) {}
-  rpc WhoAmI (WhoAmIRequest) returns (WhoAmIReply) {}   
+message CreateAccount_Request {
+  string email = 1;
+  string sshPubKey = 2;
+  string tlsPubKey = 3;
 }
 
-message AddMachineRequest {
-  string hostName = 1;
-  string wgPublicKey = 2;
-  string addrIpv6 = 3;
+/*
+  === API server listener ===
+*/
+
+service Nf6 {
+  // Users
+  rpc GetAccount (None) returns (GetAccount_Reply) {}
+  rpc UpdateAccount (UpdateAccount_Request) returns (None) {}
+
+  rpc CreateHost (CreateHost_Request) returns (None) {}
+  rpc GetHost (GetHost_Request) returns (GetHost_Reply) {}
+  rpc ListHosts (None) returns (ListHosts_Reply) {}
+  rpc UpdateHost (UpdateHost_Request) returns (None) {}
+
+  rpc CreateRepo (CreateRepo_Request) returns (None) {}
+  rpc GetRepo (GetRepo_Request) returns (GetRepo_Reply) {}
+  rpc ListRepos (None) returns (ListRepos_Reply) {}
+  rpc UpdateRepo (UpdateRepo_Request) returns (None) {}
+
+  // Git server
+  rpc GitServer_GetAccount (GitServer_GetAccount_Request) returns (GitServer_GetAccount_Reply) {}
+  rpc GitServer_ListRepos (GitServer_ListRepos_Request) returns (GitServer_ListRepos_Reply) {}
+
+  // WireGuard server
+  rpc WgServer_ListHosts (None) returns (WgServer_ListHosts_Reply) {}
 }
 
-message AddMachineReply {
-  bool success = 1;
+// Users
+
+message GetAccount_Reply {
+  uint64 id = 1;
+  string email = 2;
+  string sshPubKey = 3;
+  string tlsPubKey = 4;
+}
+message UpdateAccount_Request {
+  string email = 1;
+  string sshPubKey = 2;
+  string tlsPubKey = 3;
 }
 
-message CreateRepoRequest {
+message CreateHost_Request {
+  string name = 1;
+  string addr6 = 2;
+  string wgPubKey = 3;
+}
+message GetHost_Request {
   string name = 1;
 }
-
-message CreateRepoReply {
-  bool success = 1;
+message GetHost_Reply {
+  uint64 id = 1;
+  string name = 2;
+  string addr6 = 3;
+  string wgPubKey = 4;
+}
+message ListHosts_Reply {
+  repeated string names = 1;
+}
+message UpdateHost_Request {
+  uint64 id = 1;
+  string name = 2;
+  string addr6 = 3;
+  string wgPubKey = 4;
 }
 
-message GetCaCertRequest {}
-
-message GetCaCertReply {
-  bytes cert = 1;
+message CreateRepo_Request {
+  string name = 1;
+}
+message GetRepo_Request {
+  string name = 1;
+}
+message GetRepo_Reply {
+  uint64 id = 1;
+  string name = 2;
+}
+message ListRepos_Reply {
+  repeated string names = 1;
+}
+message UpdateRepo_Request {
+  uint64 id = 1;
+  string name = 2;
 }
 
-message ListMachinesRequest {}
+// Git Server
 
-message ListMachinesReply {
+message GitServer_GetAccount_Request {
+  string sshPubKey = 1;
+}
+message GitServer_GetAccount_Reply {
   repeated string names = 1;
 }
 
-message ListReposRequest {}
-
-message ListReposReply {
+message GitServer_ListRepos_Request {
+  uint64 accountId = 1;
+}
+message GitServer_ListRepos_Reply {
   repeated string names = 1;
 }
 
-message PingRequest {
-  bool ping = 1;
+// WireGuard server
+
+message WgServer_ListHosts_Reply {
+  message Host {
+    string addr6 = 1;
+    string wgPubKey = 2;
+  }
+  repeated Host hosts = 1;
 }
 
-message PingReply {
-  bool pong = 1;
+/*
+  === WireGuard server listener ===
+*/
+
+service Nf6Wg {
+  rpc CreateRoute (CreateRoute_Request) returns (None) {}
 }
 
-message RegisterRequest {
-  string email = 1;
-  bytes sslPublicKey = 2;
-  bytes sshPublicKey = 3;
-}
-
-message RegisterReply {
-  bytes sslCert = 1;
-}
-
-message RenameMachineRequest {
-  string oldName = 1;
-  string newName = 2;
-}
-
-message RenameMachineReply {
-  bool success = 1;
-}
-
-message RenameRepoRequest {
-  string oldName = 1;
-  string newName = 2;
-}
-
-message RenameRepoReply {
-  bool success = 1;
-}
-
-message UpdateSshPublicKeyRequest {
-  bytes sshPublicKey= 1;
-}
-
-message UpdateSshPublicKeyReply {
-  bool success = 1;
-}
-
-message WhoAmIRequest {}
-
-message WhoAmIReply {
-  string email = 1;
-  string sslPublicKey = 2;
-  string sshPublicKey = 3;
+message CreateRoute_Request {
+  string addr6 = 1;
+  string wgPubKey = 2;
 }
