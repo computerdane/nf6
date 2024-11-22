@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bytes"
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/x509"
@@ -12,6 +13,8 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 )
 
@@ -153,4 +156,31 @@ func TlsGenCertUsingPrivKeyFile(template *x509.Certificate, pubKey ed25519.Publi
 		return nil, err
 	}
 	return TlsGenCert(template, pubKey, caPrivKey)
+}
+
+func TlsGetGrpcPubKey(ctx context.Context) (string, error) {
+	p, ok := peer.FromContext(ctx)
+	if !ok {
+		return "", status.Error(codes.Unauthenticated, "missing peer info")
+	}
+	authInfo, ok := p.AuthInfo.(credentials.TLSInfo)
+	if !ok {
+		return "", status.Error(codes.Unauthenticated, "failed to parse TLS info")
+	}
+	if len(authInfo.State.VerifiedChains) == 0 || len(authInfo.State.VerifiedChains[0]) == 0 {
+		return "", status.Error(codes.Unauthenticated, "missing certificate in chain")
+	}
+	pubKeyBytes, ok := authInfo.State.VerifiedChains[0][0].PublicKey.(ed25519.PublicKey)
+	if !ok {
+		return "", status.Error(codes.Unauthenticated, "failed to parse public key")
+	}
+	pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKeyBytes)
+	if err != nil {
+		return "", status.Error(codes.Unauthenticated, "failed to marshall public key")
+	}
+	pubKeyPem := new(bytes.Buffer)
+	if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
+		return "", status.Error(codes.Unauthenticated, "failed to encode public key")
+	}
+	return string(pubKeyPem.Bytes()), nil
 }

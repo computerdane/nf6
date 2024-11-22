@@ -1,1 +1,174 @@
 package client
+
+import (
+	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"net"
+	"os"
+
+	"github.com/computerdane/nf6/lib"
+	"github.com/computerdane/nf6/nf6"
+	"github.com/spf13/cobra"
+	"golang.zx2c4.com/wireguard/wgctrl"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
+)
+
+type WgServer struct {
+	nf6.UnimplementedNf6WgServer
+	wg        *wgctrl.Client
+	wgPrivKey wgtypes.Key
+}
+
+func (s *WgServer) CreateRoute(ctx context.Context, in *nf6.CreateRoute_Request) (*nf6.None, error) {
+	pubKey, err := lib.TlsGetGrpcPubKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if pubKey != apiTlsPubKey {
+		lib.Warn("attempt made with unknown public key: ", pubKey)
+		return nil, status.Error(codes.Unauthenticated, "access denied")
+	}
+
+	_, ipNet, err := net.ParseCIDR(in.GetAddr6())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "failed to parse addr6")
+	}
+	wgPubKey, err := wgtypes.ParseKey(in.GetWgPubKey())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "failed to parse wg pub key")
+	}
+	peer := wgtypes.PeerConfig{
+		PublicKey:  wgPubKey,
+		AllowedIPs: []net.IPNet{*ipNet},
+	}
+	if err := s.wg.ConfigureDevice(wgDeviceName, wgtypes.Config{
+		PrivateKey:   &s.wgPrivKey,
+		ListenPort:   &wgServerWgPort,
+		ReplacePeers: true,
+		Peers:        []wgtypes.PeerConfig{peer},
+	}); err != nil {
+		lib.Warn("failed to configure wg device: ", err)
+		return nil, status.Error(codes.Internal, "failed to configure wg device")
+	}
+	return nil, nil
+}
+
+var wgserverCmd = &cobra.Command{
+	Use:    "wgserver",
+	Short:  "Start the WireGuard server",
+	PreRun: Connect,
+	Run: func(cmd *cobra.Command, args []string) {
+		// initialize
+
+		apiTlsPubKeyData, err := os.ReadFile(apiTlsPubKeyPath)
+		if err != nil {
+			lib.Crash(err)
+		}
+		apiTlsPubKey = string(apiTlsPubKeyData)
+		if apiTlsPubKey == "" {
+			lib.Crash("API's TLS public key cannot be empty!")
+		}
+		privKeyData, err := os.ReadFile(wgPrivKeyPath)
+		if err != nil {
+			lib.Crash(err)
+		}
+		wgPrivKey, err := wgtypes.ParseKey(string(privKeyData))
+		if err != nil {
+			lib.Crash(err)
+		}
+		wg, err := wgctrl.New()
+		if err != nil {
+			lib.Crash(err)
+		}
+
+		// get list of hosts
+
+		ctx, cancel := lib.Context()
+		defer cancel()
+		reply, err := api.WgServer_ListHosts(ctx, nil)
+		if err != nil {
+			lib.Crash(err)
+		}
+
+		// construct list of peers
+
+		peers := make([]wgtypes.PeerConfig, len(reply.GetHosts()))
+		for i, host := range reply.GetHosts() {
+			_, ipNet, err := net.ParseCIDR(host.GetAddr6())
+			if err != nil {
+				lib.Warn(err)
+				continue
+			}
+			wgPubKey, err := wgtypes.ParseKey(host.GetWgPubKey())
+			if err != nil {
+				lib.Warn(err)
+				continue
+			}
+			peers[i] = wgtypes.PeerConfig{
+				PublicKey:  wgPubKey,
+				AllowedIPs: []net.IPNet{*ipNet},
+			}
+		}
+
+		// configure wg
+
+		if err := wg.ConfigureDevice(wgDeviceName, wgtypes.Config{
+			PrivateKey:   &wgPrivKey,
+			ListenPort:   &wgServerWgPort,
+			ReplacePeers: true,
+			Peers:        peers,
+		}); err != nil {
+			lib.Crash(err)
+		}
+		fmt.Printf("added %d peers", len(peers))
+
+		// create gRPC listener
+
+		if _, err := os.Stat(tlsCaCertPath); err != nil {
+			lib.Crash("ca cert file not found: ", err)
+		}
+		if _, err := os.Stat(tlsCertPath); err != nil {
+			lib.Crash("cert file not found: ", err)
+		}
+		if _, err := os.Stat(tlsPrivKeyPath); err != nil {
+			lib.Crash("private key not found: ", err)
+		}
+
+		caCert, err := os.ReadFile(tlsCaCertPath)
+		if err != nil {
+			lib.Crash("failed to read ca cert: ", err)
+		}
+		pool := x509.NewCertPool()
+		if ok := pool.AppendCertsFromPEM(caCert); !ok {
+			lib.Crash("failed to append ca cert")
+		}
+		cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsPrivKeyPath)
+		if err != nil {
+			lib.Crash("failed to load x509 keypair: ", err)
+		}
+		creds := credentials.NewTLS(&tls.Config{
+			Certificates: []tls.Certificate{cert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			ClientCAs:    pool,
+			RootCAs:      pool,
+		})
+
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", wgServerGrpcPort))
+		if err != nil {
+			lib.Crash("failed to listen: ", err)
+		}
+		fmt.Printf("listening at %v", lis.Addr())
+
+		server := grpc.NewServer(grpc.Creds(creds))
+		nf6.RegisterNf6WgServer(server, &WgServer{wg: wg, wgPrivKey: wgPrivKey})
+		if err := server.Serve(lis); err != nil {
+			lib.Crash("failed to serve: ", err)
+		}
+	},
+}

@@ -19,14 +19,24 @@ var (
 	configPath string
 	saveConfig bool
 
-	defaultRepo  string
-	host         string
-	output       string
-	port         int
-	portPublic   int
-	stateDir     string
-	timeout      time.Duration
-	wgServerPort int
+	apiTlsPubKeyPath string
+	defaultRepo      string
+	host             string
+	output           string
+	port             int
+	portPublic       int
+	stateDir         string
+	timeout          time.Duration
+	tlsCaCertPath    string
+	tlsCertPath      string
+	tlsPrivKeyPath   string
+	tlsPubKeyPath    string
+	wgDeviceName     string
+	wgPrivKeyPath    string
+	wgServerGrpcPort int
+	wgServerWgPort   int
+
+	apiTlsPubKey string
 
 	sshDir string
 	tlsDir string
@@ -35,12 +45,8 @@ var (
 	sshPrivKeyPath string
 	sshPubKeyPath  string
 
-	tlsName        string
-	tlsCaName      string
-	tlsPrivKeyPath string
-	tlsPubKeyPath  string
-	tlsCertPath    string
-	tlsCaCertPath  string
+	tlsName   string
+	tlsCaName string
 
 	conn       *grpc.ClientConn
 	connPublic *grpc.ClientConn
@@ -55,6 +61,7 @@ func Init(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&configPath, "config-path", "", "path to config file")
 	cmd.PersistentFlags().BoolVar(&saveConfig, "save-config", false, "save the flags for this execution to the config file")
 
+	lib.AddOption(cmd, &lib.Option{P: &apiTlsPubKeyPath, Name: "api-tls-pub-key-path", Shorthand: "", Value: "", Usage: "path to the API's TLS public key (for wgserver)"})
 	lib.AddOption(cmd, &lib.Option{P: &defaultRepo, Name: "default-repo", Shorthand: "", Value: "main", Usage: "default repo to use for all commands"})
 	lib.AddOption(cmd, &lib.Option{P: &host, Name: "host", Shorthand: "H", Value: "localhost", Usage: "server host without port"})
 	lib.AddOption(cmd, &lib.Option{P: &output, Name: "output", Shorthand: "", Value: "table", Usage: "output type, json/table"})
@@ -62,7 +69,14 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &portPublic, Name: "port-public", Shorthand: "", Value: 6968, Usage: "server public port"})
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerPort, Name: "wg-server-port", Shorthand: "", Value: 6970, Usage: "WireGuard server port"})
+	lib.AddOption(cmd, &lib.Option{P: &tlsCaCertPath, Name: "tls-ca-cert-path", Shorthand: "", Value: "", Usage: "path to TLS ca cert"})
+	lib.AddOption(cmd, &lib.Option{P: &tlsCertPath, Name: "tls-cert-path", Shorthand: "", Value: "", Usage: "path to TLS cert"})
+	lib.AddOption(cmd, &lib.Option{P: &tlsPrivKeyPath, Name: "tls-priv-key-path", Shorthand: "", Value: "", Usage: "path to TLS private key"})
+	lib.AddOption(cmd, &lib.Option{P: &tlsPubKeyPath, Name: "tls-pub-key-path", Shorthand: "", Value: "", Usage: "path to TLS public key"})
+	lib.AddOption(cmd, &lib.Option{P: &wgDeviceName, Name: "wg-device-name", Shorthand: "", Value: "wg", Usage: "name of WireGuard interface"})
+	lib.AddOption(cmd, &lib.Option{P: &wgPrivKeyPath, Name: "wg-priv-key-path", Shorthand: "", Value: "", Usage: "path to WireGuard private key"})
+	lib.AddOption(cmd, &lib.Option{P: &wgServerGrpcPort, Name: "wg-server-grpc-port", Shorthand: "", Value: 6970, Usage: "WireGuard server port for gRPC"})
+	lib.AddOption(cmd, &lib.Option{P: &wgServerWgPort, Name: "wg-server-wg-port", Shorthand: "", Value: 51820, Usage: "WireGuard server port for WireGuard"})
 
 	cmd.AddCommand(accountCmd)
 	cmd.AddCommand(gensshCmd)
@@ -70,6 +84,7 @@ func Init(cmd *cobra.Command) {
 	cmd.AddCommand(hostCmd)
 	cmd.AddCommand(registerCmd)
 	cmd.AddCommand(repoCmd)
+	cmd.AddCommand(wgserverCmd)
 }
 
 func InitConfig() {
@@ -107,10 +122,18 @@ func InitState() {
 
 	tlsName = "client"
 	tlsCaName = "ca"
-	tlsPrivKeyPath = tlsDir + "/" + tlsName + ".key"
-	tlsPubKeyPath = tlsDir + "/" + tlsName + ".pub"
-	tlsCertPath = tlsDir + "/" + tlsName + ".crt"
-	tlsCaCertPath = tlsDir + "/ca.crt"
+	if tlsPrivKeyPath == "" {
+		tlsPrivKeyPath = tlsDir + "/" + tlsName + ".key"
+	}
+	if tlsPubKeyPath == "" {
+		tlsPubKeyPath = tlsDir + "/" + tlsName + ".pub"
+	}
+	if tlsCertPath == "" {
+		tlsCertPath = tlsDir + "/" + tlsName + ".crt"
+	}
+	if tlsCaCertPath == "" {
+		tlsCaCertPath = tlsDir + "/ca.crt"
+	}
 }
 
 func ConnectPublic(_ *cobra.Command, _ []string) {
