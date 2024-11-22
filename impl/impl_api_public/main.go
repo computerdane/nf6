@@ -25,6 +25,10 @@ func (s *ServerPublic) GetCaCert(_ context.Context, in *nf6.None) (*nf6.GetCaCer
 	return &nf6.GetCaCert_Reply{CaCert: s.TlsCaCert}, nil
 }
 
+func (s *ServerPublic) GetIpv6Info(_ context.Context, in *nf6.None) (*nf6.GetIpv6Info_Reply, error) {
+	return &nf6.GetIpv6Info_Reply{GlobalPrefix6: s.IpNet6.String(), AccountPrefix6Len: int32(s.AccountPrefix6Len)}, nil
+}
+
 func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_Request) (*nf6.CreateAccount_Reply, error) {
 	if err := lib.ValidateEmail(in.GetEmail()); err != nil {
 		return nil, err
@@ -39,21 +43,28 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 	if err != nil {
 		return nil, err
 	}
-	// TODO: Allow user to set their IPv6 prefix
-	// prefix6 := in.GetPrefix6()
-	prefix6 := ""
-	if prefix6 == "" {
+	var prefix6 *net.IPNet
+	if in.GetPrefix6() == "" {
 		randPrefix6, err := lib.RandomIpv6Prefix(s.IpNet6, s.AccountPrefix6Len)
 		if err != nil {
 			return nil, err
 		}
-		if err := lib.DbCheckNotExists(ctx, s.Db, "account", "prefix6", randPrefix6.String()); err != nil {
+		if err := lib.DbCheckNotExists(ctx, s.Db, "account", "prefix6", randPrefix6); err != nil {
 			// TODO: make this less cringe
 			return nil, status.Error(codes.AlreadyExists, "somehow we generated an IPv6 prefix for you that is already taken. buy a lottery ticket!")
 		}
-		prefix6 = randPrefix6.String()
+		prefix6 = randPrefix6
+	} else {
+		var ip net.IP
+		ip, prefix6, err = net.ParseCIDR(in.GetPrefix6())
+		if err != nil || ip.To4() != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid prefix6")
+		}
 	}
-	if err := lib.ValidateIpv6Prefix(prefix6, s.AccountPrefix6Len); err != nil {
+	if err := lib.EnsureIpv6PrefixContainsAddr(s.IpNet6, prefix6.IP); err != nil {
+		return nil, err
+	}
+	if err := lib.DbCheckNotExists(ctx, s.Db, "account", "prefix6", prefix6); err != nil {
 		return nil, err
 	}
 	if err := lib.DbCheckNotExists(ctx, s.Db, "account", "email", in.GetEmail()); err != nil {

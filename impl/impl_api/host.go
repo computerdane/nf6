@@ -49,12 +49,12 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 		if addr6 == nil || addr6.To4() != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid addr6")
 		}
-		if err := lib.EnsureIpv6AddrIsInPrefix(prefix6, addr6); err != nil {
-			return nil, err
-		}
-		if err := lib.DbCheckNotExists(ctx, s.Db, "host", "addr6", in.GetAddr6()); err != nil {
-			return nil, err
-		}
+	}
+	if err := lib.EnsureIpv6PrefixContainsAddr(prefix6, addr6); err != nil {
+		return nil, err
+	}
+	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "addr6", addr6); err != nil {
+		return nil, err
 	}
 	query := "insert into host (account_id, name, addr6, wg_pub_key) values (@account_id, @name, @addr6, @wg_pub_key)"
 	args := pgx.NamedArgs{
@@ -138,7 +138,7 @@ func (s *Server) UpdateHost(ctx context.Context, in *nf6.UpdateHost_Request) (*n
 		if addr6 == nil || addr6.To4() != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid addr6")
 		}
-		if err := lib.EnsureIpv6AddrIsInPrefix(prefix6, addr6); err != nil {
+		if err := lib.EnsureIpv6PrefixContainsAddr(prefix6, addr6); err != nil {
 			return nil, err
 		}
 		if err := lib.DbUpdateColumn(ctx, s.Db, "host", "addr6", addr6, in.GetId()); err != nil {

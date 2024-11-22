@@ -51,7 +51,7 @@ func RandomIpv6Addr(from *net.IPNet) (net.IP, error) {
 	return ipNet.IP, nil
 }
 
-func EnsureIpv6AddrIsInPrefix(prefix *net.IPNet, addr net.IP) error {
+func EnsureIpv6PrefixContainsAddr(prefix *net.IPNet, addr net.IP) error {
 	if prefix.IP.To4() != nil || addr.To4() != nil {
 		return status.Error(codes.InvalidArgument, "prefix and address must both be IPv6")
 	}

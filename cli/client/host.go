@@ -67,7 +67,7 @@ var hostCreateCmd = &cobra.Command{
 		}
 		ctx, cancel := lib.Context()
 		defer cancel()
-		if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, Addr6: hostAddr6, WgPubKey: hostWgPubKey}); err != nil {
+		if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, Addr6: &hostAddr6, WgPubKey: hostWgPubKey}); err != nil {
 			lib.Crash(err)
 		}
 	},

@@ -10,6 +10,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	registerPrefix6 string
+)
+
+func init() {
+	registerCmd.Flags().StringVar(&registerPrefix6, "prefix6", "", "choose your IPv6 prefix")
+}
+
 var registerCmd = &cobra.Command{
 	Use:    "register [email]",
 	Short:  "Register a new account",
@@ -47,7 +55,7 @@ var registerCmd = &cobra.Command{
 		}
 		ctx, cancel := lib.Context()
 		defer cancel()
-		reply, err := apiPublic.CreateAccount(ctx, &nf6.CreateAccount_Request{Email: email, SshPubKey: sshPubKeyOnly, TlsPubKey: string(tlsPubKeyPem)})
+		reply, err := apiPublic.CreateAccount(ctx, &nf6.CreateAccount_Request{Email: email, SshPubKey: sshPubKeyOnly, TlsPubKey: string(tlsPubKeyPem), Prefix6: &registerPrefix6})
 		if err != nil {
 			lib.Crash(err)
 		}

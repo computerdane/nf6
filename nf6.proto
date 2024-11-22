@@ -11,12 +11,14 @@ message None {}
 service Nf6Public {
   rpc CreateAccount (CreateAccount_Request) returns (CreateAccount_Reply) {}
   rpc GetCaCert (None) returns (GetCaCert_Reply) {}
+  rpc GetIpv6Info (None) returns (GetIpv6Info_Reply) {}
 }
 
 message CreateAccount_Request {
   string email = 1;
   string sshPubKey = 2;
   string tlsPubKey = 3;
+  optional string prefix6 = 4;
 }
 
 message CreateAccount_Reply {
@@ -25,6 +27,11 @@ message CreateAccount_Reply {
 
 message GetCaCert_Reply {
   string caCert = 1;
+}
+
+message GetIpv6Info_Reply {
+  string globalPrefix6 = 1;
+  int32 accountPrefix6Len = 2;
 }
 
 /*
@@ -66,6 +73,7 @@ message UpdateAccount_Request {
   optional string email = 1;
   optional string sshPubKey = 2;
   optional string tlsPubKey = 3;
+  optional string prefix6 = 4;
 }
 
 message CreateHost_Request {
