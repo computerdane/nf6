@@ -8,15 +8,15 @@ import (
 )
 
 var (
-	name     string
-	addr6    string
-	wgPubKey string
+	hostName     string
+	hostAddr6    string
+	hostWgPubKey string
 )
 
 func init() {
-	hostCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "host name")
-	hostCmd.PersistentFlags().StringVarP(&addr6, "addr6", "a", "", "IPv6 address")
-	hostCmd.PersistentFlags().StringVarP(&wgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
+	hostCmd.PersistentFlags().StringVarP(&hostName, "name", "n", "", "host name")
+	hostCmd.PersistentFlags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
+	hostCmd.PersistentFlags().StringVarP(&hostWgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
 
 	hostCmd.AddCommand(hostCreateCmd)
 	hostCmd.AddCommand(hostGetCmd)
@@ -45,13 +45,13 @@ var hostCreateCmd = &cobra.Command{
 		}); err != nil {
 			lib.Crash(err)
 		}
-		if err := lib.PromptOrValidate(&addr6, &promptui.Prompt{
+		if err := lib.PromptOrValidate(&hostAddr6, &promptui.Prompt{
 			Label:    "IPv6 address",
 			Validate: lib.ValidateIpv6Address,
 		}); err != nil {
 			lib.Crash(err)
 		}
-		if err := lib.PromptOrValidate(&wgPubKey, &promptui.Prompt{
+		if err := lib.PromptOrValidate(&hostWgPubKey, &promptui.Prompt{
 			Label:    "WireGuard public key",
 			Validate: lib.ValidateWireguardKey,
 		}); err != nil {
@@ -59,7 +59,7 @@ var hostCreateCmd = &cobra.Command{
 		}
 		ctx, cancel := lib.Context()
 		defer cancel()
-		if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, Addr6: addr6, WgPubKey: wgPubKey}); err != nil {
+		if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, Addr6: hostAddr6, WgPubKey: hostWgPubKey}); err != nil {
 			lib.Crash(err)
 		}
 	},
@@ -108,22 +108,22 @@ var hostEditCmd = &cobra.Command{
 		if err != nil {
 			lib.Crash(err)
 		}
-		if name == "" && addr6 == "" && wgPubKey == "" {
-			if err := lib.PromptOrValidate(&name, &promptui.Prompt{
+		if hostName == "" && hostAddr6 == "" && hostWgPubKey == "" {
+			if err := lib.PromptOrValidate(&hostName, &promptui.Prompt{
 				Label:    "Name",
 				Default:  reply.GetName(),
 				Validate: lib.ValidateHostName,
 			}); err != nil {
 				lib.Crash(err)
 			}
-			if err := lib.PromptOrValidate(&addr6, &promptui.Prompt{
+			if err := lib.PromptOrValidate(&hostAddr6, &promptui.Prompt{
 				Label:    "IPv6 address",
 				Default:  reply.GetAddr6(),
 				Validate: lib.ValidateIpv6Address,
 			}); err != nil {
 				lib.Crash(err)
 			}
-			if err := lib.PromptOrValidate(&wgPubKey, &promptui.Prompt{
+			if err := lib.PromptOrValidate(&hostWgPubKey, &promptui.Prompt{
 				Label:    "WireGuard public key",
 				Default:  reply.GetWgPubKey(),
 				Validate: lib.ValidateWireguardKey,
@@ -132,14 +132,14 @@ var hostEditCmd = &cobra.Command{
 			}
 		}
 		req := nf6.UpdateHost_Request{Id: reply.GetId()}
-		if name != "" {
-			req.Name = &name
+		if hostName != "" {
+			req.Name = &hostName
 		}
-		if addr6 != "" {
-			req.Addr6 = &addr6
+		if hostAddr6 != "" {
+			req.Addr6 = &hostAddr6
 		}
-		if wgPubKey != "" {
-			req.WgPubKey = &wgPubKey
+		if hostWgPubKey != "" {
+			req.WgPubKey = &hostWgPubKey
 		}
 		{
 			ctx, cancel := lib.Context()

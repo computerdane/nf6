@@ -67,6 +67,7 @@ func Init(cmd *cobra.Command) {
 	cmd.AddCommand(gentlsCmd)
 	cmd.AddCommand(hostCmd)
 	cmd.AddCommand(registerCmd)
+	cmd.AddCommand(repoCmd)
 }
 
 func InitConfig() {
