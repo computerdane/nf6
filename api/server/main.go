@@ -11,14 +11,15 @@ var (
 	configPath string
 	saveConfig bool
 
-	dbUrl          string
-	port           int
-	portPublic     int
-	stateDir       string
-	timeout        time.Duration
-	tlsPrivKeyPath string
-	tlsCertPath    string
-	tlsCaCertPath  string
+	dbUrl            string
+	port             int
+	portPublic       int
+	stateDir         string
+	timeout          time.Duration
+	tlsPrivKeyPath   string
+	tlsCertPath      string
+	tlsCaPrivKeyPath string
+	tlsCaCertPath    string
 
 	tlsDir    string
 	tlsName   string
@@ -38,6 +39,7 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsPrivKeyPath, Name: "tls-private-key-path", Shorthand: "", Value: "", Usage: "path to this server's TLS private key"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCertPath, Name: "tls-cert-path", Shorthand: "", Value: "", Usage: "path to this server's TLS cert"})
+	lib.AddOption(cmd, &lib.Option{P: &tlsCaPrivKeyPath, Name: "tls-ca-private-key-path", Shorthand: "", Value: "", Usage: "path to this server's TLS ca private key"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaCertPath, Name: "tls-ca-cert-path", Shorthand: "", Value: "", Usage: "path to the root ca cert"})
 
 	cmd.AddCommand(serveCmd)
@@ -78,6 +80,9 @@ func InitState() {
 	}
 	if tlsCertPath == "" {
 		tlsCertPath = tlsDir + "/" + tlsName + ".crt"
+	}
+	if tlsCaPrivKeyPath == "" {
+		tlsCaPrivKeyPath = tlsDir + "/ca.key"
 	}
 	if tlsCaCertPath == "" {
 		tlsCaCertPath = tlsDir + "/ca.crt"

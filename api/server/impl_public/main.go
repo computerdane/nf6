@@ -2,6 +2,7 @@ package impl_public
 
 import (
 	"context"
+	"crypto/ed25519"
 
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
@@ -13,14 +14,13 @@ import (
 
 type ServerPublic struct {
 	nf6.UnimplementedNf6PublicServer
-	db        *pgxpool.Pool
-	tlsCaCert string
-	tlsDir    string
-	tlsCaName string
+	db               *pgxpool.Pool
+	tlsCaCert        string
+	tlsCaPrivKeyPath string
 }
 
-func NewServerPublic(db *pgxpool.Pool, tlsCaCert string, tlsDir string, tlsCaName string) *ServerPublic {
-	return &ServerPublic{db: db, tlsCaCert: tlsCaCert, tlsDir: tlsDir, tlsCaName: tlsCaName}
+func NewServerPublic(db *pgxpool.Pool, tlsCaCert string, tlsCaPrivKeyPath string) *ServerPublic {
+	return &ServerPublic{db: db, tlsCaCert: tlsCaCert, tlsCaPrivKeyPath: tlsCaPrivKeyPath}
 }
 
 func (s *ServerPublic) GetCaCert(_ context.Context, in *nf6.None) (*nf6.GetCaCert_Reply, error) {
@@ -46,7 +46,7 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 	if err := lib.DbCheckNotExists(ctx, s.db, "account", "tls_pub_key", in.GetTlsPubKey()); err != nil {
 		return nil, err
 	}
-	cert, err := lib.GenCert(s.tlsDir, s.tlsCaName, []byte(in.GetTlsPubKey()))
+	cert, err := lib.TlsGenCertUsingPrivKeyFile(lib.TlsCertTemplate, ed25519.PublicKey(in.GetTlsPubKey()), s.tlsCaPrivKeyPath)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "failed to generate a cert using the provided TLS public key")
 	}

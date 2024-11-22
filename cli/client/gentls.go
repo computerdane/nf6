@@ -34,16 +34,79 @@ var gentlsCmd = &cobra.Command{
 		if gentlsName == "" {
 			gentlsName = tlsName
 		}
+		gentlsCaPrivKeyPath := gentlsDir + "/" + gentlsCaName + ".key"
+		gentlsCaPubKeyPath := gentlsDir + "/" + gentlsCaName + ".pub"
+		gentlsCaCertPath := gentlsDir + "/" + gentlsCaName + ".crt"
+		gentlsPrivKeyPath := gentlsDir + "/" + gentlsName + ".key"
+		gentlsPubKeyPath := gentlsDir + "/" + gentlsName + ".pub"
+		gentlsCertPath := gentlsDir + "/" + gentlsName + ".crt"
 		if gentlsGenCa {
-			if err := lib.GenCaFiles(gentlsDir, gentlsCaName); err != nil {
+			caPubKey, caPrivKey, err := lib.TlsGenKey()
+			if err != nil {
+				lib.Crash(err)
+			}
+			caCert, err := lib.TlsGenCert(lib.TlsCaTemplate, caPubKey, caPrivKey)
+			if err != nil {
+				lib.Crash(err)
+			}
+			caPubKeyPem, err := lib.TlsEncodePubKey(caPubKey)
+			if err != nil {
+				lib.Crash(err)
+			}
+			caPrivKeyPem, err := lib.TlsEncodePrivKey(caPrivKey)
+			if err != nil {
+				lib.Crash(err)
+			}
+			if err := lib.TlsWriteFile(caPubKeyPem, gentlsCaPubKeyPath); err != nil {
+				lib.Crash(err)
+			}
+			if err := lib.TlsWriteFile(caCert, gentlsCaCertPath); err != nil {
+				lib.Crash(err)
+			}
+			if err := lib.TlsWriteFile(caPrivKeyPem, gentlsCaPrivKeyPath); err != nil {
 				lib.Crash(err)
 			}
 		} else if gentlsGenCert {
-			if err := lib.GenCertFiles(gentlsDir, gentlsCaName, gentlsName); err != nil {
+			caPrivKeyPem, err := lib.TlsReadFile(gentlsCaPrivKeyPath)
+			if err != nil {
+				lib.Crash(err)
+			}
+			caPrivKey, err := lib.TlsDecodePrivKey(caPrivKeyPem)
+			if err != nil {
+				lib.Crash(err)
+			}
+			pubKeyPem, err := lib.TlsReadFile(gentlsPubKeyPath)
+			if err != nil {
+				lib.Crash(err)
+			}
+			pubKey, err := lib.TlsDecodePubKey(pubKeyPem)
+			if err != nil {
+				lib.Crash(err)
+			}
+			cert, err := lib.TlsGenCert(lib.TlsCertTemplate, pubKey, caPrivKey)
+			if err != nil {
+				lib.Crash(err)
+			}
+			if err := lib.TlsWriteFile(cert, gentlsCertPath); err != nil {
 				lib.Crash(err)
 			}
 		} else {
-			if err := lib.GenKeyFiles(gentlsDir, gentlsName); err != nil {
+			pubKey, privKey, err := lib.TlsGenKey()
+			if err != nil {
+				lib.Crash(err)
+			}
+			pubKeyPem, err := lib.TlsEncodePubKey(pubKey)
+			if err != nil {
+				lib.Crash(err)
+			}
+			privKeyPem, err := lib.TlsEncodePrivKey(privKey)
+			if err != nil {
+				lib.Crash(err)
+			}
+			if err := lib.TlsWriteFile(pubKeyPem, gentlsPubKeyPath); err != nil {
+				lib.Crash(err)
+			}
+			if err := lib.TlsWriteFile(privKeyPem, gentlsPrivKeyPath); err != nil {
 				lib.Crash(err)
 			}
 		}

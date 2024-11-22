@@ -41,7 +41,7 @@ var servePublicCmd = &cobra.Command{
 		}
 
 		server := grpc.NewServer()
-		nf6.RegisterNf6PublicServer(server, impl_public.NewServerPublic(db, string(tlsCaCert), tlsDir, tlsCaName))
+		nf6.RegisterNf6PublicServer(server, impl_public.NewServerPublic(db, string(tlsCaCert), tlsCaPrivKeyPath))
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)
 		}

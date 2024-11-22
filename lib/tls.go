@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"errors"
 	"math/big"
 	"os"
 	"time"
@@ -22,7 +21,7 @@ var (
 	notBefore = time.Now()
 	notAfter  = time.Now().AddDate(1000, 0, 0)
 
-	ca = &x509.Certificate{
+	TlsCaTemplate = &x509.Certificate{
 		SerialNumber: big.NewInt(69420),
 
 		Subject:     pkix.Name{CommonName: TlsName},
@@ -35,7 +34,7 @@ var (
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 	}
-	cert = &x509.Certificate{
+	TlsCertTemplate = &x509.Certificate{
 		SerialNumber: big.NewInt(42069),
 
 		Subject:     pkix.Name{CommonName: TlsName},
@@ -48,172 +47,110 @@ var (
 	}
 )
 
-func GenCaFiles(dir string, caName string) error {
-	caKeyPath := dir + "/" + caName + ".key"
-	caPath := dir + "/" + caName + ".crt"
-
-	if _, err := os.Stat(caPath); errors.Is(err, os.ErrNotExist) {
-		caPubKey, caPrivKey, err := ed25519.GenerateKey(rand.Reader)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to generate ca private key")
-		}
-		caBytes, err := x509.CreateCertificate(rand.Reader, ca, ca, caPubKey, caPrivKey)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to create ca certificate")
-		}
-
-		caPrivKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(caPrivKey)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to marshall ca private key")
-		}
-		caPrivKeyPem, err := os.OpenFile(caKeyPath, os.O_CREATE|os.O_WRONLY, 0600)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to open ca private key file")
-		}
-		if err := pem.Encode(caPrivKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: caPrivKeyMarshalled}); err != nil {
-			return status.Error(codes.Internal, "failed to encode ca private key")
-		}
-
-		caPem, err := os.OpenFile(caPath, os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to open ca certificate file")
-		}
-		if err := pem.Encode(caPem, &pem.Block{Type: "CERTIFICATE", Bytes: caBytes}); err != nil {
-			return status.Error(codes.Internal, "failed to encode ca certificate")
-		}
-	} else {
-		return status.Error(codes.AlreadyExists, "keypair already exists")
+func TlsGenKey() (ed25519.PublicKey, ed25519.PrivateKey, error) {
+	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, nil, status.Error(codes.Internal, "failed to generate key")
 	}
-
-	return nil
+	return pubKey, privKey, nil
 }
 
-func GenCertFiles(dir string, caName string, name string) error {
-	caKeyPath := dir + "/" + caName + ".key"
-	keyPath := dir + "/" + name + ".key"
-	certPath := dir + "/" + name + ".crt"
-
-	if _, err := os.Stat(certPath); errors.Is(err, os.ErrNotExist) {
-		caPrivKeyPem, err := os.ReadFile(caKeyPath)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to read ca certificate file")
-		}
-		caPrivKeyMarshalled, _ := pem.Decode(caPrivKeyPem)
-		if caPrivKeyMarshalled == nil || caPrivKeyMarshalled.Type != "PRIVATE KEY" {
-			return status.Error(codes.Internal, "failed to decode ca private key")
-		}
-		caPrivKey, err := x509.ParsePKCS8PrivateKey(caPrivKeyMarshalled.Bytes)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to parse ca private key")
-		}
-
-		pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to generate keypair")
-		}
-
-		privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to marshall private key")
-		}
-		privKeyPem, err := os.OpenFile(keyPath, os.O_CREATE|os.O_WRONLY, 0600)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to open private key file")
-		}
-		if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
-			return status.Error(codes.Internal, "failed to encode private key")
-		}
-
-		caBytes, err := x509.CreateCertificate(rand.Reader, cert, ca, pubKey, caPrivKey)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to create certificate")
-		}
-		certPem, err := os.OpenFile(certPath, os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to open certificate file")
-		}
-		if err := pem.Encode(certPem, &pem.Block{Type: "CERTIFICATE", Bytes: caBytes}); err != nil {
-			return status.Error(codes.Internal, "failed to encode certificate")
-		}
+func TlsEncodePrivKey(privKey ed25519.PrivateKey) ([]byte, error) {
+	privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to marshall private key")
 	}
-
-	return nil
+	privKeyPem := new(bytes.Buffer)
+	if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
+		return nil, status.Error(codes.Internal, "failed to encode private key")
+	}
+	return privKeyPem.Bytes(), nil
 }
 
-func GenCert(dir string, caName string, pubKeyPem []byte) ([]byte, error) {
-	caKeyPath := dir + "/" + caName + ".key"
-
-	caPrivKeyPem, err := os.ReadFile(caKeyPath)
+func TlsEncodePubKey(pubKey ed25519.PublicKey) ([]byte, error) {
+	pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKey)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to read ca private key file")
+		return nil, status.Error(codes.Internal, "failed to marshall public key")
 	}
-	caPrivKeyMarshalled, _ := pem.Decode(caPrivKeyPem)
-	if caPrivKeyMarshalled == nil || caPrivKeyMarshalled.Type != "PRIVATE KEY" {
-		return nil, status.Error(codes.Internal, "failed to decode ca private key")
+	pubKeyPem := new(bytes.Buffer)
+	if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
+		return nil, status.Error(codes.Internal, "failed to encode public key")
 	}
-	caPrivKey, err := x509.ParsePKCS8PrivateKey(caPrivKeyMarshalled.Bytes)
-	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to parse ca private key")
-	}
+	return pubKeyPem.Bytes(), nil
+}
 
+func TlsDecodePrivKey(privKeyPem []byte) (ed25519.PrivateKey, error) {
+	privKeyMarshalled, _ := pem.Decode(privKeyPem)
+	if privKeyMarshalled == nil || privKeyMarshalled.Type != "PRIVATE KEY" {
+		return nil, status.Error(codes.Internal, "failed to decode private key")
+	}
+	privKeyParsed, err := x509.ParsePKCS8PrivateKey(privKeyMarshalled.Bytes)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to parse private key")
+	}
+	privKey, ok := privKeyParsed.(ed25519.PrivateKey)
+	if !ok {
+		return nil, status.Error(codes.Internal, "failed to cast private key")
+	}
+	return privKey, nil
+}
+
+func TlsDecodePubKey(pubKeyPem []byte) (ed25519.PublicKey, error) {
 	pubKeyMarshalled, _ := pem.Decode(pubKeyPem)
 	if pubKeyMarshalled == nil || pubKeyMarshalled.Type != "PUBLIC KEY" {
-		return nil, status.Error(codes.InvalidArgument, "failed to decode public key")
+		return nil, status.Error(codes.Internal, "failed to decode public key")
 	}
-	pubKey, err := x509.ParsePKIXPublicKey(pubKeyMarshalled.Bytes)
+	pubKeyParsed, err := x509.ParsePKIXPublicKey(pubKeyMarshalled.Bytes)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "failed to parse public key")
+		return nil, status.Error(codes.Internal, "failed to parse public key")
 	}
+	pubKey, ok := pubKeyParsed.(ed25519.PublicKey)
+	if !ok {
+		return nil, status.Error(codes.Internal, "failed to cast public key")
+	}
+	return pubKey, nil
+}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, cert, ca, pubKey, caPrivKey)
+func TlsWriteFile(data []byte, path string) error {
+	if _, err := os.Stat(path); err == nil {
+		return status.Error(codes.AlreadyExists, "tls file already exists")
+	}
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return status.Error(codes.Internal, "failed to open tls file")
+	}
+	file.Write(data)
+	return nil
+}
+
+func TlsReadFile(path string) ([]byte, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to read tls file")
+	}
+	return data, nil
+}
+
+func TlsGenCert(template *x509.Certificate, pubKey ed25519.PublicKey, caPrivKey ed25519.PrivateKey) ([]byte, error) {
+	data, err := x509.CreateCertificate(rand.Reader, template, TlsCaTemplate, pubKey, caPrivKey)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to create certificate")
 	}
-
 	certPem := new(bytes.Buffer)
-	if err := pem.Encode(certPem, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes}); err != nil {
+	if err := pem.Encode(certPem, &pem.Block{Type: "CERTIFICATE", Bytes: data}); err != nil {
 		return nil, status.Error(codes.Internal, "failed to encode certificate")
 	}
-
 	return certPem.Bytes(), nil
 }
 
-func GenKeyFiles(dir string, name string) error {
-	privKeyPath := dir + "/" + name + ".key"
-	pubKeyPath := dir + "/" + name + ".pub"
-
-	if _, err := os.Stat(pubKeyPath); errors.Is(err, os.ErrNotExist) {
-		pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to generate keypair")
-		}
-
-		privKeyMarshalled, err := x509.MarshalPKCS8PrivateKey(privKey)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to marshall private key")
-		}
-		privKeyPem, err := os.OpenFile(privKeyPath, os.O_CREATE|os.O_WRONLY, 0600)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to open private key file")
-		}
-		if err := pem.Encode(privKeyPem, &pem.Block{Type: "PRIVATE KEY", Bytes: privKeyMarshalled}); err != nil {
-			return status.Error(codes.Internal, "failed to encode private key")
-		}
-
-		pubKeyMarshalled, err := x509.MarshalPKIXPublicKey(pubKey)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to marshall public key")
-		}
-		pubKeyPem, err := os.OpenFile(pubKeyPath, os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			return status.Error(codes.Internal, "failed to open public key file")
-		}
-		if err := pem.Encode(pubKeyPem, &pem.Block{Type: "PUBLIC KEY", Bytes: pubKeyMarshalled}); err != nil {
-			return status.Error(codes.Internal, "failed to encode public key")
-		}
-	} else {
-		return status.Error(codes.AlreadyExists, "keypair already exists")
+func TlsGenCertUsingPrivKeyFile(template *x509.Certificate, pubKey ed25519.PublicKey, caPrivKeyPath string) ([]byte, error) {
+	caPrivKeyPem, err := TlsReadFile(caPrivKeyPath)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	caPrivKey, err := TlsDecodePrivKey(caPrivKeyPem)
+	if err != nil {
+		return nil, err
+	}
+	return TlsGenCert(template, pubKey, caPrivKey)
 }

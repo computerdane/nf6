@@ -19,13 +19,14 @@ var (
 	configPath string
 	saveConfig bool
 
-	defaultRepo string
-	host        string
-	output      string
-	port        int
-	portPublic  int
-	stateDir    string
-	timeout     time.Duration
+	defaultRepo  string
+	host         string
+	output       string
+	port         int
+	portPublic   int
+	stateDir     string
+	timeout      time.Duration
+	wgServerPort int
 
 	sshDir string
 	tlsDir string
@@ -61,6 +62,7 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &portPublic, Name: "port-public", Shorthand: "", Value: 6968, Usage: "server public port"})
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
+	lib.AddOption(cmd, &lib.Option{P: &wgServerPort, Name: "wg-server-port", Shorthand: "", Value: 6970, Usage: "WireGuard server port"})
 
 	cmd.AddCommand(accountCmd)
 	cmd.AddCommand(gensshCmd)
