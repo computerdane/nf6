@@ -14,9 +14,12 @@ var (
 )
 
 func init() {
-	hostCmd.PersistentFlags().StringVarP(&hostName, "name", "n", "", "host name")
-	hostCmd.PersistentFlags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
-	hostCmd.PersistentFlags().StringVarP(&hostWgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
+	hostCreateCmd.Flags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
+	hostCreateCmd.Flags().StringVarP(&hostWgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
+
+	hostEditCmd.Flags().StringVarP(&hostName, "name", "n", "", "host name")
+	hostEditCmd.Flags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
+	hostEditCmd.Flags().StringVarP(&hostWgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
 
 	hostCmd.AddCommand(hostCreateCmd)
 	hostCmd.AddCommand(hostGetCmd)
@@ -30,7 +33,7 @@ var hostCmd = &cobra.Command{
 }
 
 var hostCreateCmd = &cobra.Command{
-	Use:    "create",
+	Use:    "create [name]",
 	Short:  "Create a new host",
 	Args:   cobra.MaximumNArgs(1),
 	PreRun: Connect,
@@ -45,12 +48,12 @@ var hostCreateCmd = &cobra.Command{
 		}); err != nil {
 			lib.Crash(err)
 		}
-		if err := lib.PromptOrValidate(&hostAddr6, &promptui.Prompt{
-			Label:    "IPv6 address",
-			Validate: lib.ValidateIpv6Address,
-		}); err != nil {
-			lib.Crash(err)
-		}
+		// if err := lib.PromptOrValidate(&hostAddr6, &promptui.Prompt{
+		// 	Label:    "IPv6 address",
+		// 	Validate: lib.ValidateIpv6Address,
+		// }); err != nil {
+		// 	lib.Crash(err)
+		// }
 		if err := lib.PromptOrValidate(&hostWgPubKey, &promptui.Prompt{
 			Label:    "WireGuard public key",
 			Validate: lib.ValidateWireguardKey,

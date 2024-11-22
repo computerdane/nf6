@@ -20,26 +20,47 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 	if err := lib.ValidateHostName(in.GetName()); err != nil {
 		return nil, err
 	}
-	if err := lib.ValidateIpv6Address(in.GetAddr6()); err != nil {
-		return nil, err
-	}
 	if err := lib.ValidateWireguardKey(in.GetWgPubKey()); err != nil {
 		return nil, err
 	}
 	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "name", in.GetName()); err != nil {
 		return nil, err
 	}
-	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "addr6", in.GetAddr6()); err != nil {
-		return nil, err
-	}
 	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "wg_pub_key", in.GetWgPubKey()); err != nil {
 		return nil, err
+	}
+	prefix6, err := lib.DbSelectColumn[net.IPNet](ctx, s.Db, "account", "prefix6", accountId)
+	if err != nil {
+		return nil, err
+	}
+	var addr6 net.IP
+	if in.GetAddr6() == "" {
+		randAddr6, err := lib.RandomIpv6Addr(prefix6)
+		if err != nil {
+			return nil, err
+		}
+		if err := lib.DbCheckNotExists(ctx, s.Db, "host", "addr6", randAddr6.String()); err != nil {
+			// TODO: make this less cringe
+			return nil, status.Error(codes.AlreadyExists, "somehow we generated an IPv6 address for you that is already taken. buy a lottery ticket!")
+		}
+		addr6 = randAddr6
+	} else {
+		addr6 = net.ParseIP(in.GetAddr6())
+		if addr6 == nil || addr6.To4() != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid addr6")
+		}
+		if err := lib.EnsureIpv6AddrIsInPrefix(prefix6, addr6); err != nil {
+			return nil, err
+		}
+		if err := lib.DbCheckNotExists(ctx, s.Db, "host", "addr6", in.GetAddr6()); err != nil {
+			return nil, err
+		}
 	}
 	query := "insert into host (account_id, name, addr6, wg_pub_key) values (@account_id, @name, @addr6, @wg_pub_key)"
 	args := pgx.NamedArgs{
 		"account_id": accountId,
 		"name":       in.GetName(),
-		"addr6":      in.GetAddr6(),
+		"addr6":      addr6.String(),
 		"wg_pub_key": in.GetWgPubKey(),
 	}
 	if _, err := s.Db.Exec(ctx, query, args); err != nil {
@@ -109,10 +130,18 @@ func (s *Server) UpdateHost(ctx context.Context, in *nf6.UpdateHost_Request) (*n
 		}
 	}
 	if in.GetAddr6() != "" {
-		if err := lib.ValidateIpv6Address(in.GetAddr6()); err != nil {
+		prefix6, err := lib.DbSelectColumn[net.IPNet](ctx, s.Db, "account", "prefix6", accountId)
+		if err != nil {
 			return nil, err
 		}
-		if err := lib.DbUpdateColumn(ctx, s.Db, "host", "addr6", in.GetAddr6(), in.GetId()); err != nil {
+		addr6 := net.ParseIP(in.GetAddr6())
+		if addr6 == nil || addr6.To4() != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid addr6")
+		}
+		if err := lib.EnsureIpv6AddrIsInPrefix(prefix6, addr6); err != nil {
+			return nil, err
+		}
+		if err := lib.DbUpdateColumn(ctx, s.Db, "host", "addr6", addr6, in.GetId()); err != nil {
 			return nil, err
 		}
 	}

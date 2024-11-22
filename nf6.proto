@@ -70,7 +70,7 @@ message UpdateAccount_Request {
 
 message CreateHost_Request {
   string name = 1;
-  string addr6 = 2;
+  optional string addr6 = 2;
   string wgPubKey = 3;
   optional string tlsPubKey = 4;
 }

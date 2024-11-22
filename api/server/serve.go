@@ -64,7 +64,10 @@ var serveCmd = &cobra.Command{
 		fmt.Printf("listening at %v", lis.Addr())
 
 		server := grpc.NewServer(grpc.Creds(creds))
-		nf6.RegisterNf6Server(server, &impl_api.Server{Db: db})
+		nf6.RegisterNf6Server(server, &impl_api.Server{
+			Db:     db,
+			IpNet6: ipNet6,
+		})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)
 		}

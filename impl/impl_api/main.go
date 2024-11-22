@@ -2,6 +2,7 @@ package impl_api
 
 import (
 	"context"
+	"net"
 
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
@@ -12,7 +13,8 @@ import (
 
 type Server struct {
 	nf6.UnimplementedNf6Server
-	Db *pgxpool.Pool
+	Db     *pgxpool.Pool
+	IpNet6 *net.IPNet
 }
 
 func (s *Server) RequireAccountId(ctx context.Context) (uint64, error) {
