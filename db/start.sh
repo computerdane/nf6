@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-data_dir=$HOME/.local/share/nf6-db-dev
+data_dir=$HOME/.local/share/dev-nf6-db
 socket_dir=/tmp
 
 mkdir -p $data_dir

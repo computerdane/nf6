@@ -60,6 +60,7 @@ message GetAccount_Reply {
   string email = 1;
   string sshPubKey = 2;
   string tlsPubKey = 3;
+  string prefix6 = 4;
 }
 message UpdateAccount_Request {
   optional string email = 1;

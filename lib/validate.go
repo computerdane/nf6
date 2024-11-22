@@ -48,6 +48,15 @@ func ValidateIpv6Address(addr string) error {
 	return nil
 }
 
+func ValidateIpv6Prefix(addr string, prefixLen int) error {
+	_, ipNet, err := net.ParseCIDR(addr)
+	ones, bits := ipNet.Mask.Size()
+	if err != nil || ones != prefixLen || bits != 128 {
+		return status.Error(codes.InvalidArgument, "Invalid IPv6 prefix")
+	}
+	return nil
+}
+
 func ValidateRepoName(name string) error {
 	if matchValid, _ := regexp.MatchString(`^[A-Za-z0-9]+[A-Za-z0-9\-_]+[A-Za-z0-9]+$`, name); matchValid {
 		if matchInvalid, _ := regexp.MatchString(`^.*(\-\-|__|\-_|_\-).*$`, name); !matchInvalid {

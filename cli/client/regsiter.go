@@ -41,23 +41,19 @@ var registerCmd = &cobra.Command{
 			lib.Crash("invalid SSH public key")
 		}
 		sshPubKeyOnly := strings.Join(sshPubKeyParts[:2], " ")
-		tlsPubKey, err := os.ReadFile(tlsPubKeyPath)
+		tlsPubKeyPem, err := lib.TlsReadFile(tlsPubKeyPath)
 		if err != nil {
-			lib.Crash("failed to read TLS public key: ", err)
+			lib.Crash(err)
 		}
 		ctx, cancel := lib.Context()
 		defer cancel()
-		reply, err := apiPublic.CreateAccount(ctx, &nf6.CreateAccount_Request{Email: email, SshPubKey: sshPubKeyOnly, TlsPubKey: string(tlsPubKey)})
+		reply, err := apiPublic.CreateAccount(ctx, &nf6.CreateAccount_Request{Email: email, SshPubKey: sshPubKeyOnly, TlsPubKey: string(tlsPubKeyPem)})
 		if err != nil {
 			lib.Crash(err)
 		}
 		cert := reply.GetCert()
-		certFile, err := os.OpenFile(tlsCertPath, os.O_CREATE|os.O_WRONLY, 0600)
-		if err != nil {
-			lib.Crash("failed to open cert file: ", err)
-		}
-		if _, err := certFile.WriteString(cert); err != nil {
-			lib.Crash("failed to write cert file: ", err)
+		if err := lib.TlsWriteFile([]byte(cert), tlsCertPath); err != nil {
+			lib.Crash(err)
 		}
 	},
 }

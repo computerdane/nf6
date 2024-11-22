@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net"
 	"time"
 
 	"github.com/computerdane/nf6/lib"
@@ -11,19 +12,23 @@ var (
 	configPath string
 	saveConfig bool
 
-	dbUrl            string
-	port             int
-	portPublic       int
-	stateDir         string
-	timeout          time.Duration
-	tlsPrivKeyPath   string
-	tlsCertPath      string
-	tlsCaPrivKeyPath string
-	tlsCaCertPath    string
+	accountPrefix6Len int
+	dbUrl             string
+	globalPrefix6     string
+	port              int
+	portPublic        int
+	stateDir          string
+	timeout           time.Duration
+	tlsPrivKeyPath    string
+	tlsCertPath       string
+	tlsCaPrivKeyPath  string
+	tlsCaCertPath     string
 
 	tlsDir    string
 	tlsName   string
 	tlsCaName string
+
+	ipNet6 *net.IPNet
 )
 
 func Init(cmd *cobra.Command) {
@@ -32,7 +37,9 @@ func Init(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&configPath, "config-path", "", "path to config file")
 	cmd.PersistentFlags().BoolVar(&saveConfig, "save-config", false, "save the flags for this execution to the config file")
 
+	lib.AddOption(cmd, &lib.Option{P: &accountPrefix6Len, Name: "account-prefix6-len", Shorthand: "", Value: 60, Usage: "global ipv6 prefix"})
 	lib.AddOption(cmd, &lib.Option{P: &dbUrl, Name: "db-url", Shorthand: "", Value: "dbname=nf6", Usage: "postgres connection string"})
+	lib.AddOption(cmd, &lib.Option{P: &globalPrefix6, Name: "global-prefix6", Shorthand: "", Value: "fc69::/48", Usage: "global ipv6 prefix"})
 	lib.AddOption(cmd, &lib.Option{P: &port, Name: "port", Shorthand: "", Value: 6969, Usage: "server port"})
 	lib.AddOption(cmd, &lib.Option{P: &portPublic, Name: "port-public", Shorthand: "", Value: 6968, Usage: "server public port"})
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
@@ -49,7 +56,7 @@ func Init(cmd *cobra.Command) {
 func InitConfig() {
 	if configPath == "" {
 		if lib.IsDevShell {
-			lib.SetHomeConfigPath("nf6-api-dev")
+			lib.SetHomeConfigPath("dev-nf6-api")
 		} else {
 			lib.SetSystemConfigPath("nf6-api")
 		}
@@ -58,12 +65,25 @@ func InitConfig() {
 	}
 	lib.InitConfig(saveConfig)
 	lib.SetTimeout(timeout)
+
+	var err error
+	_, ipNet6, err = net.ParseCIDR(globalPrefix6)
+	if err != nil {
+		lib.Crash(err)
+	}
+	ones, bits := ipNet6.Mask.Size()
+	if bits != 128 || ones >= 64 {
+		lib.Crash("Invalid global IPv6 prefix")
+	}
+	if ones >= accountPrefix6Len {
+		lib.Crash("The global IPv6 prefix length must be smaller than the account IPv6 prefix length")
+	}
 }
 
 func InitState() {
 	if stateDir == "" {
 		if lib.IsDevShell {
-			lib.SetHomeStateDir("nf6-api-dev")
+			lib.SetHomeStateDir("dev-nf6-api")
 		} else {
 			lib.SetSystemStateDir("nf6-api")
 		}

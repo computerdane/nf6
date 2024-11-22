@@ -90,7 +90,7 @@ func Init(cmd *cobra.Command) {
 func InitConfig() {
 	if configPath == "" {
 		if lib.IsDevShell {
-			lib.SetHomeConfigPath("nf6-dev")
+			lib.SetHomeConfigPath("dev-nf6")
 		} else {
 			lib.SetHomeConfigPath("nf6")
 		}
@@ -105,7 +105,7 @@ func InitConfig() {
 func InitState() {
 	if stateDir == "" {
 		if lib.IsDevShell {
-			lib.SetHomeStateDir("nf6-dev")
+			lib.SetHomeStateDir("dev-nf6")
 		} else {
 			lib.SetHomeStateDir("nf6")
 		}

@@ -2,6 +2,7 @@ package impl_api
 
 import (
 	"context"
+	"net"
 
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
@@ -13,9 +14,11 @@ func (s *Server) GetAccount(ctx context.Context, in *nf6.None) (*nf6.GetAccount_
 		return nil, err
 	}
 	reply := nf6.GetAccount_Reply{}
-	if err := s.Db.QueryRow(ctx, "select email, ssh_pub_key, tls_pub_key from account where id = $1", id).Scan(&reply.Email, &reply.SshPubKey, &reply.TlsPubKey); err != nil {
+	var prefix6 net.IPNet
+	if err := s.Db.QueryRow(ctx, "select email, ssh_pub_key, tls_pub_key, prefix6 from account where id = $1", id).Scan(&reply.Email, &reply.SshPubKey, &reply.TlsPubKey, &prefix6); err != nil {
 		return nil, err
 	}
+	reply.Prefix6 = prefix6.String()
 	return &reply, nil
 }
 

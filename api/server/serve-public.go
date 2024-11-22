@@ -42,9 +42,11 @@ var servePublicCmd = &cobra.Command{
 
 		server := grpc.NewServer()
 		nf6.RegisterNf6PublicServer(server, &impl_api_public.ServerPublic{
-			Db:               db,
-			TlsCaCert:        string(tlsCaCert),
-			TlsCaPrivKeyPath: tlsCaPrivKeyPath,
+			AccountPrefix6Len: accountPrefix6Len,
+			Db:                db,
+			IpNet6:            ipNet6,
+			TlsCaCert:         string(tlsCaCert),
+			TlsCaPrivKeyPath:  tlsCaPrivKeyPath,
 		})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)
