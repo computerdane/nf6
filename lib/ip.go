@@ -2,6 +2,7 @@ package lib
 
 import (
 	"crypto/rand"
+	"fmt"
 	"net"
 
 	"google.golang.org/grpc/codes"
@@ -57,7 +58,7 @@ func EnsureIpv6PrefixContainsAddr(prefix *net.IPNet, addr net.IP) error {
 	}
 	for i := range net.IPv6len {
 		if addr[i]&prefix.Mask[i] != prefix.IP[i] {
-			return status.Error(codes.PermissionDenied, "addr6 is not in your prefix!")
+			return status.Error(codes.PermissionDenied, fmt.Sprintf("ip must be in the prefix %s", prefix.String()))
 		}
 	}
 	return nil

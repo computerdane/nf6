@@ -2,6 +2,7 @@ package impl_api_public
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/computerdane/nf6/lib"
@@ -60,6 +61,10 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 		if err != nil || ip.To4() != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid prefix6")
 		}
+	}
+	ones, _ := prefix6.Mask.Size()
+	if ones != s.AccountPrefix6Len {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("prefix6 must be a /%d", s.AccountPrefix6Len))
 	}
 	if err := lib.EnsureIpv6PrefixContainsAddr(s.IpNet6, prefix6.IP); err != nil {
 		return nil, err
