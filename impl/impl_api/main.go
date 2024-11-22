@@ -1,4 +1,4 @@
-package impl
+package impl_api
 
 import (
 	"context"
@@ -12,11 +12,7 @@ import (
 
 type Server struct {
 	nf6.UnimplementedNf6Server
-	db *pgxpool.Pool
-}
-
-func NewServer(db *pgxpool.Pool) *Server {
-	return &Server{db: db}
+	Db *pgxpool.Pool
 }
 
 func (s *Server) RequireAccountId(ctx context.Context) (uint64, error) {
@@ -25,7 +21,7 @@ func (s *Server) RequireAccountId(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 	var id uint64 = 0
-	if err := s.db.QueryRow(ctx, "select id from account where tls_pub_key = $1", pubKey).Scan(&id); err != nil || id == 0 {
+	if err := s.Db.QueryRow(ctx, "select id from account where tls_pub_key = $1", pubKey).Scan(&id); err != nil || id == 0 {
 		return 0, status.Error(codes.Unauthenticated, "account does not exist")
 	}
 	return id, nil

@@ -8,7 +8,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/computerdane/nf6/api/server/impl"
+	"github.com/computerdane/nf6/impl/impl_api"
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -64,7 +64,7 @@ var serveCmd = &cobra.Command{
 		fmt.Printf("listening at %v", lis.Addr())
 
 		server := grpc.NewServer(grpc.Creds(creds))
-		nf6.RegisterNf6Server(server, impl.NewServer(db))
+		nf6.RegisterNf6Server(server, &impl_api.Server{Db: db})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)
 		}

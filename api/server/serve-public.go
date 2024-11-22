@@ -6,7 +6,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/computerdane/nf6/api/server/impl_public"
+	"github.com/computerdane/nf6/impl/impl_api_public"
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -41,7 +41,11 @@ var servePublicCmd = &cobra.Command{
 		}
 
 		server := grpc.NewServer()
-		nf6.RegisterNf6PublicServer(server, impl_public.NewServerPublic(db, string(tlsCaCert), tlsCaPrivKeyPath))
+		nf6.RegisterNf6PublicServer(server, &impl_api_public.ServerPublic{
+			Db:               db,
+			TlsCaCert:        string(tlsCaCert),
+			TlsCaPrivKeyPath: tlsCaPrivKeyPath,
+		})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)
 		}

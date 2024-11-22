@@ -1,4 +1,4 @@
-package impl
+package impl_api
 
 import (
 	"context"
@@ -26,13 +26,13 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 	if err := lib.ValidateWireguardKey(in.GetWgPubKey()); err != nil {
 		return nil, err
 	}
-	if err := lib.DbCheckNotExists(ctx, s.db, "host", "name", in.GetName()); err != nil {
+	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "name", in.GetName()); err != nil {
 		return nil, err
 	}
-	if err := lib.DbCheckNotExists(ctx, s.db, "host", "addr6", in.GetAddr6()); err != nil {
+	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "addr6", in.GetAddr6()); err != nil {
 		return nil, err
 	}
-	if err := lib.DbCheckNotExists(ctx, s.db, "host", "wg_pub_key", in.GetWgPubKey()); err != nil {
+	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "wg_pub_key", in.GetWgPubKey()); err != nil {
 		return nil, err
 	}
 	query := "insert into host (account_id, name, addr6, wg_pub_key) values (@account_id, @name, @addr6, @wg_pub_key)"
@@ -42,7 +42,7 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 		"addr6":      in.GetAddr6(),
 		"wg_pub_key": in.GetWgPubKey(),
 	}
-	if _, err := s.db.Exec(ctx, query, args); err != nil {
+	if _, err := s.Db.Exec(ctx, query, args); err != nil {
 		fmt.Println(err)
 		return nil, status.Error(codes.Unknown, "host creation failed")
 	}
@@ -61,7 +61,7 @@ func (s *Server) GetHost(ctx context.Context, in *nf6.GetHost_Request) (*nf6.Get
 		"name":       in.GetName(),
 	}
 	var addr6 net.IP
-	if err := s.db.QueryRow(ctx, query, args).Scan(&reply.Id, &reply.Name, &addr6, &reply.WgPubKey, &reply.TlsPubKey); err != nil {
+	if err := s.Db.QueryRow(ctx, query, args).Scan(&reply.Id, &reply.Name, &addr6, &reply.WgPubKey, &reply.TlsPubKey); err != nil {
 		return nil, err
 	}
 	reply.Addr6 = addr6.To16().String()
@@ -74,7 +74,7 @@ func (s *Server) ListHosts(ctx context.Context, in *nf6.None) (*nf6.ListHosts_Re
 		return nil, err
 	}
 	reply := nf6.ListHosts_Reply{}
-	rows, err := s.db.Query(ctx, "select name from host where account_id = $1", accountId)
+	rows, err := s.Db.Query(ctx, "select name from host where account_id = $1", accountId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to select hosts")
 	}
@@ -97,14 +97,14 @@ func (s *Server) UpdateHost(ctx context.Context, in *nf6.UpdateHost_Request) (*n
 	if in.GetId() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "host id must be non-zero")
 	}
-	if err := lib.DbCheckAccountOwns(ctx, s.db, "host", in.GetId(), accountId); err != nil {
+	if err := lib.DbCheckAccountOwns(ctx, s.Db, "host", in.GetId(), accountId); err != nil {
 		return nil, err
 	}
 	if in.GetName() != "" {
 		if err := lib.ValidateHostName(in.GetName()); err != nil {
 			return nil, err
 		}
-		if err := lib.DbUpdateUniqueColumnInAccount(ctx, s.db, "host", "name", in.GetName(), in.GetId(), accountId); err != nil {
+		if err := lib.DbUpdateUniqueColumnInAccount(ctx, s.Db, "host", "name", in.GetName(), in.GetId(), accountId); err != nil {
 			return nil, err
 		}
 	}
@@ -112,7 +112,7 @@ func (s *Server) UpdateHost(ctx context.Context, in *nf6.UpdateHost_Request) (*n
 		if err := lib.ValidateIpv6Address(in.GetAddr6()); err != nil {
 			return nil, err
 		}
-		if err := lib.DbUpdateColumn(ctx, s.db, "host", "addr6", in.GetAddr6(), in.GetId()); err != nil {
+		if err := lib.DbUpdateColumn(ctx, s.Db, "host", "addr6", in.GetAddr6(), in.GetId()); err != nil {
 			return nil, err
 		}
 	}
@@ -120,12 +120,12 @@ func (s *Server) UpdateHost(ctx context.Context, in *nf6.UpdateHost_Request) (*n
 		if err := lib.ValidateWireguardKey(in.GetWgPubKey()); err != nil {
 			return nil, err
 		}
-		if err := lib.DbUpdateUniqueColumn(ctx, s.db, "host", "wg_pub_key", in.GetWgPubKey(), in.GetId()); err != nil {
+		if err := lib.DbUpdateUniqueColumn(ctx, s.Db, "host", "wg_pub_key", in.GetWgPubKey(), in.GetId()); err != nil {
 			return nil, err
 		}
 	}
 	if in.GetTlsPubKey() != "" {
-		if err := lib.DbUpdateUniqueColumn(ctx, s.db, "host", "tls_pub_key", in.GetTlsPubKey(), in.GetId()); err != nil {
+		if err := lib.DbUpdateUniqueColumn(ctx, s.Db, "host", "tls_pub_key", in.GetTlsPubKey(), in.GetId()); err != nil {
 			return nil, err
 		}
 	}

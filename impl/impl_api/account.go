@@ -1,4 +1,4 @@
-package impl
+package impl_api
 
 import (
 	"context"
@@ -13,7 +13,7 @@ func (s *Server) GetAccount(ctx context.Context, in *nf6.None) (*nf6.GetAccount_
 		return nil, err
 	}
 	reply := nf6.GetAccount_Reply{}
-	if err := s.db.QueryRow(ctx, "select email, ssh_pub_key, tls_pub_key from account where id = $1", id).Scan(&reply.Email, &reply.SshPubKey, &reply.TlsPubKey); err != nil {
+	if err := s.Db.QueryRow(ctx, "select email, ssh_pub_key, tls_pub_key from account where id = $1", id).Scan(&reply.Email, &reply.SshPubKey, &reply.TlsPubKey); err != nil {
 		return nil, err
 	}
 	return &reply, nil
@@ -28,12 +28,12 @@ func (s *Server) UpdateAccount(ctx context.Context, in *nf6.UpdateAccount_Reques
 		if err := lib.ValidateEmail(in.GetEmail()); err != nil {
 			return nil, err
 		}
-		if err := lib.DbUpdateUniqueColumn(ctx, s.db, "account", "email", in.GetEmail(), id); err != nil {
+		if err := lib.DbUpdateUniqueColumn(ctx, s.Db, "account", "email", in.GetEmail(), id); err != nil {
 			return nil, err
 		}
 	}
 	if in.GetSshPubKey() != "" {
-		if err := lib.DbUpdateUniqueColumn(ctx, s.db, "account", "ssh_pub_key", in.GetSshPubKey(), id); err != nil {
+		if err := lib.DbUpdateUniqueColumn(ctx, s.Db, "account", "ssh_pub_key", in.GetSshPubKey(), id); err != nil {
 			return nil, err
 		}
 	}

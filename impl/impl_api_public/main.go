@@ -1,4 +1,4 @@
-package impl_public
+package impl_api_public
 
 import (
 	"context"
@@ -14,17 +14,13 @@ import (
 
 type ServerPublic struct {
 	nf6.UnimplementedNf6PublicServer
-	db               *pgxpool.Pool
-	tlsCaCert        string
-	tlsCaPrivKeyPath string
-}
-
-func NewServerPublic(db *pgxpool.Pool, tlsCaCert string, tlsCaPrivKeyPath string) *ServerPublic {
-	return &ServerPublic{db: db, tlsCaCert: tlsCaCert, tlsCaPrivKeyPath: tlsCaPrivKeyPath}
+	Db               *pgxpool.Pool
+	TlsCaCert        string
+	TlsCaPrivKeyPath string
 }
 
 func (s *ServerPublic) GetCaCert(_ context.Context, in *nf6.None) (*nf6.GetCaCert_Reply, error) {
-	return &nf6.GetCaCert_Reply{CaCert: s.tlsCaCert}, nil
+	return &nf6.GetCaCert_Reply{CaCert: s.TlsCaCert}, nil
 }
 
 func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_Request) (*nf6.CreateAccount_Reply, error) {
@@ -37,16 +33,16 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 	if in.GetTlsPubKey() == "" {
 		return nil, status.Error(codes.InvalidArgument, "TLS public key must not be empty")
 	}
-	if err := lib.DbCheckNotExists(ctx, s.db, "account", "email", in.GetEmail()); err != nil {
+	if err := lib.DbCheckNotExists(ctx, s.Db, "account", "email", in.GetEmail()); err != nil {
 		return nil, err
 	}
-	if err := lib.DbCheckNotExists(ctx, s.db, "account", "ssh_pub_key", in.GetSshPubKey()); err != nil {
+	if err := lib.DbCheckNotExists(ctx, s.Db, "account", "ssh_pub_key", in.GetSshPubKey()); err != nil {
 		return nil, err
 	}
-	if err := lib.DbCheckNotExists(ctx, s.db, "account", "tls_pub_key", in.GetTlsPubKey()); err != nil {
+	if err := lib.DbCheckNotExists(ctx, s.Db, "account", "tls_pub_key", in.GetTlsPubKey()); err != nil {
 		return nil, err
 	}
-	cert, err := lib.TlsGenCertUsingPrivKeyFile(lib.TlsCertTemplate, ed25519.PublicKey(in.GetTlsPubKey()), s.tlsCaPrivKeyPath)
+	cert, err := lib.TlsGenCertUsingPrivKeyFile(lib.TlsCertTemplate, ed25519.PublicKey(in.GetTlsPubKey()), s.TlsCaPrivKeyPath)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "failed to generate a cert using the provided TLS public key")
 	}
@@ -56,7 +52,7 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 		"ssh_pub_key": in.GetSshPubKey(),
 		"tls_pub_key": in.GetTlsPubKey(),
 	}
-	if _, err := s.db.Exec(ctx, query, args); err != nil {
+	if _, err := s.Db.Exec(ctx, query, args); err != nil {
 		return nil, status.Error(codes.Unknown, "account creation failed")
 	}
 	return &nf6.CreateAccount_Reply{Cert: string(cert)}, nil

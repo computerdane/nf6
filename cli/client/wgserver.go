@@ -7,7 +7,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/computerdane/nf6/cli/client/impl_wg"
+	"github.com/computerdane/nf6/impl/impl_wgserver"
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/spf13/cobra"
@@ -124,7 +124,7 @@ var wgserverCmd = &cobra.Command{
 		fmt.Printf("listening at %v", lis.Addr())
 
 		server := grpc.NewServer(grpc.Creds(creds))
-		nf6.RegisterNf6WgServer(server, &impl_wg.WgServer{
+		nf6.RegisterNf6WgServer(server, &impl_wgserver.WgServer{
 			ApiTlsPubKey:   apiTlsPubKey,
 			Wg:             wg,
 			WgDeviceName:   wgDeviceName,
