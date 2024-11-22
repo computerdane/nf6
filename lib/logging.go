@@ -37,6 +37,10 @@ func toJson(a any) []byte {
 	return output
 }
 
+func Header(s string) {
+	yellow(os.Stdout, s)
+}
+
 func Output(a any) {
 	switch OutputType {
 	case "json":

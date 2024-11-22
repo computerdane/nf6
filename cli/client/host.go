@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/manifoldco/promptui"
@@ -10,12 +12,15 @@ import (
 var (
 	hostName     string
 	hostAddr6    string
+	hostAll      bool
 	hostWgPubKey string
 )
 
 func init() {
 	hostCreateCmd.Flags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
 	hostCreateCmd.Flags().StringVarP(&hostWgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
+
+	hostListCmd.Flags().BoolVarP(&hostAll, "all", "a", false, "show all host info")
 
 	hostEditCmd.Flags().StringVarP(&hostName, "name", "n", "", "host name")
 	hostEditCmd.Flags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
@@ -95,7 +100,21 @@ var hostListCmd = &cobra.Command{
 		if err != nil {
 			lib.Crash(err)
 		}
-		lib.OutputStringList(reply.GetNames())
+		if hostAll {
+			for _, name := range reply.GetNames() {
+				ctx, cancel := lib.Context()
+				defer cancel()
+				reply, err := api.GetHost(ctx, &nf6.GetHost_Request{Name: name})
+				if err != nil {
+					lib.Crash(err)
+				}
+				lib.Header("host " + name)
+				lib.Output(reply)
+				fmt.Println()
+			}
+		} else {
+			lib.OutputStringList(reply.GetNames())
+		}
 	},
 }
 
