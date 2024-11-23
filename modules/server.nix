@@ -94,7 +94,7 @@ in
         wantedBy = [ "multi-user.target" ];
         path = [ pkgs-nf6.nf6-api ];
         script = ''
-          nf6-api serve-public --config "${configYaml}"
+          nf6-api serve-public --config-path "${configYaml}"
         '';
         serviceConfig = {
           User = "nf6_api";
@@ -107,7 +107,7 @@ in
         wantedBy = [ "multi-user.target" ];
         path = [ pkgs-nf6.nf6-api ];
         script = ''
-          nf6-api serve --config "${configYaml}"
+          nf6-api serve --config-path "${configYaml}"
         '';
         serviceConfig = {
           User = "nf6_api";
