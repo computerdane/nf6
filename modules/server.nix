@@ -32,7 +32,7 @@ in
       enable = mkEnableOption "Nf6 API Server";
       settings = mkOption {
         description = "attrset mapping to YAML config for nf6-api";
-        type = attrset;
+        type = attrs;
         default = { };
       };
       openFirewall = mkOption {
