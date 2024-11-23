@@ -17,8 +17,8 @@ import (
 type Config struct {
 	HostAddr            string
 	ServerGlobalPrefix6 string
-	ServerWgEndpoint    string
-	ServerWgPubKey      string
+	WgServerEndpoint    string
+	WgServerWgPubKey    string
 	SshPubKey           string
 	System              string
 	WgPrivKey           string

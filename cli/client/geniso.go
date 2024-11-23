@@ -48,8 +48,8 @@ var genisoCmd = &cobra.Command{
 		isoPath, err := iso.Generate("/tmp/nf6-geniso", &iso.Config{
 			HostAddr:            genisoHostAddr6,
 			ServerGlobalPrefix6: genisoServerGlobalPrefix6,
-			ServerWgEndpoint:    genisoWgServerEndpoint,
-			ServerWgPubKey:      genisoWgServerWgPubKey,
+			WgServerEndpoint:    genisoWgServerEndpoint,
+			WgServerWgPubKey:    genisoWgServerWgPubKey,
 			SshPubKey:           genisoSshPubKey,
 			System:              genisoSystem,
 			WgPrivKey:           genisoWgPrivKey,
