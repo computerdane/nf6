@@ -9,6 +9,13 @@
 
 let
   cfg = config.services.nf6;
+
+  defaultSettings = {
+    port = 6969;
+    port-public = 6968;
+    state-dir = "/var/lib/nf6-api/state";
+  };
+
   initDbApiUserSql = pkgs.writeText "init-db-api-user.sql" ''
     create user nf6_api;
 
@@ -26,11 +33,7 @@ in
       settings = mkOption {
         description = "attrset mapping to YAML config for nf6-api";
         type = attrset;
-        default = {
-          port = 6969;
-          port-public = 6968;
-          state-dir = "/var/lib/nf6-api/state";
-        };
+        default = { };
       };
       openFirewall = mkOption {
         description = "Whether or not to open firewall ports for the API server";
@@ -87,7 +90,7 @@ in
         wantedBy = [ "multi-user.target" ];
         path = [ pkgs-nf6.nf6-api ];
         script = ''
-          nf6-api --config "${pkgs.writeText "config.yaml" (builtins.toJSON settings)}"
+          nf6-api --config "${pkgs.writeText "config.yaml" (builtins.toJSON defaultSettings // settings)}"
         '';
         serviceConfig = {
           User = "nf6_api";
