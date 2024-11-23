@@ -14,7 +14,7 @@
         # vendorHash = pkgs.lib.fakeHash;
 
       in
-      {
+      rec {
         devShell = pkgs.mkShell {
           IS_DEV_SHELL = "1";
 
@@ -32,8 +32,12 @@
             protoc-gen-go-grpc
           ];
         };
-        packages = {
-          default =
+
+        nixosModules = import ./modules/server.nix { pkgs-nf6 = packages; };
+
+        packages = rec {
+          default = nf;
+          nf =
             let
               version = "0.1";
               base = pkgs.buildGoModule {
@@ -63,6 +67,34 @@
                     ]
                   }
                 installShellCompletion --cmd nf \
+                  --bash <($out/bin/nf completion bash) \
+                  --fish <($out/bin/nf completion fish) \
+                  --zsh  <($out/bin/nf completion zsh)
+              '';
+            };
+          nf6-api =
+            let
+              version = "0.1";
+              base = pkgs.buildGoModule {
+                inherit version vendorHash;
+                pname = "nf6-api";
+                src = ./.;
+                subPackages = [ "api" ];
+              };
+            in
+            pkgs.stdenv.mkDerivation {
+              inherit version;
+              pname = "nf6-api";
+              nativeBuildInputs = [
+                base
+                pkgs.makeBinaryWrapper
+                pkgs.installShellFiles
+              ];
+              dontUnpack = true;
+              installPhase = ''
+                mkdir -p $out/bin
+                makeBinaryWrapper ${base}/bin/api $out/bin/nf6-api
+                installShellCompletion --cmd nf6-api \
                   --bash <($out/bin/nf completion bash) \
                   --fish <($out/bin/nf completion fish) \
                   --zsh  <($out/bin/nf completion zsh)
