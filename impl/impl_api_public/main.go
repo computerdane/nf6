@@ -98,6 +98,7 @@ func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_
 		"prefix6":     prefix6,
 	}
 	if _, err := s.Db.Exec(ctx, query, args); err != nil {
+		lib.Warn("account creation failed: ", err)
 		return nil, status.Error(codes.Unknown, "account creation failed")
 	}
 	return &nf6.CreateAccount_Reply{Cert: string(cert)}, nil
