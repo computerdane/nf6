@@ -45,6 +45,7 @@ in
   config =
     let
       settings = defaultSettings // cfg.settings;
+      configYaml = pkgs.writeText "config.yaml" (builtins.toJSON settings);
     in
     lib.mkIf cfg.enable {
       services.postgresql = {
@@ -89,11 +90,24 @@ in
         group = "nf6_api";
       };
 
+      systemd.services.nf6-api-public = {
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkgs-nf6.nf6-api ];
+        script = ''
+          nf6-api serve-public --config "${configYaml}"
+        '';
+        serviceConfig = {
+          User = "nf6_api";
+          Group = "nf6_api";
+          PrivateTmp = true;
+        };
+      };
+
       systemd.services.nf6-api = {
         wantedBy = [ "multi-user.target" ];
         path = [ pkgs-nf6.nf6-api ];
         script = ''
-          nf6-api --config "${pkgs.writeText "config.yaml" (builtins.toJSON settings)}"
+          nf6-api serve --config "${configYaml}"
         '';
         serviceConfig = {
           User = "nf6_api";
