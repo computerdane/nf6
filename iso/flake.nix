@@ -46,14 +46,14 @@
               systemd.network.networks."10-wgnf6" = {
                 name = "wgnf6";
                 networkConfig.Address = cfg.HostAddr;
-                routes = [
-                  {
-                    routeConfig = {
-                      PreferredSource = cfg.HostAddr;
-                      Destination = cfg.ServerGlobalPrefix6;
-                    };
-                  }
-                ];
+                # routes = [
+                #   {
+                #     routeConfig = {
+                #       PreferredSource = cfg.HostAddr;
+                #       Destination = cfg.ServerGlobalPrefix6;
+                #     };
+                #   }
+                # ];
               };
 
               systemd.network.netdevs."10-wgnf6" = {
@@ -66,7 +66,7 @@
                   {
                     wireguardPeerConfig = {
                       Endpoint = cfg.WgServerEndpoint;
-                      AllowedIPs = [ cfg.HostAddr ];
+                      AllowedIPs = [ cfg.ServerGlobalPrefix6 ];
                       PublicKey = cfg.WgServerWgPubKey;
                     };
                   }
