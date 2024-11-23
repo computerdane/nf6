@@ -41,37 +41,54 @@ func Header(s string) {
 	yellow(os.Stdout, s)
 }
 
+func sortedJsonKeys(a any) (keys []string, m map[string]interface{}) {
+	j := toJson(a)
+	if err := json.Unmarshal(j, &m); err != nil {
+		Crash(err)
+	}
+	keys = make([]string, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	for i, s := range keys {
+		if s == "id" {
+			keys[0], keys[i] = keys[i], keys[0]
+			break
+		}
+	}
+	return keys, m
+}
+
+func OutputAll(a any) {
+	switch OutputType {
+	case "table":
+		keys, m := sortedJsonKeys(a)
+		for _, k := range keys {
+			yellow(os.Stdout, k)
+			Output(m[k])
+			fmt.Println()
+		}
+	default:
+		Output(a)
+	}
+}
+
 func Output(a any) {
 	switch OutputType {
 	case "json":
 		fmt.Println(string(toJson(a)))
 	case "table":
-		j := toJson(a)
-		var m map[string]interface{}
-		if err := json.Unmarshal(j, &m); err != nil {
-			Crash(err)
-		}
-		keys := make([]string, len(m))
-		i := 0
-		for k := range m {
-			keys[i] = k
-			i++
-		}
-		sort.Strings(keys)
-		for i, s := range keys {
-			if s == "id" {
-				keys[0], keys[i] = keys[i], keys[0]
-				break
-			}
-		}
+		keys, m := sortedJsonKeys(a)
 		tbl := table.NewWriter()
 		tbl.SetOutputMirror(os.Stdout)
 		for _, k := range keys {
 			if k == "id" && !ShowIds {
 				continue
 			}
-			v := m[k]
-			tbl.AppendRow(table.Row{k, v})
+			tbl.AppendRow(table.Row{k, m[k]})
 		}
 		tbl.SetStyle(TableStyle)
 		tbl.Render()

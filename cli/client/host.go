@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/manifoldco/promptui"
@@ -53,12 +51,6 @@ var hostCreateCmd = &cobra.Command{
 		}); err != nil {
 			lib.Crash(err)
 		}
-		// if err := lib.PromptOrValidate(&hostAddr6, &promptui.Prompt{
-		// 	Label:    "IPv6 address",
-		// 	Validate: lib.ValidateIpv6Address,
-		// }); err != nil {
-		// 	lib.Crash(err)
-		// }
 		if err := lib.PromptOrValidate(&hostWgPubKey, &promptui.Prompt{
 			Label:    "WireGuard public key",
 			Validate: lib.ValidateWireguardKey,
@@ -101,6 +93,7 @@ var hostListCmd = &cobra.Command{
 			lib.Crash(err)
 		}
 		if hostAll {
+			output := map[string]interface{}{}
 			for _, name := range reply.GetNames() {
 				ctx, cancel := lib.Context()
 				defer cancel()
@@ -108,10 +101,9 @@ var hostListCmd = &cobra.Command{
 				if err != nil {
 					lib.Crash(err)
 				}
-				lib.Header("host " + name)
-				lib.Output(reply)
-				fmt.Println()
+				output[name] = reply
 			}
+			lib.OutputAll(output)
 		} else {
 			lib.OutputStringList(reply.GetNames())
 		}
