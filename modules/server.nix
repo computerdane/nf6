@@ -66,44 +66,48 @@ in
       };
     };
 
-    systemd.services.nf6-api = with cfg; {
-      networking.firewall =
-        with settings;
-        lib.mkIf openFirewall {
-          allowedTCPPorts = [
-            port
-            port-public
-          ];
-          allowedUDPPorts = [
-            port
-            port-public
-          ];
+    systemd.services.nf6-api =
+      let
+        settings = defaultSettings // cfg.settings;
+      in
+      {
+        networking.firewall =
+          with settings;
+          lib.mkIf cfg.openFirewall {
+            allowedTCPPorts = [
+              port
+              port-public
+            ];
+            allowedUDPPorts = [
+              port
+              port-public
+            ];
+          };
+
+        users.groups.nf6_api = { };
+        users.users.nf6_api = {
+          isNormalUser = true;
+          group = "nf6_api";
         };
 
-      users.groups.nf6_api = { };
-      users.users.nf6_api = {
-        isNormalUser = true;
-        group = "nf6_api";
-      };
+        systemd.services.nf6-api = {
+          wantedBy = [ "multi-user.target" ];
+          path = [ pkgs-nf6.nf6-api ];
+          script = ''
+            nf6-api --config "${pkgs.writeText "config.yaml" (builtins.toJSON settings)}"
+          '';
+          serviceConfig = {
+            User = "nf6_api";
+            Group = "nf6_api";
+            PrivateTmp = true;
+          };
+        };
 
-      systemd.services.nf6-api = {
-        wantedBy = [ "multi-user.target" ];
-        path = [ pkgs-nf6.nf6-api ];
-        script = ''
-          nf6-api --config "${pkgs.writeText "config.yaml" (builtins.toJSON defaultSettings // settings)}"
-        '';
-        serviceConfig = {
-          User = "nf6_api";
-          Group = "nf6_api";
-          PrivateTmp = true;
+        systemd.tmpfiles.settings."10-nf6-api".${settings.state-dir}.d = {
+          user = "nf6_api";
+          group = "nf6_api";
+          mode = "0755";
         };
       };
-
-      systemd.tmpfiles.settings."10-nf6-api".${settings.state-dir}.d = {
-        user = "nf6_api";
-        group = "nf6_api";
-        mode = "0755";
-      };
-    };
   };
 }
