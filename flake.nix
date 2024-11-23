@@ -33,7 +33,7 @@
           ];
         };
 
-        nixosModules = import ./modules/server.nix { pkgs-nf6 = packages; };
+        nixosModules.server = import ./modules/server.nix { pkgs-nf6 = packages; };
 
         packages = rec {
           default = nf;
