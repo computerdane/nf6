@@ -1,24 +1,30 @@
 package client
 
 import (
+	"github.com/computerdane/nf6/iso"
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 var (
-	hostName     string
-	hostAddr6    string
-	hostAll      bool
-	hostWgPubKey string
+	hostName            string
+	hostAddr6           string
+	hostWgPubKey        string
+	hostListAll         bool
+	hostCreateIso       bool
+	hostCreateIsoSystem string
 )
 
 func init() {
 	hostCreateCmd.Flags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
 	hostCreateCmd.Flags().StringVarP(&hostWgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
+	hostCreateCmd.Flags().BoolVarP(&hostCreateIso, "iso", "i", false, "create a host and generate an install ISO")
+	hostCreateCmd.Flags().StringVarP(&hostCreateIsoSystem, "iso-system", "s", "", "host system type for ISO")
 
-	hostListCmd.Flags().BoolVarP(&hostAll, "all", "a", false, "show all host info")
+	hostListCmd.Flags().BoolVarP(&hostListAll, "all", "a", false, "show all host info")
 
 	hostEditCmd.Flags().StringVarP(&hostName, "name", "n", "", "host name")
 	hostEditCmd.Flags().StringVarP(&hostAddr6, "addr6", "a", "", "IPv6 address")
@@ -39,7 +45,7 @@ var hostCreateCmd = &cobra.Command{
 	Use:    "create [name]",
 	Short:  "Create a new host",
 	Args:   cobra.MaximumNArgs(1),
-	PreRun: Connect,
+	PreRun: ConnectBoth,
 	Run: func(cmd *cobra.Command, args []string) {
 		newName := ""
 		if len(args) > 0 {
@@ -51,16 +57,78 @@ var hostCreateCmd = &cobra.Command{
 		}); err != nil {
 			lib.Crash(err)
 		}
-		if err := lib.PromptOrValidate(&hostWgPubKey, &promptui.Prompt{
-			Label:    "WireGuard public key",
-			Validate: lib.ValidateWireguardKey,
-		}); err != nil {
-			lib.Crash(err)
-		}
-		ctx, cancel := lib.Context()
-		defer cancel()
-		if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, Addr6: &hostAddr6, WgPubKey: hostWgPubKey}); err != nil {
-			lib.Crash(err)
+		if hostCreateIso {
+			ctx, cancel := lib.Context()
+			defer cancel()
+			serverInfo, err := apiPublic.GetIpv6Info(ctx, nil)
+			if err != nil {
+				lib.Crash(err)
+			}
+
+			if hostCreateIsoSystem == "" {
+				prompt := promptui.Select{
+					Label: "System",
+					Items: lib.ValidNixSystems,
+				}
+				_, result, err := prompt.Run()
+				if err != nil {
+					lib.Crash(err)
+				}
+				hostCreateIsoSystem = result
+			}
+			if err := lib.ValidateNixSystem(hostCreateIsoSystem); err != nil {
+				lib.Crash(err)
+			}
+
+			wgPrivKey, err := wgtypes.GeneratePrivateKey()
+			if err != nil {
+				lib.Crash(err)
+			}
+
+			ctx, cancel = lib.Context()
+			defer cancel()
+			if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, WgPubKey: wgPrivKey.PublicKey().String()}); err != nil {
+				lib.Crash(err)
+			}
+
+			ctx, cancel = lib.Context()
+			defer cancel()
+			hostInfo, err := api.GetHost(ctx, &nf6.GetHost_Request{Name: newName})
+			if err != nil {
+				lib.Crash(err)
+			}
+
+			ctx, cancel = lib.Context()
+			defer cancel()
+			accountInfo, err := api.GetAccount(ctx, nil)
+			if err != nil {
+				lib.Crash(err)
+			}
+
+			isoPath, err := iso.Generate("/tmp/nf6-iso-"+hostName, &iso.Config{
+				HostAddr:       hostInfo.GetAddr6(),
+				ServerAddr:     serverInfo.GetWgServerAddr6(),
+				ServerWgPubKey: serverInfo.GetWgServerWgPubKey(),
+				SshPubKey:      accountInfo.GetSshPubKey(),
+				System:         hostCreateIsoSystem,
+				WgPrivKey:      wgPrivKey.String(),
+			})
+			if err != nil {
+				lib.Crash(err)
+			}
+			lib.Output(map[string]string{"isoPath": isoPath})
+		} else {
+			if err := lib.PromptOrValidate(&hostWgPubKey, &promptui.Prompt{
+				Label:    "WireGuard public key",
+				Validate: lib.ValidateWireguardKey,
+			}); err != nil {
+				lib.Crash(err)
+			}
+			ctx, cancel := lib.Context()
+			defer cancel()
+			if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, Addr6: &hostAddr6, WgPubKey: hostWgPubKey}); err != nil {
+				lib.Crash(err)
+			}
 		}
 	},
 }
@@ -92,7 +160,7 @@ var hostListCmd = &cobra.Command{
 		if err != nil {
 			lib.Crash(err)
 		}
-		if hostAll {
+		if hostListAll {
 			output := map[string]interface{}{}
 			for _, name := range reply.GetNames() {
 				ctx, cancel := lib.Context()

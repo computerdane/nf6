@@ -43,15 +43,17 @@ var genisoCmd = &cobra.Command{
 				genisoServerWgPubKey = reply.GetWgServerWgPubKey()
 			}
 		}
-		if err := iso.Generate("/tmp/nf6-geniso", &iso.Config{
+		isoPath, err := iso.Generate("/tmp/nf6-geniso", &iso.Config{
 			HostAddr:       genisoHostAddr6,
 			ServerAddr:     genisoServerAddr6,
 			ServerWgPubKey: genisoServerWgPubKey,
 			SshPubKey:      genisoSshPubKey,
 			System:         genisoSystem,
 			WgPrivKey:      genisoWgPrivKey,
-		}); err != nil {
+		})
+		if err != nil {
 			lib.Crash(err)
 		}
+		lib.Output(map[string]string{"isoPath": isoPath})
 	},
 }

@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"net"
 	"net/mail"
 	"regexp"
@@ -10,6 +11,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+var ValidNixSystems = []string{"x86_64-linux", "aarch64-linux"}
 
 func PromptOrValidate(value *string, prompt *promptui.Prompt) error {
 	if *value == "" {
@@ -55,6 +58,15 @@ func ValidateIpv6Prefix(addr string, prefixLen int) error {
 		return status.Error(codes.InvalidArgument, "Invalid IPv6 prefix")
 	}
 	return nil
+}
+
+func ValidateNixSystem(system string) error {
+	for _, validSystem := range ValidNixSystems {
+		if system == validSystem {
+			return nil
+		}
+	}
+	return status.Error(codes.InvalidArgument, fmt.Sprintf("System must be one of: %v", ValidNixSystems))
 }
 
 func ValidateRepoName(name string) error {

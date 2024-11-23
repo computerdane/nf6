@@ -206,3 +206,8 @@ func Connect(_ *cobra.Command, _ []string) {
 		lib.Crash("please register first!")
 	}
 }
+
+func ConnectBoth(cmd *cobra.Command, args []string) {
+	ConnectPublic(cmd, args)
+	Connect(cmd, args)
+}

@@ -82,6 +82,12 @@ func InitConfig() {
 	if ones >= accountPrefix6Len {
 		lib.Crash("The global IPv6 prefix length must be smaller than the account IPv6 prefix length")
 	}
+	if wgServerAddr6 == "" {
+		lib.Crash("You must set the WireGuard server's address")
+	}
+	if wgServerWgPubKey == "" {
+		lib.Crash("You must set the WireGuard server's public key")
+	}
 }
 
 func InitState() {
