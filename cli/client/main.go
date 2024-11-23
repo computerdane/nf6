@@ -79,6 +79,7 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &wgServerWgPort, Name: "wg-server-wg-port", Shorthand: "", Value: 51820, Usage: "WireGuard server port for WireGuard"})
 
 	cmd.AddCommand(accountCmd)
+	cmd.AddCommand(genisoCmd)
 	cmd.AddCommand(gensshCmd)
 	cmd.AddCommand(gentlsCmd)
 	cmd.AddCommand(hostCmd)

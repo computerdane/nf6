@@ -20,6 +20,8 @@ type ServerPublic struct {
 	IpNet6            *net.IPNet
 	TlsCaCert         string
 	TlsCaPrivKeyPath  string
+	WgServerAddr6     string
+	WgServerWgPubKey  string
 }
 
 func (s *ServerPublic) GetCaCert(_ context.Context, in *nf6.None) (*nf6.GetCaCert_Reply, error) {
@@ -27,7 +29,7 @@ func (s *ServerPublic) GetCaCert(_ context.Context, in *nf6.None) (*nf6.GetCaCer
 }
 
 func (s *ServerPublic) GetIpv6Info(_ context.Context, in *nf6.None) (*nf6.GetIpv6Info_Reply, error) {
-	return &nf6.GetIpv6Info_Reply{GlobalPrefix6: s.IpNet6.String(), AccountPrefix6Len: int32(s.AccountPrefix6Len)}, nil
+	return &nf6.GetIpv6Info_Reply{GlobalPrefix6: s.IpNet6.String(), AccountPrefix6Len: int32(s.AccountPrefix6Len), WgServerAddr6: s.WgServerAddr6, WgServerWgPubKey: s.WgServerWgPubKey}, nil
 }
 
 func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_Request) (*nf6.CreateAccount_Reply, error) {

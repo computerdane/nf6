@@ -23,6 +23,8 @@ var (
 	tlsCertPath       string
 	tlsCaPrivKeyPath  string
 	tlsCaCertPath     string
+	wgServerAddr6     string
+	wgServerWgPubKey  string
 
 	tlsDir    string
 	tlsName   string
@@ -48,6 +50,8 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &tlsCertPath, Name: "tls-cert-path", Shorthand: "", Value: "", Usage: "path to this server's TLS cert"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaPrivKeyPath, Name: "tls-ca-private-key-path", Shorthand: "", Value: "", Usage: "path to this server's TLS ca private key"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaCertPath, Name: "tls-ca-cert-path", Shorthand: "", Value: "", Usage: "path to the root ca cert"})
+	lib.AddOption(cmd, &lib.Option{P: &wgServerAddr6, Name: "wg-server-addr6", Shorthand: "", Value: "", Usage: "IPv6 address of WireGuard server"})
+	lib.AddOption(cmd, &lib.Option{P: &wgServerWgPubKey, Name: "wg-server-wg-pub-key", Shorthand: "", Value: "", Usage: "WireGuard public key for WireGuard server"})
 
 	cmd.AddCommand(serveCmd)
 	cmd.AddCommand(servePublicCmd)

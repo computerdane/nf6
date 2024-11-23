@@ -8,8 +8,11 @@
     utils.lib.eachDefaultSystem (
       system:
       let
+
         pkgs = import nixpkgs { inherit system; };
-        vendorHash = "sha256-KK8Q3SMK3KSrCsHpdW4sxKNTSNGi0UW0YhsCaQcRxhc=";
+        vendorHash = "sha256-aK8VAY628aqy9L75LQg+M6YtbCuqF5P1rGjhxfXb8kE=";
+        # vendorHash = pkgs.lib.fakeHash;
+
       in
       {
         devShell = pkgs.mkShell {
@@ -20,6 +23,7 @@
             git
             go
             gopls
+            nix
             openssh
             openssl
             postgresql
@@ -51,7 +55,13 @@
               installPhase = ''
                 mkdir -p $out/bin
                 makeBinaryWrapper ${base}/bin/cli $out/bin/nf \
-                  --prefix PATH : ${with pkgs; lib.makeBinPath [ openssh ]}
+                  --prefix PATH : ${
+                    with pkgs;
+                    lib.makeBinPath [
+                      nix
+                      openssh
+                    ]
+                  }
                 installShellCompletion --cmd nf \
                   --bash <($out/bin/nf completion bash) \
                   --fish <($out/bin/nf completion fish) \
