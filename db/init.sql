@@ -2,7 +2,7 @@ create table if not exists account (
     id bigserial primary key,
 
     email text not null unique check (email <> ''),
-    prefix6 cidr not null unique check (family(prefix6) = 6 and masklen(prefix6) = 60),
+    prefix6 cidr not null unique check (family(prefix6) = 6),
     ssh_pub_key text not null unique check (ssh_pub_key <> ''),
     tls_pub_key text not null unique check (tls_pub_key <> '')
 );
