@@ -50,7 +50,7 @@
                   {
                     routeConfig = {
                       PreferredSource = cfg.HostAddr;
-                      Destination = cfg.ServerAddr;
+                      Destination = cfg.ServerGlobalPrefix6;
                     };
                   }
                 ];
@@ -65,9 +65,9 @@
                 wireguardPeers = [
                   {
                     wireguardPeerConfig = {
-                      Endpoint = cfg.ServerAddr;
+                      Endpoint = cfg.WgServerEndpoint;
                       AllowedIPs = [ cfg.HostAddr ];
-                      PublicKey = cfg.ServerWgPubKey;
+                      PublicKey = cfg.WgServerWgPubKey;
                     };
                   }
                 ];

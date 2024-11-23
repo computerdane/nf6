@@ -106,12 +106,13 @@ var hostCreateCmd = &cobra.Command{
 			}
 
 			isoPath, err := iso.Generate("/tmp/nf6-iso-"+hostName, &iso.Config{
-				HostAddr:       hostInfo.GetAddr6(),
-				ServerAddr:     serverInfo.GetWgServerAddr6(),
-				ServerWgPubKey: serverInfo.GetWgServerWgPubKey(),
-				SshPubKey:      accountInfo.GetSshPubKey(),
-				System:         hostCreateIsoSystem,
-				WgPrivKey:      wgPrivKey.String(),
+				HostAddr:            hostInfo.GetAddr6(),
+				ServerGlobalPrefix6: serverInfo.GetGlobalPrefix6(),
+				ServerWgEndpoint:    serverInfo.GetWgServerEndpoint(),
+				ServerWgPubKey:      serverInfo.GetWgServerWgPubKey(),
+				SshPubKey:           accountInfo.GetSshPubKey(),
+				System:              hostCreateIsoSystem,
+				WgPrivKey:           wgPrivKey.String(),
 			})
 			if err != nil {
 				lib.Crash(err)

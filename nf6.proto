@@ -32,7 +32,7 @@ message GetCaCert_Reply {
 message GetIpv6Info_Reply {
   string globalPrefix6 = 1;
   int32 accountPrefix6Len = 2;
-  string wgServerAddr6 = 3;
+  string wgServerEndpoint = 3;
   string wgServerWgPubKey = 4;
 }
 
