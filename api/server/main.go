@@ -76,7 +76,7 @@ func InitConfig() {
 		lib.Crash(err)
 	}
 	ones, bits := ipNet6.Mask.Size()
-	if bits != 128 || ones >= 64 {
+	if bits != 128 || ones >= 128 {
 		lib.Crash("Invalid global IPv6 prefix")
 	}
 	if ones >= accountPrefix6Len {
