@@ -11,14 +11,14 @@
         modules = [
           (
             {
-              config,
               lib,
               modulesPath,
+              pkgs,
               ...
             }:
-            # let
-            #   wgPrivKey = pkgs.writeText "wgnf6.key" cfg.WgPrivKey;
-            # in
+            let
+              wgPrivKey = pkgs.writeText "wgnf6.key" cfg.WgPrivKey;
+            in
             {
               imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
 
@@ -52,7 +52,7 @@
                     "2606:4700:4700::1111"
                     "2606:4700:4700::1001"
                   ];
-                  privateKey = cfg.WgPrivKey;
+                  privateKeyFile = wgPrivKey;
                   peers = [
                     {
                       endpoint = cfg.WgServerEndpoint;
