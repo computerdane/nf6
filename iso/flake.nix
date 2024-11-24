@@ -61,9 +61,9 @@
                         "0.0.0.0/0"
                       ];
                       publicKey = cfg.WgServerWgPubKey;
+                      persistentKeepalive = 25;
                     }
                   ];
-                  persistentKeepalive = 25;
                 };
               };
 
