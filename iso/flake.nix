@@ -47,6 +47,7 @@
                   "2606:4700:4700::1001"
                 ];
                 wg-quick.interfaces.wgnf6 = {
+                  address = [ cfg.HostAddr6 ];
                   dns = [
                     "2606:4700:4700::1111"
                     "2606:4700:4700::1001"
@@ -62,6 +63,7 @@
                       publicKey = cfg.WgServerWgPubKey;
                     }
                   ];
+                  persistentKeepalive = 25;
                 };
               };
 
