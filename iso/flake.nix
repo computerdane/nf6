@@ -67,6 +67,13 @@
                 };
               };
 
+              systemd.network.networks."10-default" = {
+                name = "en*";
+                DHCP = "yes";
+                dhcpV4Config.UseRoutes = false;
+                ipv6AcceptRAConfig.UseRoutePrefix = false;
+              };
+
               # systemd.network.networks."10-wgnf6" = {
               #   name = "wgnf6";
               #   networkConfig.Address = cfg.HostAddr;
