@@ -52,7 +52,7 @@
                     "2606:4700:4700::1111"
                     "2606:4700:4700::1001"
                   ];
-                  privateKeyFile = wgPrivKey;
+                  privateKeyFile = "${wgPrivKey}";
                   peers = [
                     {
                       endpoint = cfg.WgServerEndpoint;
