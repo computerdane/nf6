@@ -51,6 +51,15 @@ var serveCmd = &cobra.Command{
 			RootCAs:      pool,
 		})
 
+		wgServerTlsPubKeyData, err := os.ReadFile(wgServerTlsPubKeyPath)
+		if err != nil {
+			lib.Crash(err)
+		}
+		wgServerTlsPubKey := string(wgServerTlsPubKeyData)
+		if wgServerTlsPubKey == "" {
+			lib.Crash("WireGuard Server's TLS public key cannot be empty!")
+		}
+
 		db, err := pgxpool.New(context.Background(), dbUrl)
 		if err != nil {
 			lib.Crash("failed to connect to db: ", err)
