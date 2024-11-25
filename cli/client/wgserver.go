@@ -58,10 +58,10 @@ var wgserverCmd = &cobra.Command{
 
 		peers := make([]wgtypes.PeerConfig, len(reply.GetHosts()))
 		for i, host := range reply.GetHosts() {
-			_, ipNet, err := net.ParseCIDR(host.GetAddr6())
-			if err != nil {
-				lib.Warn(err)
-				continue
+			ip := net.ParseIP(host.GetAddr6())
+			ipNet := net.IPNet{
+				IP:   ip,
+				Mask: net.CIDRMask(net.IPv6len*8, net.IPv6len*8),
 			}
 			wgPubKey, err := wgtypes.ParseKey(host.GetWgPubKey())
 			if err != nil {
@@ -70,7 +70,7 @@ var wgserverCmd = &cobra.Command{
 			}
 			peers[i] = wgtypes.PeerConfig{
 				PublicKey:  wgPubKey,
-				AllowedIPs: []net.IPNet{*ipNet},
+				AllowedIPs: []net.IPNet{ipNet},
 			}
 		}
 
@@ -84,7 +84,7 @@ var wgserverCmd = &cobra.Command{
 		}); err != nil {
 			lib.Crash(err)
 		}
-		fmt.Printf("added %d peers", len(peers))
+		fmt.Printf("added %d peers\n", len(peers))
 
 		// create gRPC listener
 
