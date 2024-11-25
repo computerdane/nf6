@@ -13,8 +13,9 @@ import (
 
 type Server struct {
 	nf6.UnimplementedNf6Server
-	Db     *pgxpool.Pool
-	IpNet6 *net.IPNet
+	Db                *pgxpool.Pool
+	IpNet6            *net.IPNet
+	WgServerTlsPubKey string
 }
 
 func (s *Server) RequireAccountId(ctx context.Context) (uint64, error) {
@@ -27,4 +28,16 @@ func (s *Server) RequireAccountId(ctx context.Context) (uint64, error) {
 		return 0, status.Error(codes.Unauthenticated, "account does not exist")
 	}
 	return id, nil
+}
+
+func (s *Server) RequireWgServerOrigin(ctx context.Context) error {
+	pubKey, err := lib.TlsGetGrpcPubKey(ctx)
+	if err != nil {
+		return err
+	}
+	if pubKey != s.WgServerTlsPubKey {
+		lib.Warn("attempt made with unknown public key: ", pubKey)
+		return status.Error(codes.Unauthenticated, "access denied")
+	}
+	return nil
 }

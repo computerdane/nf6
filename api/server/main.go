@@ -24,6 +24,7 @@ var (
 	tlsCaPrivKeyPath  string
 	tlsCaCertPath     string
 	wgServerEndpoint  string
+	wgServerTlsPubKey string
 	wgServerWgPubKey  string
 
 	tlsDir    string
@@ -51,6 +52,7 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaPrivKeyPath, Name: "tls-ca-priv-key-path", Shorthand: "", Value: "", Usage: "path to this server's TLS ca private key"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaCertPath, Name: "tls-ca-cert-path", Shorthand: "", Value: "", Usage: "path to the root ca cert"})
 	lib.AddOption(cmd, &lib.Option{P: &wgServerEndpoint, Name: "wg-server-endpoint", Shorthand: "", Value: "", Usage: "Endpoint of WireGuard server"})
+	lib.AddOption(cmd, &lib.Option{P: &wgServerTlsPubKey, Name: "wg-server-tls-pub-key", Shorthand: "", Value: "", Usage: "TLS public key for WireGuard server"})
 	lib.AddOption(cmd, &lib.Option{P: &wgServerWgPubKey, Name: "wg-server-wg-pub-key", Shorthand: "", Value: "", Usage: "WireGuard public key for WireGuard server"})
 
 	cmd.AddCommand(serveCmd)
@@ -83,10 +85,13 @@ func InitConfig() {
 		lib.Crash("The global IPv6 prefix length must be smaller than the account IPv6 prefix length")
 	}
 	if wgServerEndpoint == "" {
-		lib.Crash("You must set the WireGuard server's endpoint")
+		lib.Crash("You must set the WireGuard server's WireGuard endpoint")
+	}
+	if wgServerTlsPubKey == "" {
+		lib.Crash("You must set the WireGuard server's TLS public key")
 	}
 	if wgServerWgPubKey == "" {
-		lib.Crash("You must set the WireGuard server's public key")
+		lib.Crash("You must set the WireGuard server's WireGuard public key")
 	}
 }
 

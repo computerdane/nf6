@@ -160,3 +160,29 @@ func (s *Server) UpdateHost(ctx context.Context, in *nf6.UpdateHost_Request) (*n
 	}
 	return nil, nil
 }
+
+func (s *Server) WgServer_ListHosts(ctx context.Context, in *nf6.None) (*nf6.WgServer_ListHosts_Reply, error) {
+	err := s.RequireWgServerOrigin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.Db.Query(ctx, "select addr6, wg_pub_key from host")
+	if err != nil {
+		lib.Warn("list hosts query failed: ", err)
+		return nil, status.Error(codes.Internal, "failed to get hosts info")
+	}
+	hosts := []*nf6.WgServer_ListHosts_Reply_Host{}
+	for rows.Next() {
+		var addr6 net.IP
+		var wgPubKey string
+		if err := rows.Scan(&addr6, &wgPubKey); err != nil {
+			return nil, status.Error(codes.Internal, "failed to scan db data")
+		}
+		host := &nf6.WgServer_ListHosts_Reply_Host{
+			Addr6:    addr6.String(),
+			WgPubKey: wgPubKey,
+		}
+		hosts = append(hosts, host)
+	}
+	return &nf6.WgServer_ListHosts_Reply{Hosts: hosts}, nil
+}

@@ -58,10 +58,8 @@ in
         after = [ "postgresql.service" ];
         wantedBy = [ "multi-user.target" ];
         path = [ pkgs.postgresql ];
-        preStart = ''
-          sleep 5
-        '';
         script = ''
+          sleep 5
           psql -d nf6 -f "${../db/init.sql}"
           psql -d nf6 -f "${initDbApiUserSql}"
         '';
@@ -91,9 +89,12 @@ in
       };
 
       systemd.services.nf6-api-public = {
+        requires = [ "postgresql.service" ];
+        after = [ "postgresql.service" ];
         wantedBy = [ "multi-user.target" ];
         path = [ pkgs-nf6.nf6-api ];
         script = ''
+          sleep 5
           nf6-api serve-public --config-path "${configYaml}"
         '';
         serviceConfig = {
@@ -104,9 +105,12 @@ in
       };
 
       systemd.services.nf6-api = {
+        requires = [ "postgresql.service" ];
+        after = [ "postgresql.service" ];
         wantedBy = [ "multi-user.target" ];
         path = [ pkgs-nf6.nf6-api ];
         script = ''
+          sleep 5
           nf6-api serve --config-path "${configYaml}"
         '';
         serviceConfig = {

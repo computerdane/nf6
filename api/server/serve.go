@@ -65,8 +65,9 @@ var serveCmd = &cobra.Command{
 
 		server := grpc.NewServer(grpc.Creds(creds))
 		nf6.RegisterNf6Server(server, &impl_api.Server{
-			Db:     db,
-			IpNet6: ipNet6,
+			Db:                db,
+			IpNet6:            ipNet6,
+			WgServerTlsPubKey: wgServerTlsPubKey,
 		})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)
