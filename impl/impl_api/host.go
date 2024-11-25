@@ -8,6 +8,7 @@ import (
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/jackc/pgx/v5"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -67,6 +68,23 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 		fmt.Println(err)
 		return nil, status.Error(codes.Unknown, "host creation failed")
 	}
+
+	// create route in WireGuard server
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", s.WgServerGrpcHost, s.WgServerGrpcPort), grpc.WithTransportCredentials(s.Creds), grpc.WithAuthority(lib.TlsName))
+	if err != nil {
+		lib.Warn("failed to connect to WireGuard server: ", err)
+		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
+	}
+	wgServer := nf6.NewNf6WgClient(conn)
+	if wgServer == nil {
+		lib.Warn("failed to create WgClient: ", err)
+		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
+	}
+	if _, err := wgServer.CreateRoute(ctx, &nf6.CreateRoute_Request{Addr6: addr6.String(), WgPubKey: in.GetWgPubKey()}); err != nil {
+		lib.Warn("failed to create route: ", err)
+		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
+	}
+
 	return nil, nil
 }
 

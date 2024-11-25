@@ -74,8 +74,11 @@ var serveCmd = &cobra.Command{
 
 		server := grpc.NewServer(grpc.Creds(creds))
 		nf6.RegisterNf6Server(server, &impl_api.Server{
+			Creds:             creds,
 			Db:                db,
 			IpNet6:            ipNet6,
+			WgServerGrpcHost:  wgServerGrpcHost,
+			WgServerGrpcPort:  wgServerGrpcPort,
 			WgServerTlsPubKey: wgServerTlsPubKey,
 		})
 		if err := server.Serve(lis); err != nil {

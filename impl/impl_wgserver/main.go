@@ -31,9 +31,10 @@ func (s *WgServer) CreateRoute(ctx context.Context, in *nf6.CreateRoute_Request)
 		return nil, status.Error(codes.Unauthenticated, "access denied")
 	}
 
-	_, ipNet, err := net.ParseCIDR(in.GetAddr6())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "failed to parse addr6")
+	ip := net.ParseIP(in.GetAddr6())
+	ipNet := net.IPNet{
+		IP:   ip,
+		Mask: net.CIDRMask(net.IPv6len*8, net.IPv6len*8),
 	}
 	wgPubKey, err := wgtypes.ParseKey(in.GetWgPubKey())
 	if err != nil {
@@ -41,13 +42,12 @@ func (s *WgServer) CreateRoute(ctx context.Context, in *nf6.CreateRoute_Request)
 	}
 	peer := wgtypes.PeerConfig{
 		PublicKey:  wgPubKey,
-		AllowedIPs: []net.IPNet{*ipNet},
+		AllowedIPs: []net.IPNet{ipNet},
 	}
 	if err := s.Wg.ConfigureDevice(s.WgDeviceName, wgtypes.Config{
-		PrivateKey:   &s.WgPrivKey,
-		ListenPort:   &s.WgServerWgPort,
-		ReplacePeers: true,
-		Peers:        []wgtypes.PeerConfig{peer},
+		PrivateKey: &s.WgPrivKey,
+		ListenPort: &s.WgServerWgPort,
+		Peers:      []wgtypes.PeerConfig{peer},
 	}); err != nil {
 		lib.Warn("failed to configure wg device: ", err)
 		return nil, status.Error(codes.Internal, "failed to configure wg device")

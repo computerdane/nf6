@@ -8,13 +8,17 @@ import (
 	"github.com/computerdane/nf6/nf6"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
 type Server struct {
 	nf6.UnimplementedNf6Server
+	Creds             credentials.TransportCredentials
 	Db                *pgxpool.Pool
 	IpNet6            *net.IPNet
+	WgServerGrpcHost  string
+	WgServerGrpcPort  int
 	WgServerTlsPubKey string
 }
 

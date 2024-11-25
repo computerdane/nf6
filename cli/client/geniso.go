@@ -52,7 +52,7 @@ var genisoCmd = &cobra.Command{
 			System:              genisoSystem,
 			WgPrivKey:           genisoWgPrivKey,
 			WgServerEndpoint:    genisoWgServerEndpoint,
-			WgServerWgPubKey:    genisoWgServerWgPubKey
+			WgServerWgPubKey:    genisoWgServerWgPubKey,
 		})
 		if err != nil {
 			lib.Crash(err)
