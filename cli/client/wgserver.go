@@ -26,7 +26,7 @@ var wgserverCmd = &cobra.Command{
 
 		apiTlsPubKeyData, err := os.ReadFile(apiTlsPubKeyPath)
 		if err != nil {
-			lib.Crash(err)
+			lib.Crash("failed to open API public key file at ", apiTlsPubKeyPath, ": ", err)
 		}
 		apiTlsPubKey = string(apiTlsPubKeyData)
 		if apiTlsPubKey == "" {
@@ -34,7 +34,7 @@ var wgserverCmd = &cobra.Command{
 		}
 		privKeyData, err := os.ReadFile(wgPrivKeyPath)
 		if err != nil {
-			lib.Crash(err)
+			lib.Crash("failed to open WireGuard private key file at ", wgPrivKeyPath, ": ", err)
 		}
 		wgPrivKey, err := wgtypes.ParseKey(string(privKeyData))
 		if err != nil {
