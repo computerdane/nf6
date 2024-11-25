@@ -16,6 +16,10 @@ let
     state-dir = "/var/lib/nf6-api/state";
   };
 
+  defaultVpnSettings = {
+    state-dir = "/var/lib/nf6-vpn/state";
+  };
+
   initDbApiUserSql = pkgs.writeText "init-db-api-user.sql" ''
     create user nf6_api;
 
@@ -35,6 +39,11 @@ in
         type = attrs;
         default = { };
       };
+      vpnSettings = mkOption {
+        description = "attrset mapping to YAML config for nf wgserver";
+        type = attrs;
+        default = { };
+      };
       openFirewall = mkOption {
         description = "Whether or not to open firewall ports for the API server";
         type = bool;
@@ -45,7 +54,9 @@ in
   config =
     let
       settings = defaultSettings // cfg.settings;
+      vpnSettings = defaultVpnSettings // cfg.vpnSettings;
       configYaml = pkgs.writeText "config.yaml" (builtins.toJSON settings);
+      vpnConfigYaml = pkgs.writeText "config.yaml" (builtins.toJSON vpnSettings);
     in
     lib.mkIf cfg.enable {
       services.postgresql = {
@@ -124,6 +135,23 @@ in
         user = "nf6_api";
         group = "nf6_api";
         mode = "0755";
+      };
+
+      systemd.services.nf6-vpn = {
+        requires = [
+          "postgresql.service"
+          "nf6-api.service"
+        ];
+        after = [
+          "postgresql.service"
+          "nf6-api.service"
+        ];
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkgs-nf6.nf ];
+        script = ''
+          sleep 5
+          nf wgserver --config-path "${vpnConfigYaml}"
+        '';
       };
     };
 }
