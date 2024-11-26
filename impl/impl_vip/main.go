@@ -41,8 +41,9 @@ func (s *VipServer) CreatePeer(ctx context.Context, in *nf6.CreatePeer_Request) 
 		return nil, status.Error(codes.InvalidArgument, "failed to parse wg pub key")
 	}
 	peer := wgtypes.PeerConfig{
-		PublicKey:  wgPubKey,
-		AllowedIPs: []net.IPNet{ipNet},
+		PublicKey:         wgPubKey,
+		AllowedIPs:        []net.IPNet{ipNet},
+		ReplaceAllowedIPs: true,
 	}
 	if err := s.Wg.ConfigureDevice(s.WgDeviceName, wgtypes.Config{
 		PrivateKey: &s.WgPrivKey,
