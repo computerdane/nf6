@@ -16,8 +16,8 @@ let
     state-dir = "/var/lib/nf6-api/state";
   };
 
-  defaultVpnSettings = {
-    state-dir = "/var/lib/nf6-vpn/state";
+  defaultVipSettings = {
+    state-dir = "/var/lib/nf6-vip/state";
   };
 
   initDbApiUserSql = pkgs.writeText "init-db-api-user.sql" ''
@@ -39,8 +39,8 @@ in
         type = attrs;
         default = { };
       };
-      vpnSettings = mkOption {
-        description = "attrset mapping to YAML config for nf wgserver";
+      vipSettings = mkOption {
+        description = "attrset mapping to YAML config for Nf6 VIP";
         type = attrs;
         default = { };
       };
@@ -54,9 +54,9 @@ in
   config =
     let
       settings = defaultSettings // cfg.settings;
-      vpnSettings = defaultVpnSettings // cfg.vpnSettings;
+      vipSettings = defaultVipSettings // cfg.vipSettings;
       configYaml = pkgs.writeText "config.yaml" (builtins.toJSON settings);
-      vpnConfigYaml = pkgs.writeText "config.yaml" (builtins.toJSON vpnSettings);
+      vipConfigYaml = pkgs.writeText "config.yaml" (builtins.toJSON vipSettings);
     in
     lib.mkIf cfg.enable {
       services.postgresql = {
@@ -137,7 +137,7 @@ in
         mode = "0755";
       };
 
-      systemd.services.nf6-vpn = {
+      systemd.services.nf6-vip = {
         requires = [
           "postgresql.service"
           "nf6-api.service"
@@ -150,7 +150,7 @@ in
         path = [ pkgs-nf6.nf ];
         script = ''
           sleep 5
-          nf wgserver --config-path "${vpnConfigYaml}"
+          nf vip --config-path "${vipConfigYaml}"
         '';
       };
     };

@@ -195,7 +195,7 @@ const (
 	Nf6_UpdateRepo_FullMethodName           = "/nf6.Nf6/UpdateRepo"
 	Nf6_GitServer_GetAccount_FullMethodName = "/nf6.Nf6/GitServer_GetAccount"
 	Nf6_GitServer_ListRepos_FullMethodName  = "/nf6.Nf6/GitServer_ListRepos"
-	Nf6_WgServer_ListHosts_FullMethodName   = "/nf6.Nf6/WgServer_ListHosts"
+	Nf6_Vip_ListHosts_FullMethodName        = "/nf6.Nf6/Vip_ListHosts"
 )
 
 // Nf6Client is the client API for Nf6 service.
@@ -216,8 +216,8 @@ type Nf6Client interface {
 	// Git server
 	GitServer_GetAccount(ctx context.Context, in *GitServer_GetAccount_Request, opts ...grpc.CallOption) (*GitServer_GetAccount_Reply, error)
 	GitServer_ListRepos(ctx context.Context, in *GitServer_ListRepos_Request, opts ...grpc.CallOption) (*GitServer_ListRepos_Reply, error)
-	// WireGuard server
-	WgServer_ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*WgServer_ListHosts_Reply, error)
+	// VIP server
+	Vip_ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*Vip_ListHosts_Reply, error)
 }
 
 type nf6Client struct {
@@ -336,9 +336,9 @@ func (c *nf6Client) GitServer_ListRepos(ctx context.Context, in *GitServer_ListR
 	return out, nil
 }
 
-func (c *nf6Client) WgServer_ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*WgServer_ListHosts_Reply, error) {
-	out := new(WgServer_ListHosts_Reply)
-	err := c.cc.Invoke(ctx, Nf6_WgServer_ListHosts_FullMethodName, in, out, opts...)
+func (c *nf6Client) Vip_ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*Vip_ListHosts_Reply, error) {
+	out := new(Vip_ListHosts_Reply)
+	err := c.cc.Invoke(ctx, Nf6_Vip_ListHosts_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -363,8 +363,8 @@ type Nf6Server interface {
 	// Git server
 	GitServer_GetAccount(context.Context, *GitServer_GetAccount_Request) (*GitServer_GetAccount_Reply, error)
 	GitServer_ListRepos(context.Context, *GitServer_ListRepos_Request) (*GitServer_ListRepos_Reply, error)
-	// WireGuard server
-	WgServer_ListHosts(context.Context, *None) (*WgServer_ListHosts_Reply, error)
+	// VIP server
+	Vip_ListHosts(context.Context, *None) (*Vip_ListHosts_Reply, error)
 	mustEmbedUnimplementedNf6Server()
 }
 
@@ -408,8 +408,8 @@ func (UnimplementedNf6Server) GitServer_GetAccount(context.Context, *GitServer_G
 func (UnimplementedNf6Server) GitServer_ListRepos(context.Context, *GitServer_ListRepos_Request) (*GitServer_ListRepos_Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GitServer_ListRepos not implemented")
 }
-func (UnimplementedNf6Server) WgServer_ListHosts(context.Context, *None) (*WgServer_ListHosts_Reply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WgServer_ListHosts not implemented")
+func (UnimplementedNf6Server) Vip_ListHosts(context.Context, *None) (*Vip_ListHosts_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Vip_ListHosts not implemented")
 }
 func (UnimplementedNf6Server) mustEmbedUnimplementedNf6Server() {}
 
@@ -640,20 +640,20 @@ func _Nf6_GitServer_ListRepos_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6_WgServer_ListHosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Nf6_Vip_ListHosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(None)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6Server).WgServer_ListHosts(ctx, in)
+		return srv.(Nf6Server).Vip_ListHosts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6_WgServer_ListHosts_FullMethodName,
+		FullMethod: Nf6_Vip_ListHosts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6Server).WgServer_ListHosts(ctx, req.(*None))
+		return srv.(Nf6Server).Vip_ListHosts(ctx, req.(*None))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -714,8 +714,8 @@ var Nf6_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Nf6_GitServer_ListRepos_Handler,
 		},
 		{
-			MethodName: "WgServer_ListHosts",
-			Handler:    _Nf6_WgServer_ListHosts_Handler,
+			MethodName: "Vip_ListHosts",
+			Handler:    _Nf6_Vip_ListHosts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -723,89 +723,89 @@ var Nf6_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Nf6Wg_CreateRoute_FullMethodName = "/nf6.Nf6Wg/CreateRoute"
+	Nf6Vip_CreateRoute_FullMethodName = "/nf6.Nf6Vip/CreateRoute"
 )
 
-// Nf6WgClient is the client API for Nf6Wg service.
+// Nf6VipClient is the client API for Nf6Vip service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type Nf6WgClient interface {
+type Nf6VipClient interface {
 	CreateRoute(ctx context.Context, in *CreateRoute_Request, opts ...grpc.CallOption) (*None, error)
 }
 
-type nf6WgClient struct {
+type nf6VipClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewNf6WgClient(cc grpc.ClientConnInterface) Nf6WgClient {
-	return &nf6WgClient{cc}
+func NewNf6VipClient(cc grpc.ClientConnInterface) Nf6VipClient {
+	return &nf6VipClient{cc}
 }
 
-func (c *nf6WgClient) CreateRoute(ctx context.Context, in *CreateRoute_Request, opts ...grpc.CallOption) (*None, error) {
+func (c *nf6VipClient) CreateRoute(ctx context.Context, in *CreateRoute_Request, opts ...grpc.CallOption) (*None, error) {
 	out := new(None)
-	err := c.cc.Invoke(ctx, Nf6Wg_CreateRoute_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Nf6Vip_CreateRoute_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Nf6WgServer is the server API for Nf6Wg service.
-// All implementations must embed UnimplementedNf6WgServer
+// Nf6VipServer is the server API for Nf6Vip service.
+// All implementations must embed UnimplementedNf6VipServer
 // for forward compatibility
-type Nf6WgServer interface {
+type Nf6VipServer interface {
 	CreateRoute(context.Context, *CreateRoute_Request) (*None, error)
-	mustEmbedUnimplementedNf6WgServer()
+	mustEmbedUnimplementedNf6VipServer()
 }
 
-// UnimplementedNf6WgServer must be embedded to have forward compatible implementations.
-type UnimplementedNf6WgServer struct {
+// UnimplementedNf6VipServer must be embedded to have forward compatible implementations.
+type UnimplementedNf6VipServer struct {
 }
 
-func (UnimplementedNf6WgServer) CreateRoute(context.Context, *CreateRoute_Request) (*None, error) {
+func (UnimplementedNf6VipServer) CreateRoute(context.Context, *CreateRoute_Request) (*None, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRoute not implemented")
 }
-func (UnimplementedNf6WgServer) mustEmbedUnimplementedNf6WgServer() {}
+func (UnimplementedNf6VipServer) mustEmbedUnimplementedNf6VipServer() {}
 
-// UnsafeNf6WgServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to Nf6WgServer will
+// UnsafeNf6VipServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to Nf6VipServer will
 // result in compilation errors.
-type UnsafeNf6WgServer interface {
-	mustEmbedUnimplementedNf6WgServer()
+type UnsafeNf6VipServer interface {
+	mustEmbedUnimplementedNf6VipServer()
 }
 
-func RegisterNf6WgServer(s grpc.ServiceRegistrar, srv Nf6WgServer) {
-	s.RegisterService(&Nf6Wg_ServiceDesc, srv)
+func RegisterNf6VipServer(s grpc.ServiceRegistrar, srv Nf6VipServer) {
+	s.RegisterService(&Nf6Vip_ServiceDesc, srv)
 }
 
-func _Nf6Wg_CreateRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Nf6Vip_CreateRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRoute_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6WgServer).CreateRoute(ctx, in)
+		return srv.(Nf6VipServer).CreateRoute(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Wg_CreateRoute_FullMethodName,
+		FullMethod: Nf6Vip_CreateRoute_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6WgServer).CreateRoute(ctx, req.(*CreateRoute_Request))
+		return srv.(Nf6VipServer).CreateRoute(ctx, req.(*CreateRoute_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Nf6Wg_ServiceDesc is the grpc.ServiceDesc for Nf6Wg service.
+// Nf6Vip_ServiceDesc is the grpc.ServiceDesc for Nf6Vip service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Nf6Wg_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "nf6.Nf6Wg",
-	HandlerType: (*Nf6WgServer)(nil),
+var Nf6Vip_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "nf6.Nf6Vip",
+	HandlerType: (*Nf6VipServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "CreateRoute",
-			Handler:    _Nf6Wg_CreateRoute_Handler,
+			Handler:    _Nf6Vip_CreateRoute_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

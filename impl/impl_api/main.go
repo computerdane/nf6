@@ -14,12 +14,12 @@ import (
 
 type Server struct {
 	nf6.UnimplementedNf6Server
-	Creds             credentials.TransportCredentials
-	Db                *pgxpool.Pool
-	IpNet6            *net.IPNet
-	WgServerGrpcHost  string
-	WgServerGrpcPort  int
-	WgServerTlsPubKey string
+	Creds        credentials.TransportCredentials
+	Db           *pgxpool.Pool
+	IpNet6       *net.IPNet
+	VipGrpcHost  string
+	VipGrpcPort  int
+	VipTlsPubKey string
 }
 
 func (s *Server) RequireAccountId(ctx context.Context) (uint64, error) {
@@ -34,12 +34,12 @@ func (s *Server) RequireAccountId(ctx context.Context) (uint64, error) {
 	return id, nil
 }
 
-func (s *Server) RequireWgServerOrigin(ctx context.Context) error {
+func (s *Server) RequireVipOrigin(ctx context.Context) error {
 	pubKey, err := lib.TlsGetGrpcPubKey(ctx)
 	if err != nil {
 		return err
 	}
-	if pubKey != s.WgServerTlsPubKey {
+	if pubKey != s.VipTlsPubKey {
 		lib.Warn("attempt made with unknown public key: ", pubKey)
 		return status.Error(codes.Unauthenticated, "access denied")
 	}

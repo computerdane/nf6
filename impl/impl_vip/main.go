@@ -1,4 +1,4 @@
-package impl_wgserver
+package impl_vip
 
 import (
 	"context"
@@ -12,16 +12,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type WgServer struct {
-	nf6.UnimplementedNf6WgServer
-	ApiTlsPubKey   string
-	Wg             *wgctrl.Client
-	WgDeviceName   string
-	WgServerWgPort int
-	WgPrivKey      wgtypes.Key
+type VipServer struct {
+	nf6.UnimplementedNf6VipServer
+	ApiTlsPubKey string
+	Wg           *wgctrl.Client
+	WgDeviceName string
+	VipWgPort    int
+	WgPrivKey    wgtypes.Key
 }
 
-func (s *WgServer) CreateRoute(ctx context.Context, in *nf6.CreateRoute_Request) (*nf6.None, error) {
+func (s *VipServer) CreateRoute(ctx context.Context, in *nf6.CreateRoute_Request) (*nf6.None, error) {
 	pubKey, err := lib.TlsGetGrpcPubKey(ctx)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s *WgServer) CreateRoute(ctx context.Context, in *nf6.CreateRoute_Request)
 	}
 	if err := s.Wg.ConfigureDevice(s.WgDeviceName, wgtypes.Config{
 		PrivateKey: &s.WgPrivKey,
-		ListenPort: &s.WgServerWgPort,
+		ListenPort: &s.VipWgPort,
 		Peers:      []wgtypes.PeerConfig{peer},
 	}); err != nil {
 		lib.Warn("failed to configure wg device: ", err)

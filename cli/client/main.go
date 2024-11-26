@@ -31,10 +31,10 @@ var (
 	tlsCertPath      string
 	tlsPrivKeyPath   string
 	tlsPubKeyPath    string
+	vipGrpcPort      int
+	vipWgPort        int
 	wgDeviceName     string
 	wgPrivKeyPath    string
-	wgServerGrpcPort int
-	wgServerWgPort   int
 
 	apiTlsPubKey string
 
@@ -73,10 +73,10 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &tlsCertPath, Name: "tls-cert-path", Shorthand: "", Value: "", Usage: "path to TLS cert"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsPrivKeyPath, Name: "tls-priv-key-path", Shorthand: "", Value: "", Usage: "path to TLS private key"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsPubKeyPath, Name: "tls-pub-key-path", Shorthand: "", Value: "", Usage: "path to TLS public key"})
+	lib.AddOption(cmd, &lib.Option{P: &vipGrpcPort, Name: "vip-grpc-port", Shorthand: "", Value: 6970, Usage: "VIP gRPC port"})
+	lib.AddOption(cmd, &lib.Option{P: &vipWgPort, Name: "vip-wg-port", Shorthand: "", Value: 51820, Usage: "VIP WireGuard port"})
 	lib.AddOption(cmd, &lib.Option{P: &wgDeviceName, Name: "wg-device-name", Shorthand: "", Value: "wg", Usage: "name of WireGuard interface"})
 	lib.AddOption(cmd, &lib.Option{P: &wgPrivKeyPath, Name: "wg-priv-key-path", Shorthand: "", Value: "", Usage: "path to WireGuard private key"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerGrpcPort, Name: "wg-server-grpc-port", Shorthand: "", Value: 6970, Usage: "WireGuard server port for gRPC"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerWgPort, Name: "wg-server-wg-port", Shorthand: "", Value: 51820, Usage: "WireGuard server port for WireGuard"})
 
 	cmd.AddCommand(accountCmd)
 	cmd.AddCommand(genisoCmd)
@@ -85,7 +85,7 @@ func Init(cmd *cobra.Command) {
 	cmd.AddCommand(hostCmd)
 	cmd.AddCommand(registerCmd)
 	cmd.AddCommand(repoCmd)
-	cmd.AddCommand(wgserverCmd)
+	cmd.AddCommand(vipCmd)
 }
 
 func InitConfig() {

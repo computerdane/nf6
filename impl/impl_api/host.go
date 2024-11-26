@@ -69,18 +69,18 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 		return nil, status.Error(codes.Unknown, "host creation failed")
 	}
 
-	// create route in WireGuard server
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", s.WgServerGrpcHost, s.WgServerGrpcPort), grpc.WithTransportCredentials(s.Creds), grpc.WithAuthority(lib.TlsName))
+	// create route in VIP server
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", s.VipGrpcHost, s.VipGrpcPort), grpc.WithTransportCredentials(s.Creds), grpc.WithAuthority(lib.TlsName))
 	if err != nil {
-		lib.Warn("failed to connect to WireGuard server: ", err)
+		lib.Warn("failed to connect to VIP: ", err)
 		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
 	}
-	wgServer := nf6.NewNf6WgClient(conn)
-	if wgServer == nil {
+	vip := nf6.NewNf6VipClient(conn)
+	if vip == nil {
 		lib.Warn("failed to create WgClient: ", err)
 		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
 	}
-	if _, err := wgServer.CreateRoute(ctx, &nf6.CreateRoute_Request{Addr6: addr6.String(), WgPubKey: in.GetWgPubKey()}); err != nil {
+	if _, err := vip.CreateRoute(ctx, &nf6.CreateRoute_Request{Addr6: addr6.String(), WgPubKey: in.GetWgPubKey()}); err != nil {
 		lib.Warn("failed to create route: ", err)
 		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
 	}
@@ -179,8 +179,8 @@ func (s *Server) UpdateHost(ctx context.Context, in *nf6.UpdateHost_Request) (*n
 	return nil, nil
 }
 
-func (s *Server) WgServer_ListHosts(ctx context.Context, in *nf6.None) (*nf6.WgServer_ListHosts_Reply, error) {
-	err := s.RequireWgServerOrigin(ctx)
+func (s *Server) Vip_ListHosts(ctx context.Context, in *nf6.None) (*nf6.Vip_ListHosts_Reply, error) {
+	err := s.RequireVipOrigin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -189,18 +189,18 @@ func (s *Server) WgServer_ListHosts(ctx context.Context, in *nf6.None) (*nf6.WgS
 		lib.Warn("list hosts query failed: ", err)
 		return nil, status.Error(codes.Internal, "failed to get hosts info")
 	}
-	hosts := []*nf6.WgServer_ListHosts_Reply_Host{}
+	hosts := []*nf6.Vip_ListHosts_Reply_Host{}
 	for rows.Next() {
 		var addr6 net.IP
 		var wgPubKey string
 		if err := rows.Scan(&addr6, &wgPubKey); err != nil {
 			return nil, status.Error(codes.Internal, "failed to scan db data")
 		}
-		host := &nf6.WgServer_ListHosts_Reply_Host{
+		host := &nf6.Vip_ListHosts_Reply_Host{
 			Addr6:    addr6.String(),
 			WgPubKey: wgPubKey,
 		}
 		hosts = append(hosts, host)
 	}
-	return &nf6.WgServer_ListHosts_Reply{Hosts: hosts}, nil
+	return &nf6.Vip_ListHosts_Reply{Hosts: hosts}, nil
 }

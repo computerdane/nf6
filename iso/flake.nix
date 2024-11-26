@@ -7,7 +7,7 @@
     in
     {
       nixosConfigurations.nf6 = nixpkgs.lib.nixosSystem {
-        system = cfg.System;
+        system = cfg.HostSystem;
         modules = [
           (
             { modulesPath, ... }:
@@ -23,20 +23,20 @@
                 };
               };
 
-              users.users.root.openssh.authorizedKeys.keys = [ cfg.SshPubKey ];
+              users.users.root.openssh.authorizedKeys.keys = [ cfg.AccountSshPubKey ];
 
               networking.useNetworkd = true;
 
-              networking.wg-quick.interfaces.wgtest = {
+              networking.wg-quick.interfaces.wgnf6 = {
                 address = [ cfg.HostAddr6 ];
                 dns = [ "2606:4700:4700::1111" ];
-                privateKey = cfg.WgPrivKey;
+                privateKey = cfg.HostWgPrivKey;
                 peers = [
                   {
                     allowedIPs = [ "::/0" ];
-                    endpoint = cfg.WgServerEndpoint;
+                    endpoint = cfg.VipWgEndpoint;
                     persistentKeepalive = 25;
-                    publicKey = cfg.WgServerWgPubKey;
+                    publicKey = cfg.VipWgPubKey;
                   }
                 ];
               };

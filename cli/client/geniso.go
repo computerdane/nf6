@@ -7,30 +7,28 @@ import (
 )
 
 var (
-	genisoHostAddr6           string
-	genisoServerGlobalPrefix6 string
-	genisoSshPubKey           string
-	genisoSystem              string
-	genisoWgPrivKey           string
-	genisoWgServerEndpoint    string
-	genisoWgServerWgPubKey    string
+	genisoAccountSshPubKey string
+	genisoHostAddr6        string
+	genisoHostSystem       string
+	genisoHostWgPrivKey    string
+	genisoVipWgEndpoint    string
+	genisoVipWgPubKey      string
 )
 
 func init() {
+	genisoCmd.Flags().StringVar(&genisoAccountSshPubKey, "account-ssh-pub-key", "", "your SSH public key")
 	genisoCmd.Flags().StringVar(&genisoHostAddr6, "host-addr6", "", "host's IPv6 address")
-	genisoCmd.Flags().StringVar(&genisoServerGlobalPrefix6, "server-global-prefix6", "auto", "Server's global IPv6 prefix")
-	genisoCmd.Flags().StringVar(&genisoSshPubKey, "ssh-pub-key", "", "your SSH public key")
-	genisoCmd.Flags().StringVar(&genisoSystem, "system", "", "host's system type (Nix system name)")
-	genisoCmd.Flags().StringVar(&genisoWgPrivKey, "wg-priv-key", "", "host's WireGuard private key")
-	genisoCmd.Flags().StringVar(&genisoWgServerEndpoint, "wg-server-endpoint", "auto", "WireGuard server's endpoint")
-	genisoCmd.Flags().StringVar(&genisoWgServerWgPubKey, "wg-server-wg-pub-key", "auto", "WireGuard server's public key (if auto, will grab from server)")
+	genisoCmd.Flags().StringVar(&genisoHostSystem, "host-system", "", "host's system type (Nix system name)")
+	genisoCmd.Flags().StringVar(&genisoHostWgPrivKey, "host-wg-priv-key", "", "host's WireGuard private key")
+	genisoCmd.Flags().StringVar(&genisoVipWgEndpoint, "vip-wg-endpoint", "auto", "VIP WireGuard endpoint (if auto, will grab from server)")
+	genisoCmd.Flags().StringVar(&genisoVipWgPubKey, "vip-wg-pub-key", "auto", "VIP WireGuard public key (if auto, will grab from server)")
 }
 
 var genisoCmd = &cobra.Command{
 	Use:   "geniso",
 	Short: "Generate a new Nix install ISO pre-configured for Nf6",
 	Run: func(cmd *cobra.Command, args []string) {
-		if genisoWgServerEndpoint == "auto" || genisoWgServerWgPubKey == "auto" {
+		if genisoVipWgEndpoint == "auto" || genisoVipWgPubKey == "auto" {
 			ConnectPublic(cmd, args)
 			ctx, cancel := lib.Context()
 			defer cancel()
@@ -38,21 +36,20 @@ var genisoCmd = &cobra.Command{
 			if err != nil {
 				lib.Crash(err)
 			}
-			if genisoWgServerEndpoint == "auto" {
-				genisoWgServerEndpoint = reply.GetWgServerEndpoint()
+			if genisoVipWgEndpoint == "auto" {
+				genisoVipWgEndpoint = reply.GetVipWgEndpoint()
 			}
-			if genisoWgServerWgPubKey == "auto" {
-				genisoWgServerWgPubKey = reply.GetWgServerWgPubKey()
+			if genisoVipWgPubKey == "auto" {
+				genisoVipWgPubKey = reply.GetVipWgPubKey()
 			}
 		}
 		isoPath, err := iso.Generate("/tmp/nf6-geniso", &iso.Config{
-			HostAddr6:           genisoHostAddr6,
-			ServerGlobalPrefix6: genisoServerGlobalPrefix6,
-			SshPubKey:           genisoSshPubKey,
-			System:              genisoSystem,
-			WgPrivKey:           genisoWgPrivKey,
-			WgServerEndpoint:    genisoWgServerEndpoint,
-			WgServerWgPubKey:    genisoWgServerWgPubKey,
+			AccountSshPubKey: genisoAccountSshPubKey,
+			HostAddr6:        genisoHostAddr6,
+			HostSystem:       genisoHostSystem,
+			HostWgPrivKey:    genisoHostWgPrivKey,
+			VipWgEndpoint:    genisoVipWgEndpoint,
+			VipWgPubKey:      genisoVipWgPubKey,
 		})
 		if err != nil {
 			lib.Crash(err)

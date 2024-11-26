@@ -15,13 +15,12 @@ import (
 )
 
 type Config struct {
-	HostAddr6           string
-	ServerGlobalPrefix6 string
-	SshPubKey           string
-	System              string
-	WgPrivKey           string
-	WgServerEndpoint    string
-	WgServerWgPubKey    string
+	AccountSshPubKey string
+	HostAddr6        string
+	HostSystem       string
+	HostWgPrivKey    string
+	VipWgEndpoint    string
+	VipWgPubKey      string
 }
 
 //go:embed flake.nix

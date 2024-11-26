@@ -47,8 +47,8 @@ var servePublicCmd = &cobra.Command{
 			IpNet6:            ipNet6,
 			TlsCaCert:         string(tlsCaCert),
 			TlsCaPrivKeyPath:  tlsCaPrivKeyPath,
-			WgServerEndpoint:  wgServerEndpoint,
-			WgServerWgPubKey:  wgServerWgPubKey,
+			VipWgEndpoint:     vipWgEndpoint,
+			VipWgPubKey:       vipWgPubKey,
 		})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)

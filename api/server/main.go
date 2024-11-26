@@ -16,22 +16,22 @@ var (
 	configPath string
 	saveConfig bool
 
-	accountPrefix6Len     int
-	dbUrl                 string
-	globalPrefix6         string
-	port                  int
-	portPublic            int
-	stateDir              string
-	timeout               time.Duration
-	tlsPrivKeyPath        string
-	tlsCertPath           string
-	tlsCaPrivKeyPath      string
-	tlsCaCertPath         string
-	wgServerEndpoint      string
-	wgServerGrpcHost      string
-	wgServerGrpcPort      int
-	wgServerTlsPubKeyPath string
-	wgServerWgPubKey      string
+	accountPrefix6Len int
+	dbUrl             string
+	globalPrefix6     string
+	port              int
+	portPublic        int
+	stateDir          string
+	timeout           time.Duration
+	tlsPrivKeyPath    string
+	tlsCertPath       string
+	tlsCaPrivKeyPath  string
+	tlsCaCertPath     string
+	vipGrpcHost       string
+	vipGrpcPort       int
+	vipTlsPubKeyPath  string
+	vipWgEndpoint     string
+	vipWgPubKey       string
 
 	tlsDir    string
 	tlsName   string
@@ -59,11 +59,11 @@ func Init(cmd *cobra.Command) {
 	lib.AddOption(cmd, &lib.Option{P: &tlsCertPath, Name: "tls-cert-path", Shorthand: "", Value: "", Usage: "path to this server's TLS cert"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaPrivKeyPath, Name: "tls-ca-priv-key-path", Shorthand: "", Value: "", Usage: "path to this server's TLS ca private key"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaCertPath, Name: "tls-ca-cert-path", Shorthand: "", Value: "", Usage: "path to the root ca cert"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerEndpoint, Name: "wg-server-endpoint", Shorthand: "", Value: "", Usage: "Endpoint of WireGuard server"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerGrpcHost, Name: "wg-server-grpc-host", Shorthand: "", Value: "localhost", Usage: "WireGuard server host for gRPC"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerGrpcPort, Name: "wg-server-grpc-port", Shorthand: "", Value: 6970, Usage: "WireGuard server port for gRPC"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerTlsPubKeyPath, Name: "wg-server-tls-pub-key-path", Shorthand: "", Value: "", Usage: "path to TLS public key for WireGuard server"})
-	lib.AddOption(cmd, &lib.Option{P: &wgServerWgPubKey, Name: "wg-server-wg-pub-key", Shorthand: "", Value: "", Usage: "WireGuard public key for WireGuard server"})
+	lib.AddOption(cmd, &lib.Option{P: &vipGrpcHost, Name: "vip-grpc-host", Shorthand: "", Value: "localhost", Usage: "VIP gRPC host"})
+	lib.AddOption(cmd, &lib.Option{P: &vipGrpcPort, Name: "vip-grpc-port", Shorthand: "", Value: 6970, Usage: "VIP gRPC port"})
+	lib.AddOption(cmd, &lib.Option{P: &vipTlsPubKeyPath, Name: "vip-tls-pub-key-path", Shorthand: "", Value: "", Usage: "path to TLS public key for the VIP"})
+	lib.AddOption(cmd, &lib.Option{P: &vipWgEndpoint, Name: "vip-wg-endpoint", Shorthand: "", Value: "", Usage: "VIP WireGuard Endpoint"})
+	lib.AddOption(cmd, &lib.Option{P: &vipWgPubKey, Name: "vip-wg-pub-key", Shorthand: "", Value: "", Usage: "VIP WireGuard public key"})
 
 	cmd.AddCommand(serveCmd)
 	cmd.AddCommand(servePublicCmd)
@@ -94,17 +94,17 @@ func InitConfig() {
 	if ones >= accountPrefix6Len {
 		lib.Crash("The global IPv6 prefix length must be smaller than the account IPv6 prefix length")
 	}
-	if wgServerEndpoint == "" {
-		lib.Crash("You must set the WireGuard server's WireGuard endpoint")
+	if vipWgEndpoint == "" {
+		lib.Crash("You must set the VIP's WireGuard endpoint")
 	}
-	if wgServerGrpcHost == "" {
-		lib.Crash("You must set the WireGuard server's gRPC host")
+	if vipGrpcHost == "" {
+		lib.Crash("You must set the VIP's gRPC host")
 	}
-	if wgServerTlsPubKeyPath == "" {
-		lib.Crash("You must set the path to the WireGuard server's TLS public key")
+	if vipTlsPubKeyPath == "" {
+		lib.Crash("You must set the path to the VIP's TLS public key")
 	}
-	if wgServerWgPubKey == "" {
-		lib.Crash("You must set the WireGuard server's WireGuard public key")
+	if vipWgPubKey == "" {
+		lib.Crash("You must set the VIP's WireGuard public key")
 	}
 }
 

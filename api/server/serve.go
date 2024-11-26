@@ -51,13 +51,13 @@ var serveCmd = &cobra.Command{
 			RootCAs:      pool,
 		})
 
-		wgServerTlsPubKeyData, err := os.ReadFile(wgServerTlsPubKeyPath)
+		vipTlsPubKeyData, err := os.ReadFile(vipTlsPubKeyPath)
 		if err != nil {
 			lib.Crash(err)
 		}
-		wgServerTlsPubKey := string(wgServerTlsPubKeyData)
-		if wgServerTlsPubKey == "" {
-			lib.Crash("WireGuard Server's TLS public key cannot be empty!")
+		vipTlsPubKey := string(vipTlsPubKeyData)
+		if vipTlsPubKey == "" {
+			lib.Crash("VIP's TLS public key cannot be empty!")
 		}
 
 		db, err := pgxpool.New(context.Background(), dbUrl)
@@ -74,12 +74,12 @@ var serveCmd = &cobra.Command{
 
 		server := grpc.NewServer(grpc.Creds(creds))
 		nf6.RegisterNf6Server(server, &impl_api.Server{
-			Creds:             creds,
-			Db:                db,
-			IpNet6:            ipNet6,
-			WgServerGrpcHost:  wgServerGrpcHost,
-			WgServerGrpcPort:  wgServerGrpcPort,
-			WgServerTlsPubKey: wgServerTlsPubKey,
+			Creds:        creds,
+			Db:           db,
+			IpNet6:       ipNet6,
+			VipGrpcHost:  vipGrpcHost,
+			VipGrpcPort:  vipGrpcPort,
+			VipTlsPubKey: vipTlsPubKey,
 		})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)

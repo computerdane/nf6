@@ -7,7 +7,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/computerdane/nf6/impl/impl_wgserver"
+	"github.com/computerdane/nf6/impl/impl_vip"
 	"github.com/computerdane/nf6/lib"
 	"github.com/computerdane/nf6/nf6"
 	"github.com/spf13/cobra"
@@ -17,9 +17,9 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-var wgserverCmd = &cobra.Command{
-	Use:    "wgserver",
-	Short:  "Start the WireGuard server",
+var vipCmd = &cobra.Command{
+	Use:    "vip",
+	Short:  "Start the Virtual Internet Provider",
 	PreRun: Connect,
 	Run: func(cmd *cobra.Command, args []string) {
 		// initialize
@@ -49,7 +49,7 @@ var wgserverCmd = &cobra.Command{
 
 		ctx, cancel := lib.Context()
 		defer cancel()
-		reply, err := api.WgServer_ListHosts(ctx, nil)
+		reply, err := api.Vip_ListHosts(ctx, nil)
 		if err != nil {
 			lib.Crash(err)
 		}
@@ -78,7 +78,7 @@ var wgserverCmd = &cobra.Command{
 
 		if err := wg.ConfigureDevice(wgDeviceName, wgtypes.Config{
 			PrivateKey:   &wgPrivKey,
-			ListenPort:   &wgServerWgPort,
+			ListenPort:   &vipWgPort,
 			ReplacePeers: true,
 			Peers:        peers,
 		}); err != nil {
@@ -117,19 +117,19 @@ var wgserverCmd = &cobra.Command{
 			RootCAs:      pool,
 		})
 
-		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", wgServerGrpcPort))
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", vipGrpcPort))
 		if err != nil {
 			lib.Crash("failed to listen: ", err)
 		}
 		fmt.Printf("listening at %v", lis.Addr())
 
 		server := grpc.NewServer(grpc.Creds(creds))
-		nf6.RegisterNf6WgServer(server, &impl_wgserver.WgServer{
-			ApiTlsPubKey:   apiTlsPubKey,
-			Wg:             wg,
-			WgDeviceName:   wgDeviceName,
-			WgServerWgPort: wgServerWgPort,
-			WgPrivKey:      wgPrivKey,
+		nf6.RegisterNf6VipServer(server, &impl_vip.VipServer{
+			ApiTlsPubKey: apiTlsPubKey,
+			VipWgPort:    vipWgPort,
+			Wg:           wg,
+			WgDeviceName: wgDeviceName,
+			WgPrivKey:    wgPrivKey,
 		})
 		if err := server.Serve(lis); err != nil {
 			lib.Crash("failed to serve: ", err)

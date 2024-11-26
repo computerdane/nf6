@@ -32,8 +32,8 @@ message GetCaCert_Reply {
 message GetIpv6Info_Reply {
   string globalPrefix6 = 1;
   int32 accountPrefix6Len = 2;
-  string wgServerEndpoint = 3;
-  string wgServerWgPubKey = 4;
+  string vipWgEndpoint = 3;
+  string vipWgPubKey = 4;
 }
 
 /*
@@ -59,8 +59,8 @@ service Nf6 {
   rpc GitServer_GetAccount (GitServer_GetAccount_Request) returns (GitServer_GetAccount_Reply) {}
   rpc GitServer_ListRepos (GitServer_ListRepos_Request) returns (GitServer_ListRepos_Reply) {}
 
-  // WireGuard server
-  rpc WgServer_ListHosts (None) returns (WgServer_ListHosts_Reply) {}
+  // VIP server
+  rpc Vip_ListHosts (None) returns (Vip_ListHosts_Reply) {}
 }
 
 // Users
@@ -139,9 +139,9 @@ message GitServer_ListRepos_Reply {
   repeated string names = 1;
 }
 
-// WireGuard server
+// VIP server
 
-message WgServer_ListHosts_Reply {
+message Vip_ListHosts_Reply {
   message Host {
     string addr6 = 1;
     string wgPubKey = 2;
@@ -150,10 +150,10 @@ message WgServer_ListHosts_Reply {
 }
 
 /*
-  === WireGuard server listener ===
+  === VIP server listener ===
 */
 
-service Nf6Wg {
+service Nf6Vip {
   rpc CreateRoute (CreateRoute_Request) returns (None) {}
 }
 
