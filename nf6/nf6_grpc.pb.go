@@ -21,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Nf6Public_CreateAccount_FullMethodName = "/nf6.Nf6Public/CreateAccount"
 	Nf6Public_GetCaCert_FullMethodName     = "/nf6.Nf6Public/GetCaCert"
-	Nf6Public_GetIpv6Info_FullMethodName   = "/nf6.Nf6Public/GetIpv6Info"
+	Nf6Public_GetGlobal_FullMethodName     = "/nf6.Nf6Public/GetGlobal"
 )
 
 // Nf6PublicClient is the client API for Nf6Public service.
@@ -30,7 +30,7 @@ const (
 type Nf6PublicClient interface {
 	CreateAccount(ctx context.Context, in *CreateAccount_Request, opts ...grpc.CallOption) (*CreateAccount_Reply, error)
 	GetCaCert(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetCaCert_Reply, error)
-	GetIpv6Info(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetIpv6Info_Reply, error)
+	GetGlobal(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetGlobal_Reply, error)
 }
 
 type nf6PublicClient struct {
@@ -59,9 +59,9 @@ func (c *nf6PublicClient) GetCaCert(ctx context.Context, in *None, opts ...grpc.
 	return out, nil
 }
 
-func (c *nf6PublicClient) GetIpv6Info(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetIpv6Info_Reply, error) {
-	out := new(GetIpv6Info_Reply)
-	err := c.cc.Invoke(ctx, Nf6Public_GetIpv6Info_FullMethodName, in, out, opts...)
+func (c *nf6PublicClient) GetGlobal(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetGlobal_Reply, error) {
+	out := new(GetGlobal_Reply)
+	err := c.cc.Invoke(ctx, Nf6Public_GetGlobal_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *nf6PublicClient) GetIpv6Info(ctx context.Context, in *None, opts ...grp
 type Nf6PublicServer interface {
 	CreateAccount(context.Context, *CreateAccount_Request) (*CreateAccount_Reply, error)
 	GetCaCert(context.Context, *None) (*GetCaCert_Reply, error)
-	GetIpv6Info(context.Context, *None) (*GetIpv6Info_Reply, error)
+	GetGlobal(context.Context, *None) (*GetGlobal_Reply, error)
 	mustEmbedUnimplementedNf6PublicServer()
 }
 
@@ -88,8 +88,8 @@ func (UnimplementedNf6PublicServer) CreateAccount(context.Context, *CreateAccoun
 func (UnimplementedNf6PublicServer) GetCaCert(context.Context, *None) (*GetCaCert_Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCaCert not implemented")
 }
-func (UnimplementedNf6PublicServer) GetIpv6Info(context.Context, *None) (*GetIpv6Info_Reply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetIpv6Info not implemented")
+func (UnimplementedNf6PublicServer) GetGlobal(context.Context, *None) (*GetGlobal_Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGlobal not implemented")
 }
 func (UnimplementedNf6PublicServer) mustEmbedUnimplementedNf6PublicServer() {}
 
@@ -140,20 +140,20 @@ func _Nf6Public_GetCaCert_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Nf6Public_GetIpv6Info_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Nf6Public_GetGlobal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(None)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6PublicServer).GetIpv6Info(ctx, in)
+		return srv.(Nf6PublicServer).GetGlobal(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Public_GetIpv6Info_FullMethodName,
+		FullMethod: Nf6Public_GetGlobal_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6PublicServer).GetIpv6Info(ctx, req.(*None))
+		return srv.(Nf6PublicServer).GetGlobal(ctx, req.(*None))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -174,8 +174,8 @@ var Nf6Public_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Nf6Public_GetCaCert_Handler,
 		},
 		{
-			MethodName: "GetIpv6Info",
-			Handler:    _Nf6Public_GetIpv6Info_Handler,
+			MethodName: "GetGlobal",
+			Handler:    _Nf6Public_GetGlobal_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

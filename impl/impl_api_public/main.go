@@ -28,8 +28,8 @@ func (s *ServerPublic) GetCaCert(_ context.Context, in *nf6.None) (*nf6.GetCaCer
 	return &nf6.GetCaCert_Reply{CaCert: s.TlsCaCert}, nil
 }
 
-func (s *ServerPublic) GetIpv6Info(_ context.Context, in *nf6.None) (*nf6.GetIpv6Info_Reply, error) {
-	return &nf6.GetIpv6Info_Reply{GlobalPrefix6: s.IpNet6.String(), AccountPrefix6Len: int32(s.AccountPrefix6Len), VipWgEndpoint: s.VipWgEndpoint, VipWgPubKey: s.VipWgPubKey}, nil
+func (s *ServerPublic) GetGlobal(_ context.Context, in *nf6.None) (*nf6.GetGlobal_Reply, error) {
+	return &nf6.GetGlobal_Reply{Prefix6: s.IpNet6.String(), AccountPrefix6Len: int32(s.AccountPrefix6Len), VipWgEndpoint: s.VipWgEndpoint, VipWgPubKey: s.VipWgPubKey}, nil
 }
 
 func (s *ServerPublic) CreateAccount(ctx context.Context, in *nf6.CreateAccount_Request) (*nf6.CreateAccount_Reply, error) {

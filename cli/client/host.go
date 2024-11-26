@@ -60,7 +60,7 @@ var hostCreateCmd = &cobra.Command{
 		if hostCreateIso {
 			ctx, cancel := lib.Context()
 			defer cancel()
-			serverInfo, err := apiPublic.GetIpv6Info(ctx, nil)
+			global, err := apiPublic.GetGlobal(ctx, nil)
 			if err != nil {
 				lib.Crash(err)
 			}
@@ -110,8 +110,8 @@ var hostCreateCmd = &cobra.Command{
 				HostAddr6:        hostInfo.GetAddr6(),
 				HostSystem:       hostCreateIsoSystem,
 				HostWgPrivKey:    wgPrivKey.String(),
-				VipWgEndpoint:    serverInfo.GetVipWgEndpoint(),
-				VipWgPubKey:      serverInfo.GetVipWgPubKey(),
+				VipWgEndpoint:    global.GetVipWgEndpoint(),
+				VipWgPubKey:      global.GetVipWgPubKey(),
 			})
 			if err != nil {
 				lib.Crash(err)

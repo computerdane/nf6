@@ -11,7 +11,7 @@ message None {}
 service Nf6Public {
   rpc CreateAccount (CreateAccount_Request) returns (CreateAccount_Reply) {}
   rpc GetCaCert (None) returns (GetCaCert_Reply) {}
-  rpc GetIpv6Info (None) returns (GetIpv6Info_Reply) {}
+  rpc GetGlobal (None) returns (GetGlobal_Reply) {}
 }
 
 message CreateAccount_Request {
@@ -29,8 +29,8 @@ message GetCaCert_Reply {
   string caCert = 1;
 }
 
-message GetIpv6Info_Reply {
-  string globalPrefix6 = 1;
+message GetGlobal_Reply {
+  string prefix6 = 1;
   int32 accountPrefix6Len = 2;
   string vipWgEndpoint = 3;
   string vipWgPubKey = 4;

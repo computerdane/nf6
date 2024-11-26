@@ -32,15 +32,15 @@ var genisoCmd = &cobra.Command{
 			ConnectPublic(cmd, args)
 			ctx, cancel := lib.Context()
 			defer cancel()
-			reply, err := apiPublic.GetIpv6Info(ctx, nil)
+			global, err := apiPublic.GetGlobal(ctx, nil)
 			if err != nil {
 				lib.Crash(err)
 			}
 			if genisoVipWgEndpoint == "auto" {
-				genisoVipWgEndpoint = reply.GetVipWgEndpoint()
+				genisoVipWgEndpoint = global.GetVipWgEndpoint()
 			}
 			if genisoVipWgPubKey == "auto" {
-				genisoVipWgPubKey = reply.GetVipWgPubKey()
+				genisoVipWgPubKey = global.GetVipWgPubKey()
 			}
 		}
 		isoPath, err := iso.Generate("/tmp/nf6-geniso", &iso.Config{
