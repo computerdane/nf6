@@ -66,8 +66,13 @@
                   --prefix PATH : ${
                     with pkgs;
                     lib.makeBinPath [
+                      git
+                      gptfdisk
+                      jq
                       nix
+                      nixos-install-tools
                       openssh
+                      util-linux
                     ]
                   }
                 installShellCompletion --cmd nf \
