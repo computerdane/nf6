@@ -1,18 +1,28 @@
 {
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nf6 = {
+      url = "github:computerdane/nf6";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
   outputs =
-    { nixpkgs, ... }:
+    { nixpkgs, nf6, ... }:
     let
       cfg = builtins.fromJSON (builtins.readFile ./config.json);
+      system = cfg.HostSystem;
+      pkgs-nf6 = nf6.packages.${system};
     in
     {
       nixosConfigurations.nf6 = nixpkgs.lib.nixosSystem {
-        system = cfg.HostSystem;
+        inherit system;
         modules = [
           (
             { modulesPath, pkgs, ... }:
             {
               imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
+
+              environment.systemPackages = [ pkgs-nf6.nf ];
 
               services.openssh = {
                 enable = true;

@@ -83,6 +83,7 @@ func Init(cmd *cobra.Command) {
 	cmd.AddCommand(gensshCmd)
 	cmd.AddCommand(gentlsCmd)
 	cmd.AddCommand(hostCmd)
+	cmd.AddCommand(installCmd)
 	cmd.AddCommand(registerCmd)
 	cmd.AddCommand(repoCmd)
 	cmd.AddCommand(vipCmd)
