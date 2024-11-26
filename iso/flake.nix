@@ -10,24 +10,20 @@
         system = cfg.System;
         modules = [
           (
-            { lib, modulesPath, ... }:
+            { modulesPath, ... }:
             {
               imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
 
               services.openssh = {
                 enable = true;
                 settings = {
-                  PermitRootLogin = lib.mkForce "no";
+                  PermitRootLogin = "yes";
                   PasswordAuthentication = false;
                   KbdInteractiveAuthentication = false;
                 };
               };
 
-              users.users.install = {
-                isNormalUser = true;
-                extraGroups = [ "wheel" ];
-                openssh.authorizedKeys.keys = [ cfg.SshPubKey ];
-              };
+              users.users.root.openssh.authorizedKeys.keys = [ cfg.SshPubKey ];
 
               networking.useNetworkd = true;
 

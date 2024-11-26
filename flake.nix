@@ -23,13 +23,17 @@
             git
             go
             gopls
+            gptfdisk
+            jq
             nix
+            nixos-install-tools
             openssh
             openssl
             postgresql
             protobuf
             protoc-gen-go
             protoc-gen-go-grpc
+            util-linux
           ];
         };
 
