@@ -10,7 +10,7 @@
         system = cfg.HostSystem;
         modules = [
           (
-            { modulesPath, ... }:
+            { modulesPath, pkgs, ... }:
             {
               imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
 
@@ -26,10 +26,14 @@
               users.users.root.openssh.authorizedKeys.keys = [ cfg.AccountSshPubKey ];
 
               networking.useNetworkd = true;
-
               networking.wg-quick.interfaces.wgnf6 = {
                 address = [ cfg.HostAddr6 ];
-                dns = [ "2606:4700:4700::1111" ];
+                dns = [
+                  "2606:4700:4700::1111"
+                  "2606:4700:4700::1001"
+                ];
+                postUp = "${pkgs.iproute2}/bin/ip -6 rule add from ${cfg.HostAddr6} lookup 51820";
+                postDown = "${pkgs.iproute2}/bin/ip -6 rule del from ${cfg.HostAddr6}";
                 privateKey = cfg.HostWgPrivKey;
                 peers = [
                   {
@@ -48,6 +52,9 @@
                 ];
                 auto-optimise-store = true;
               };
+
+              systemd.services.wg-quick-wgnf6.requires = [ "systemd-networkd-wait-online.service" ];
+              systemd.services.wg-quick-wgnf6.after = [ "systemd-networkd-wait-online.service" ];
 
               system.stateVersion = "24.05";
             }

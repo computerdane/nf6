@@ -31,7 +31,10 @@ lib.mapAttrs (name: host: {
 
         networking.wg-quick.interfaces.wgtest = {
           address = [ host.Addr6 ];
-          dns = [ "2606:4700:4700::1111" ];
+          dns = [
+            "2606:4700:4700::1111"
+            "2606:4700:4700::1001"
+          ];
           privateKeyFile = "/run/nf6-secrets/wg.key";
           peers = [
             {
