@@ -13,10 +13,9 @@ import (
 var installSh string
 
 var installCmd = &cobra.Command{
-	Use:    "install [device (e.g. /dev/sda)]",
-	Short:  "Install NixOS on this machine, pre-configured for use with Nf6",
-	Args:   cobra.ExactArgs(1),
-	PreRun: Connect,
+	Use:   "install [device (e.g. /dev/sda)]",
+	Short: "Install NixOS on this machine, pre-configured for use with Nf6",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		c := exec.Command("bash", "-s", "-", args[0])
 		c.Stdin = strings.NewReader(installSh)
