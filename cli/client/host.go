@@ -31,6 +31,7 @@ func init() {
 	hostEditCmd.Flags().StringVarP(&hostWgPubKey, "wg-pub-key", "w", "", "WireGuard public key")
 
 	hostCmd.AddCommand(hostCreateCmd)
+	hostCmd.AddCommand(hostDeleteCmd)
 	hostCmd.AddCommand(hostGetCmd)
 	hostCmd.AddCommand(hostListCmd)
 	hostCmd.AddCommand(hostEditCmd)
@@ -127,6 +128,28 @@ var hostCreateCmd = &cobra.Command{
 			ctx, cancel := lib.Context()
 			defer cancel()
 			if _, err := api.CreateHost(ctx, &nf6.CreateHost_Request{Name: newName, Addr6: &hostAddr6, WgPubKey: hostWgPubKey}); err != nil {
+				lib.Crash(err)
+			}
+		}
+	},
+}
+
+var hostDeleteCmd = &cobra.Command{
+	Use:    "delete [name]",
+	Short:  "Delete a host",
+	Args:   cobra.ExactArgs(1),
+	PreRun: Connect,
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx, cancel := lib.Context()
+		defer cancel()
+		host, err := api.GetHost(ctx, &nf6.GetHost_Request{Name: args[0]})
+		if err != nil {
+			lib.Crash(err)
+		}
+		{
+			ctx, cancel := lib.Context()
+			defer cancel()
+			if _, err := api.DeleteHost(ctx, &nf6.DeleteHost_Request{Id: host.GetId()}); err != nil {
 				lib.Crash(err)
 			}
 		}

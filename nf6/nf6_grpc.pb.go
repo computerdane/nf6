@@ -186,10 +186,12 @@ const (
 	Nf6_GetAccount_FullMethodName           = "/nf6.Nf6/GetAccount"
 	Nf6_UpdateAccount_FullMethodName        = "/nf6.Nf6/UpdateAccount"
 	Nf6_CreateHost_FullMethodName           = "/nf6.Nf6/CreateHost"
+	Nf6_DeleteHost_FullMethodName           = "/nf6.Nf6/DeleteHost"
 	Nf6_GetHost_FullMethodName              = "/nf6.Nf6/GetHost"
 	Nf6_ListHosts_FullMethodName            = "/nf6.Nf6/ListHosts"
 	Nf6_UpdateHost_FullMethodName           = "/nf6.Nf6/UpdateHost"
 	Nf6_CreateRepo_FullMethodName           = "/nf6.Nf6/CreateRepo"
+	Nf6_DeleteRepo_FullMethodName           = "/nf6.Nf6/DeleteRepo"
 	Nf6_GetRepo_FullMethodName              = "/nf6.Nf6/GetRepo"
 	Nf6_ListRepos_FullMethodName            = "/nf6.Nf6/ListRepos"
 	Nf6_UpdateRepo_FullMethodName           = "/nf6.Nf6/UpdateRepo"
@@ -206,10 +208,12 @@ type Nf6Client interface {
 	GetAccount(ctx context.Context, in *None, opts ...grpc.CallOption) (*GetAccount_Reply, error)
 	UpdateAccount(ctx context.Context, in *UpdateAccount_Request, opts ...grpc.CallOption) (*None, error)
 	CreateHost(ctx context.Context, in *CreateHost_Request, opts ...grpc.CallOption) (*None, error)
+	DeleteHost(ctx context.Context, in *DeleteHost_Request, opts ...grpc.CallOption) (*None, error)
 	GetHost(ctx context.Context, in *GetHost_Request, opts ...grpc.CallOption) (*GetHost_Reply, error)
 	ListHosts(ctx context.Context, in *None, opts ...grpc.CallOption) (*ListHosts_Reply, error)
 	UpdateHost(ctx context.Context, in *UpdateHost_Request, opts ...grpc.CallOption) (*None, error)
 	CreateRepo(ctx context.Context, in *CreateRepo_Request, opts ...grpc.CallOption) (*None, error)
+	DeleteRepo(ctx context.Context, in *DeleteRepo_Request, opts ...grpc.CallOption) (*None, error)
 	GetRepo(ctx context.Context, in *GetRepo_Request, opts ...grpc.CallOption) (*GetRepo_Reply, error)
 	ListRepos(ctx context.Context, in *None, opts ...grpc.CallOption) (*ListRepos_Reply, error)
 	UpdateRepo(ctx context.Context, in *UpdateRepo_Request, opts ...grpc.CallOption) (*None, error)
@@ -255,6 +259,15 @@ func (c *nf6Client) CreateHost(ctx context.Context, in *CreateHost_Request, opts
 	return out, nil
 }
 
+func (c *nf6Client) DeleteHost(ctx context.Context, in *DeleteHost_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6_DeleteHost_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *nf6Client) GetHost(ctx context.Context, in *GetHost_Request, opts ...grpc.CallOption) (*GetHost_Reply, error) {
 	out := new(GetHost_Reply)
 	err := c.cc.Invoke(ctx, Nf6_GetHost_FullMethodName, in, out, opts...)
@@ -285,6 +298,15 @@ func (c *nf6Client) UpdateHost(ctx context.Context, in *UpdateHost_Request, opts
 func (c *nf6Client) CreateRepo(ctx context.Context, in *CreateRepo_Request, opts ...grpc.CallOption) (*None, error) {
 	out := new(None)
 	err := c.cc.Invoke(ctx, Nf6_CreateRepo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nf6Client) DeleteRepo(ctx context.Context, in *DeleteRepo_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6_DeleteRepo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -353,10 +375,12 @@ type Nf6Server interface {
 	GetAccount(context.Context, *None) (*GetAccount_Reply, error)
 	UpdateAccount(context.Context, *UpdateAccount_Request) (*None, error)
 	CreateHost(context.Context, *CreateHost_Request) (*None, error)
+	DeleteHost(context.Context, *DeleteHost_Request) (*None, error)
 	GetHost(context.Context, *GetHost_Request) (*GetHost_Reply, error)
 	ListHosts(context.Context, *None) (*ListHosts_Reply, error)
 	UpdateHost(context.Context, *UpdateHost_Request) (*None, error)
 	CreateRepo(context.Context, *CreateRepo_Request) (*None, error)
+	DeleteRepo(context.Context, *DeleteRepo_Request) (*None, error)
 	GetRepo(context.Context, *GetRepo_Request) (*GetRepo_Reply, error)
 	ListRepos(context.Context, *None) (*ListRepos_Reply, error)
 	UpdateRepo(context.Context, *UpdateRepo_Request) (*None, error)
@@ -381,6 +405,9 @@ func (UnimplementedNf6Server) UpdateAccount(context.Context, *UpdateAccount_Requ
 func (UnimplementedNf6Server) CreateHost(context.Context, *CreateHost_Request) (*None, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateHost not implemented")
 }
+func (UnimplementedNf6Server) DeleteHost(context.Context, *DeleteHost_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteHost not implemented")
+}
 func (UnimplementedNf6Server) GetHost(context.Context, *GetHost_Request) (*GetHost_Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHost not implemented")
 }
@@ -392,6 +419,9 @@ func (UnimplementedNf6Server) UpdateHost(context.Context, *UpdateHost_Request) (
 }
 func (UnimplementedNf6Server) CreateRepo(context.Context, *CreateRepo_Request) (*None, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRepo not implemented")
+}
+func (UnimplementedNf6Server) DeleteRepo(context.Context, *DeleteRepo_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRepo not implemented")
 }
 func (UnimplementedNf6Server) GetRepo(context.Context, *GetRepo_Request) (*GetRepo_Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRepo not implemented")
@@ -478,6 +508,24 @@ func _Nf6_CreateHost_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Nf6_DeleteHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteHost_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).DeleteHost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_DeleteHost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).DeleteHost(ctx, req.(*DeleteHost_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Nf6_GetHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetHost_Request)
 	if err := dec(in); err != nil {
@@ -546,6 +594,24 @@ func _Nf6_CreateRepo_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(Nf6Server).CreateRepo(ctx, req.(*CreateRepo_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Nf6_DeleteRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRepo_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6Server).DeleteRepo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6_DeleteRepo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6Server).DeleteRepo(ctx, req.(*DeleteRepo_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -678,6 +744,10 @@ var Nf6_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Nf6_CreateHost_Handler,
 		},
 		{
+			MethodName: "DeleteHost",
+			Handler:    _Nf6_DeleteHost_Handler,
+		},
+		{
 			MethodName: "GetHost",
 			Handler:    _Nf6_GetHost_Handler,
 		},
@@ -692,6 +762,10 @@ var Nf6_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateRepo",
 			Handler:    _Nf6_CreateRepo_Handler,
+		},
+		{
+			MethodName: "DeleteRepo",
+			Handler:    _Nf6_DeleteRepo_Handler,
 		},
 		{
 			MethodName: "GetRepo",
@@ -723,14 +797,16 @@ var Nf6_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Nf6Vip_CreateRoute_FullMethodName = "/nf6.Nf6Vip/CreateRoute"
+	Nf6Vip_CreatePeer_FullMethodName = "/nf6.Nf6Vip/CreatePeer"
+	Nf6Vip_DeletePeer_FullMethodName = "/nf6.Nf6Vip/DeletePeer"
 )
 
 // Nf6VipClient is the client API for Nf6Vip service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Nf6VipClient interface {
-	CreateRoute(ctx context.Context, in *CreateRoute_Request, opts ...grpc.CallOption) (*None, error)
+	CreatePeer(ctx context.Context, in *CreatePeer_Request, opts ...grpc.CallOption) (*None, error)
+	DeletePeer(ctx context.Context, in *DeletePeer_Request, opts ...grpc.CallOption) (*None, error)
 }
 
 type nf6VipClient struct {
@@ -741,9 +817,18 @@ func NewNf6VipClient(cc grpc.ClientConnInterface) Nf6VipClient {
 	return &nf6VipClient{cc}
 }
 
-func (c *nf6VipClient) CreateRoute(ctx context.Context, in *CreateRoute_Request, opts ...grpc.CallOption) (*None, error) {
+func (c *nf6VipClient) CreatePeer(ctx context.Context, in *CreatePeer_Request, opts ...grpc.CallOption) (*None, error) {
 	out := new(None)
-	err := c.cc.Invoke(ctx, Nf6Vip_CreateRoute_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Nf6Vip_CreatePeer_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nf6VipClient) DeletePeer(ctx context.Context, in *DeletePeer_Request, opts ...grpc.CallOption) (*None, error) {
+	out := new(None)
+	err := c.cc.Invoke(ctx, Nf6Vip_DeletePeer_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -754,7 +839,8 @@ func (c *nf6VipClient) CreateRoute(ctx context.Context, in *CreateRoute_Request,
 // All implementations must embed UnimplementedNf6VipServer
 // for forward compatibility
 type Nf6VipServer interface {
-	CreateRoute(context.Context, *CreateRoute_Request) (*None, error)
+	CreatePeer(context.Context, *CreatePeer_Request) (*None, error)
+	DeletePeer(context.Context, *DeletePeer_Request) (*None, error)
 	mustEmbedUnimplementedNf6VipServer()
 }
 
@@ -762,8 +848,11 @@ type Nf6VipServer interface {
 type UnimplementedNf6VipServer struct {
 }
 
-func (UnimplementedNf6VipServer) CreateRoute(context.Context, *CreateRoute_Request) (*None, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateRoute not implemented")
+func (UnimplementedNf6VipServer) CreatePeer(context.Context, *CreatePeer_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePeer not implemented")
+}
+func (UnimplementedNf6VipServer) DeletePeer(context.Context, *DeletePeer_Request) (*None, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePeer not implemented")
 }
 func (UnimplementedNf6VipServer) mustEmbedUnimplementedNf6VipServer() {}
 
@@ -778,20 +867,38 @@ func RegisterNf6VipServer(s grpc.ServiceRegistrar, srv Nf6VipServer) {
 	s.RegisterService(&Nf6Vip_ServiceDesc, srv)
 }
 
-func _Nf6Vip_CreateRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateRoute_Request)
+func _Nf6Vip_CreatePeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePeer_Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(Nf6VipServer).CreateRoute(ctx, in)
+		return srv.(Nf6VipServer).CreatePeer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nf6Vip_CreateRoute_FullMethodName,
+		FullMethod: Nf6Vip_CreatePeer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Nf6VipServer).CreateRoute(ctx, req.(*CreateRoute_Request))
+		return srv.(Nf6VipServer).CreatePeer(ctx, req.(*CreatePeer_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Nf6Vip_DeletePeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePeer_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Nf6VipServer).DeletePeer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Nf6Vip_DeletePeer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Nf6VipServer).DeletePeer(ctx, req.(*DeletePeer_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -804,8 +911,12 @@ var Nf6Vip_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*Nf6VipServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateRoute",
-			Handler:    _Nf6Vip_CreateRoute_Handler,
+			MethodName: "CreatePeer",
+			Handler:    _Nf6Vip_CreatePeer_Handler,
+		},
+		{
+			MethodName: "DeletePeer",
+			Handler:    _Nf6Vip_DeletePeer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

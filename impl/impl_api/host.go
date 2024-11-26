@@ -24,7 +24,7 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 	if err := lib.ValidateWireguardKey(in.GetWgPubKey()); err != nil {
 		return nil, err
 	}
-	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "name", in.GetName()); err != nil {
+	if err := lib.DbCheckNotExistsInAccount(ctx, s.Db, "host", "name", in.GetName(), accountId); err != nil {
 		return nil, err
 	}
 	if err := lib.DbCheckNotExists(ctx, s.Db, "host", "wg_pub_key", in.GetWgPubKey()); err != nil {
@@ -69,20 +69,61 @@ func (s *Server) CreateHost(ctx context.Context, in *nf6.CreateHost_Request) (*n
 		return nil, status.Error(codes.Unknown, "host creation failed")
 	}
 
-	// create route in VIP server
+	// create peer in VIP server
 	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", s.VipGrpcHost, s.VipGrpcPort), grpc.WithTransportCredentials(s.Creds), grpc.WithAuthority(lib.TlsName))
 	if err != nil {
 		lib.Warn("failed to connect to VIP: ", err)
-		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
+		return nil, status.Error(codes.Internal, "failed to create WireGuard peer")
 	}
 	vip := nf6.NewNf6VipClient(conn)
 	if vip == nil {
-		lib.Warn("failed to create WgClient: ", err)
-		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
+		lib.Warn("failed to create VIP client: ", err)
+		return nil, status.Error(codes.Internal, "failed to create WireGuard peer")
 	}
-	if _, err := vip.CreateRoute(ctx, &nf6.CreateRoute_Request{Addr6: addr6.String(), WgPubKey: in.GetWgPubKey()}); err != nil {
-		lib.Warn("failed to create route: ", err)
-		return nil, status.Error(codes.Internal, "failed to add WireGuard route")
+	if _, err := vip.CreatePeer(ctx, &nf6.CreatePeer_Request{Addr6: addr6.String(), WgPubKey: in.GetWgPubKey()}); err != nil {
+		lib.Warn("failed to create peer: ", err)
+		return nil, status.Error(codes.Internal, "failed to create WireGuard peer")
+	}
+
+	return nil, nil
+}
+
+func (s *Server) DeleteHost(ctx context.Context, in *nf6.DeleteHost_Request) (*nf6.None, error) {
+	accountId, err := s.RequireAccountId(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if in.GetId() == 0 {
+		return nil, status.Error(codes.InvalidArgument, "host id must be non-zero")
+	}
+	if err := lib.DbCheckAccountOwns(ctx, s.Db, "host", in.GetId(), accountId); err != nil {
+		return nil, err
+	}
+	wgPubKey, err := lib.DbSelectColumn[string](ctx, s.Db, "host", "wg_pub_key", in.GetId())
+	query := "delete from host where account_id = @account_id and id = @id"
+	args := pgx.NamedArgs{
+		"account_id": accountId,
+		"id":         in.GetId(),
+	}
+	if _, err := s.Db.Exec(ctx, query, args); err != nil {
+		lib.Warn("failed to delete host: ", err)
+		return nil, status.Error(codes.Internal, "failed to delete host")
+	}
+
+	// delete peer in VIP server
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", s.VipGrpcHost, s.VipGrpcPort), grpc.WithTransportCredentials(s.Creds), grpc.WithAuthority(lib.TlsName))
+	if err != nil {
+		lib.Warn("failed to connect to VIP: ", err)
+		return nil, status.Error(codes.Internal, "failed to delete WireGuard peer")
+	}
+	vip := nf6.NewNf6VipClient(conn)
+	if vip == nil {
+		lib.Warn("failed to create VIP client: ", err)
+		return nil, status.Error(codes.Internal, "failed to delete WireGuard peer")
+	}
+	if _, err := vip.DeletePeer(ctx, &nf6.DeletePeer_Request{WgPubKey: *wgPubKey}); err != nil {
+		lib.Warn("failed to delete peer: ", err)
+		return nil, status.Error(codes.Internal, "failed to delete WireGuard peer")
 	}
 
 	return nil, nil
@@ -92,6 +133,9 @@ func (s *Server) GetHost(ctx context.Context, in *nf6.GetHost_Request) (*nf6.Get
 	accountId, err := s.RequireAccountId(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if in.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "host name must not be empty")
 	}
 	reply := nf6.GetHost_Reply{}
 	query := "select id, name, addr6, wg_pub_key, tls_pub_key from host where account_id = @account_id and name = @name"

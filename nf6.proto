@@ -46,11 +46,13 @@ service Nf6 {
   rpc UpdateAccount (UpdateAccount_Request) returns (None) {}
 
   rpc CreateHost (CreateHost_Request) returns (None) {}
+  rpc DeleteHost (DeleteHost_Request) returns (None) {}
   rpc GetHost (GetHost_Request) returns (GetHost_Reply) {}
   rpc ListHosts (None) returns (ListHosts_Reply) {}
   rpc UpdateHost (UpdateHost_Request) returns (None) {}
 
   rpc CreateRepo (CreateRepo_Request) returns (None) {}
+  rpc DeleteRepo (DeleteRepo_Request) returns (None) {}
   rpc GetRepo (GetRepo_Request) returns (GetRepo_Reply) {}
   rpc ListRepos (None) returns (ListRepos_Reply) {}
   rpc UpdateRepo (UpdateRepo_Request) returns (None) {}
@@ -84,6 +86,9 @@ message CreateHost_Request {
   string wgPubKey = 3;
   optional string tlsPubKey = 4;
 }
+message DeleteHost_Request {
+  uint64 id = 1;
+}
 message GetHost_Request {
   string name = 1;
 }
@@ -107,6 +112,9 @@ message UpdateHost_Request {
 
 message CreateRepo_Request {
   string name = 1;
+}
+message DeleteRepo_Request {
+  uint64 id = 1;
 }
 message GetRepo_Request {
   string name = 1;
@@ -154,10 +162,15 @@ message Vip_ListHosts_Reply {
 */
 
 service Nf6Vip {
-  rpc CreateRoute (CreateRoute_Request) returns (None) {}
+  rpc CreatePeer (CreatePeer_Request) returns (None) {}
+  rpc DeletePeer (DeletePeer_Request) returns (None) {}
 }
 
-message CreateRoute_Request {
+message CreatePeer_Request {
   string addr6 = 1;
   string wgPubKey = 2;
+}
+
+message DeletePeer_Request {
+  string wgPubKey = 1;
 }
