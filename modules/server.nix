@@ -35,7 +35,7 @@ in
     {
       enable = mkEnableOption "Nf6 API Server";
       settings = mkOption {
-        description = "attrset mapping to YAML config for nf6-api";
+        description = "attrset mapping to YAML config for Nf6 API";
         type = attrs;
         default = { };
       };

@@ -27,3 +27,4 @@ mkdir -p "$mount_point/boot"
 mount "$boot_device" "$mount_point/boot"
 
 nixos-generate-config --root "$mount_point"
+nixos-install --root "$mount_point"

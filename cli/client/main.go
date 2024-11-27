@@ -19,12 +19,12 @@ var (
 	configPath string
 	saveConfig bool
 
+	apiHost          string
+	apiPort          int
+	apiPortPublic    int
 	apiTlsPubKeyPath string
 	defaultRepo      string
-	host             string
 	output           string
-	port             int
-	portPublic       int
 	stateDir         string
 	timeout          time.Duration
 	tlsCaCertPath    string
@@ -35,8 +35,7 @@ var (
 	vipWgPort        int
 	wgDeviceName     string
 	wgPrivKeyPath    string
-
-	apiTlsPubKey string
+	apiTlsPubKey     string
 
 	sshDir string
 	tlsDir string
@@ -61,12 +60,12 @@ func Init(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&configPath, "config-path", "", "path to config file")
 	cmd.PersistentFlags().BoolVar(&saveConfig, "save-config", false, "save the flags for this execution to the config file")
 
+	lib.AddOption(cmd, &lib.Option{P: &apiHost, Name: "api-host", Shorthand: "", Value: "localhost", Usage: "server host without port"})
+	lib.AddOption(cmd, &lib.Option{P: &apiPort, Name: "api-port", Shorthand: "", Value: 6969, Usage: "server port"})
+	lib.AddOption(cmd, &lib.Option{P: &apiPortPublic, Name: "api-port-public", Shorthand: "", Value: 6968, Usage: "server public port"})
 	lib.AddOption(cmd, &lib.Option{P: &apiTlsPubKeyPath, Name: "api-tls-pub-key-path", Shorthand: "", Value: "", Usage: "path to the API's TLS public key (for wgserver)"})
 	lib.AddOption(cmd, &lib.Option{P: &defaultRepo, Name: "default-repo", Shorthand: "", Value: "main", Usage: "default repo to use for all commands"})
-	lib.AddOption(cmd, &lib.Option{P: &host, Name: "host", Shorthand: "H", Value: "localhost", Usage: "server host without port"})
 	lib.AddOption(cmd, &lib.Option{P: &output, Name: "output", Shorthand: "", Value: "table", Usage: "output type, json/table"})
-	lib.AddOption(cmd, &lib.Option{P: &port, Name: "port", Shorthand: "", Value: 6969, Usage: "server port"})
-	lib.AddOption(cmd, &lib.Option{P: &portPublic, Name: "port-public", Shorthand: "", Value: 6968, Usage: "server public port"})
 	lib.AddOption(cmd, &lib.Option{P: &stateDir, Name: "state-dir", Shorthand: "", Value: "", Usage: "path to state directory"})
 	lib.AddOption(cmd, &lib.Option{P: &timeout, Name: "timeout", Shorthand: "", Value: 5 * time.Second, Usage: "timeout for gRPC requests"})
 	lib.AddOption(cmd, &lib.Option{P: &tlsCaCertPath, Name: "tls-ca-cert-path", Shorthand: "", Value: "", Usage: "path to TLS ca cert"})
@@ -141,7 +140,7 @@ func InitState() {
 
 func ConnectPublic(_ *cobra.Command, _ []string) {
 	var err error
-	connPublic, err = grpc.NewClient(fmt.Sprintf("%s:%d", host, portPublic), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	connPublic, err = grpc.NewClient(fmt.Sprintf("%s:%d", apiHost, apiPortPublic), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		lib.Crash("failed to connect to public server: ", err)
 	}
@@ -199,7 +198,7 @@ func Connect(_ *cobra.Command, _ []string) {
 		RootCAs:      pool,
 	})
 
-	conn, err = grpc.NewClient(fmt.Sprintf("%s:%d", host, port), grpc.WithTransportCredentials(creds), grpc.WithAuthority(lib.TlsName))
+	conn, err = grpc.NewClient(fmt.Sprintf("%s:%d", apiHost, apiPort), grpc.WithTransportCredentials(creds), grpc.WithAuthority(lib.TlsName))
 	if err != nil {
 		lib.Crash("failed to connect to server: ", err)
 	}
